@@ -28,9 +28,14 @@
 
   security.polkit.enable = true;
 
-  environment.systemPackages = with pkgs; [
-   #...
-  ];
+  environment = {
+    variables = {
+      GTK_THEME = "Orchis-Purple-Dark";
+    };
+    systemPackages = with pkgs; [
+      #...
+    ];
+  };
 
   # home-manager
   home-manager.users.Prizrak = import ./home/home-configuration.nix;

@@ -1,4 +1,21 @@
 { config, lib, pkgs, ... }:
+let 
+  base = (import ../../../materials/themes {}).base;
+  mantle = (import ../../../materials/themes {}).mantle;
+  crust = (import ../../../materials/themes {}).crust;
+  text = (import ../../../materials/themes {}).text;
+  subtext = (import ../../../materials/themes {}).subtext;
+  mauve = (import ../../../materials/themes {}).mauve;
+  blue = (import ../../../materials/themes {}).blue;
+  teal = (import ../../../materials/themes {}).teal;
+  red = (import ../../../materials/themes {}).red;
+  yellow = (import ../../../materials/themes {}).yellow;
+  green = (import ../../../materials/themes {}).green; 
+  peach = (import ../../../materials/themes {}).peach;
+  overlay0 = (import ../../../materials/themes {}).overlay0;
+  surface2 = (import ../../../materials/themes {}).surface2;
+in
+
 {
   programs.neovim = {
     coc.enable = true;
@@ -27,7 +44,6 @@
       comment-nvim
       which-key-nvim
       
-      # Coc плагины
       coc-ultisnips
       coc-snippets
       coc-json
@@ -41,22 +57,21 @@
     ];
 
     extraLuaConfig = ''
-      -- Кастомная палитра цветов
       local colors = {
-        base = "#1e1e2e",
-        mantle = "#181825",
-        crust = "#11111b",
-        text = "#cdd6f4",
-        subtext = "#bac2de",
-        mauve = "#cba6f7",
-        blue = "#89b4fa",
-        teal = "#94e2d5",
-        red = "#f38ba8",
-        yellow = "#f9e2af",
-        green = "#a6e3a1",
-        peach = "#fab387",
-        overlay0 = "#6c7086",
-        surface2 = "#585b70",
+        base = "${base}",
+        mantle = "${mantle}",
+        crust = "${crust}",
+        text = "${text}",
+        subtext = "${subtext}",
+        mauve = "${mauve}",
+        blue = "${blue}",
+        teal = "${teal}",
+	red = "${red}",
+        yellow = "${yellow}",
+        green = "${green}",
+        peach = "${peach}",
+        overlay0 = "${overlay0}",
+        surface2 = "${surface2}",
       }
 
       -- Настройка темы

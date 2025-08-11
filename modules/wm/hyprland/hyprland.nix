@@ -107,13 +107,13 @@ in
         resize_on_border = true;
         border_size = 2;  
         gaps_out = 25;
-	gaps_in = 10;
+	      gaps_in = 10;
         layout = "dwindle";  
       };
 
       decoration = {
         active_opacity = 1;
-	inactive_opacity = 0.8;
+	      inactive_opacity = 0.9;
         rounding = 12;
         blur = {
           enabled = true;  
