@@ -4,6 +4,7 @@
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     hyprland.url = "github:hyprwm/Hyprland";
+    hyprpolkitagent.url = "github:hyprwm/hyprpolkitagent";
     flake-utils.url = "github:numtide/flake-utils";
     nixcord.url = "github:kaylorben/nixcord";
 
@@ -12,19 +13,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    quickshell-custom = {
-      url = "github:caelestia-dots/shell";
-    };
-
-    app2unit = {
-      url = "github:soramanew/app2unit";
+    quickshell = {
+      url = "git+https://git.outfoxxed.me/outfoxxed/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    caelestia-cli = {
-      url = "github:caelestia-dots/cli";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.app2unit.follows = "app2unit";
     };
 
     zen-browser = {

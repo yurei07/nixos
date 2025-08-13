@@ -2,7 +2,7 @@
 {
       base = "#1e1e2e";
       mantle = "#181825";
-      crust = "#11111b";
+      crust = "#13131d";
       text = "#cdd6f4";
       subtext = "#bac2de";
       

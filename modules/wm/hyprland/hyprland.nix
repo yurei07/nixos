@@ -1,7 +1,4 @@
 {pkgs, config, inputs, ... }:
-let 
- # script = import ../../../materials/default.nix { inherit pkgs; };
-in
 {
 
   home.packages = with pkgs; [
@@ -74,7 +71,7 @@ in
         "$mod, mouse:273, resizewindow"
       ];
       exec-once = [
-        "caelestia shell -d"
+      "qs -d"
       ];
 
       monitor = [

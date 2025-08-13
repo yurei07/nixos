@@ -1,4 +1,4 @@
 {...}:
 
-  import ./orchis-theme {}
+  import ./catppuccion {}
 

@@ -7,6 +7,7 @@
     ../../../modules/gui/spicetify
     ../../../modules/gui/discord
     ../../../modules/gui/gtk
+    ../../../modules/gui/quickshell
     # tui
     ../../../modules/tui/neovim
     ../../../modules/tui/kitty
@@ -31,7 +32,7 @@
     stateVersion = "25.11";
 
     file.".config/mpv".source = ../../../materials/mpv;
-    #file."Pictures/Wallpapers".source = ../../../materials/Wallpapers;
+    file."Pictures/Wallpapers".source = ../../../materials/Wallpapers;
    
     packages = with pkgs; [
       # Apps
@@ -46,7 +47,6 @@
     	mpv
     	mate.mate-polkit
       orchis-theme
-    
     
     	#themes 
     	gnome-themes-extra
@@ -73,6 +73,8 @@
       networkmanager_dmenu
       pavucontrol
     	xdg-desktop-portal
+      qt6Packages.qt5compat
+      libsForQt5.qt5.qtgraphicaleffects 
     	
     	# Just cool
     	peaclock
@@ -84,9 +86,7 @@
     
     	# inputs
     	inputs.hyprland.packages.${system}.hyprland
-    	inputs.quickshell-custom.packages.${system}.default
-    	inputs.app2unit.packages.${system}.default
-    	inputs.caelestia-cli.packages.${system}.default
+      inputs.quickshell.packages.${system}.default
     	inputs.zen-browser.packages.${system}.default
     	inputs.anicli-ru.packages.${system}.default
     ];

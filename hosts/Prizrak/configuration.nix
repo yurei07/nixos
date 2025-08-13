@@ -30,7 +30,7 @@
 
   environment = {
     variables = {
-      GTK_THEME = "Orchis-Purple-Dark";
+      GTK_THEME = "catppuccin-mocha-lavender-compact";
     };
     systemPackages = with pkgs; [
       #...
