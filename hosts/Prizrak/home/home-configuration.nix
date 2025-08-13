@@ -8,6 +8,7 @@
     ../../../modules/gui/discord
     ../../../modules/gui/gtk
     ../../../modules/gui/quickshell
+    ../../../modules/gui/rofi
     # tui
     ../../../modules/tui/neovim
     ../../../modules/tui/kitty
@@ -43,10 +44,9 @@
     	obs-studio
     	lutris
     	bottles
-    	steam
     	mpv
+      steam
     	mate.mate-polkit
-      orchis-theme
     
     	#themes 
     	gnome-themes-extra

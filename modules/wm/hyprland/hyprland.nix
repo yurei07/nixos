@@ -30,14 +30,14 @@
       bind = [
         "$mod, RETURN, exec, kitty" 
 	"$mod, Y, exec, ${../../../scripts/nvim.sh}"
-	"$mod, E, exec, nautilus"
+	  "$mod, E, exec, nautilus"
         "$mod, B, exec, zen" 
         "$mod, D, exec, discord" 
         "$mod, O, exec, obsidian" 
         "$mod, Q, killactive"
         "$mod, W, togglefloating"
         "$mod, G, fullscreen"
-	"$mod, SPACE, exec, caelestia shell drawers toggle launcher"
+	"$mod, SPACE, exec, rofi -show drun"
         
         ", Print, exec, hyprshot -m output"
         "SHIFT, Print, exec, hyprshot -m region"
