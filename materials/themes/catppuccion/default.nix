@@ -20,4 +20,9 @@
       # Дополнительные
       overlay0 = "#6c7086";
       surface2 = "#585b70";
+
+
+      # for hyprland border
+      crust1 = "13131d";
+      mantle1 = "181825";
 }

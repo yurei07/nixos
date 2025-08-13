@@ -1,4 +1,8 @@
 {pkgs, config, inputs, ... }:
+let 
+  crust1 = (import ../../../materials/themes {}).crust1;
+  mantle1 = (import ../../../materials/themes {}).mantle1;
+in
 {
 
   home.packages = with pkgs; [

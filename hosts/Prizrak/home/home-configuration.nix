@@ -27,6 +27,11 @@
         };
       };
 
+  systemd.user.services.quickshell = {
+    serviceConfig.Restart = "on-failure";
+    serviceConfig.RestartSec = "1s";
+  };
+
   home = {
     username = "Prizrak";
     homeDirectory = "/home/Prizrak";

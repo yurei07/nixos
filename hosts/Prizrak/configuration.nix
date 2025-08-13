@@ -31,6 +31,7 @@
   environment = {
     variables = {
       GTK_THEME = "catppuccin-mocha-lavender-compact";
+       QT_QPA_PLATFORM = "xcb";
     };
     systemPackages = with pkgs; [
       #...
