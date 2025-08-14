@@ -1,4 +1,4 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 
 let
   homeDir = "/home/Prizrak";
@@ -11,4 +11,11 @@ in {
     ln -sfn "${quickshellDir}" "${quickshellTarget}"
     ln -sfn "${faceIconSource}" "${faceIconTarget}"
   '';
+  
+  programs.quickshell = {
+    enable = true;
+    package = (inputs.quickshell.packages.${pkgs.system}.default);
+    systemd.enable = true;
+  };
+
 }

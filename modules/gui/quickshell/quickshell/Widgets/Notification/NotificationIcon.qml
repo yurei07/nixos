@@ -6,7 +6,7 @@ import qs.Components
 
 Item {
     id: root
-    width: 22; height: 22
+    width: 25; height: 22
     property bool isSilence: false
     property var shell: null
 
@@ -30,7 +30,7 @@ Item {
 
     Item {
         id: bell
-        width: 22; height: 22
+        width: 25; height: 22
         Text {
             id: bellText
             anchors.centerIn: parent
@@ -42,7 +42,7 @@ Item {
                 }
             }
             font.family: mouseAreaBell.containsMouse ? "Material Symbols Rounded" : "Material Symbols Outlined"
-            font.pixelSize: 16 * Theme.scale(Screen)
+            font.pixelSize: 14 * Theme.scale(Screen)
             font.weight: {
                 if (shell && shell.notificationHistoryWin && shell.notificationHistoryWin.hasUnread) {
                     return Font.Bold;

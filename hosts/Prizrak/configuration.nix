@@ -24,6 +24,8 @@
 
   nix.settings.experimental-features = ["nix-command" "flakes"]; 
 
+  services.dbus.packages = with pkgs; [ dconf ];
+  services.gnome.gnome-keyring.enable = true;
   programs.dconf.enable = true;
 
   security.polkit.enable = true;
@@ -31,7 +33,6 @@
   environment = {
     variables = {
       GTK_THEME = "catppuccin-mocha-lavender-compact";
-       QT_QPA_PLATFORM = "xcb";
     };
     systemPackages = with pkgs; [
       #...

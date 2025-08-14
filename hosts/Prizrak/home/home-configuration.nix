@@ -27,11 +27,6 @@
         };
       };
 
-  systemd.user.services.quickshell = {
-    serviceConfig.Restart = "on-failure";
-    serviceConfig.RestartSec = "1s";
-  };
-
   home = {
     username = "Prizrak";
     homeDirectory = "/home/Prizrak";
@@ -78,6 +73,7 @@
       networkmanager_dmenu
       pavucontrol
     	xdg-desktop-portal
+      qt6.full
       qt6Packages.qt5compat
       libsForQt5.qt5.qtgraphicaleffects 
     	
@@ -91,7 +87,6 @@
     
     	# inputs
     	inputs.hyprland.packages.${system}.hyprland
-      inputs.quickshell.packages.${system}.default
     	inputs.zen-browser.packages.${system}.default
     	inputs.anicli-ru.packages.${system}.default
     ];
