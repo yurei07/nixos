@@ -9,6 +9,7 @@
     ../../../modules/gui/gtk
     ../../../modules/gui/quickshell
     ../../../modules/gui/rofi
+    #../../../modules/gui/nextclound
     # tui
     ../../../modules/tui/neovim
     ../../../modules/tui/kitty
@@ -47,6 +48,13 @@
     	mpv
       steam
     	mate.mate-polkit
+      xdg-desktop-portal-gnome
+      swww
+      matugen
+      gpu-screen-recorder
+      brightnessctl
+      ddcutil
+      nextcloud-client
     
     	#themes 
     	gnome-themes-extra

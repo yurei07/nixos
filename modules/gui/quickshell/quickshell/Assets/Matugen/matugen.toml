@@ -1,0 +1,7 @@
+# This file configures how matugen generates colors from wallpapers for Noctalia
+[config]
+
+
+[templates.noctalia]
+input_path = "templates/noctalia.json"
+output_path = "~/.config/noctalia/colors.json"
