@@ -29,6 +29,7 @@ I created my own dotfiles on nixos :)
 
 ## Gallery 
 
-[!nixos](assets/nixos/2025-08-18-111814_hyprshot.png)
-[!nixos](assets/nixos/2025-08-18-111913_hyprshot.png)
-[!nixos](assets/nixos/2025-08-18-112044_hyprshot.png)
+![nixos](assets/nixos/2025-08-18-111814_hyprshot.png)
+![nixos](assets/nixos/2025-08-18-111913_hyprshot.png)
+![nixos](assets/nixos/2025-08-18-112044_hyprshot.png)
+
