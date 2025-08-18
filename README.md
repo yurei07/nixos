@@ -25,7 +25,7 @@ I created my own dotfiles on nixos :)
 
 - **`scripts/`** 🔧  
   Scripts for my system.
-  - **`nvim.sh`**: The scripts is for edite my config in my nvim.
+  - **`nvim.sh`**: The scripts is for edit my config in my nvim.
 
 ## Gallery 
 
@@ -34,5 +34,6 @@ I created my own dotfiles on nixos :)
 ![nixos](assets/nixos/2025-08-18-111913_hyprshot.png)
 
 ![nixos](assets/nixos/2025-08-18-112044_hyprshot.png)
+
 
 
