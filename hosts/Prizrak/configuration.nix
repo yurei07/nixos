@@ -10,6 +10,7 @@
       ./nix-modules/users.nix
       ./nix-modules/fonts.nix
       ./nix-modules/audio.nix
+      ./nix-modules/lightdm.nix
     ];
 
   # Use the systemd-boot EFI boot loader.

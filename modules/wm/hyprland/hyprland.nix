@@ -75,7 +75,7 @@ in
         "$mod, mouse:273, resizewindow"
       ];
       exec-once = [
-      "qs -d"
+        "qs ipc call globalIPC toggleLock"
       ];
 
       monitor = [

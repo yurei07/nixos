@@ -48,7 +48,7 @@ in
     };
 
     shellAliases = {
-      u = "cd /etc/nixos; sudo nixos-rebuild switch --flake .#nixos; nh os switch /etc/nixos";
+      u = "cd /etc/nixos; sudo nixos-rebuild switch --flake .#nixos; nh os switch /etc/nixos; cd ";
       u-full = "cd /etc/nixos; sudo nix flake update; nh os switch /etc/nixos";
 
     };
