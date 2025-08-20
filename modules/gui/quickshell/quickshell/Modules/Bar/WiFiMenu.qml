@@ -83,15 +83,19 @@ NLoader {
       Rectangle {
         id: wifiMenuRect
         color: Color.mSurface
-        radius: Style.radiusLarge * scaling
-        border.color: Color.mOutlineVariant
-        border.width: Math.max(1, Style.borderThin * scaling)
+        radius: Style.radiusL * scaling
+        border.color: Color.mOutline
+        border.width: Math.max(1, Style.borderS * scaling)
         width: 340 * scaling
         height: 500 * scaling
-        anchors.top: parent.top
-        anchors.right: parent.right
-        anchors.topMargin: Style.marginTiny * scaling
-        anchors.rightMargin: Style.marginTiny * scaling
+        anchors {
+          right: parent.right
+          rightMargin: Style.marginXS * scaling
+          top: Settings.data.bar.position === "top" ? parent.top : undefined
+          bottom: Settings.data.bar.position === "bottom" ? parent.bottom : undefined
+          topMargin: Settings.data.bar.position === "top" ? Style.marginXS * scaling : undefined
+          bottomMargin: Settings.data.bar.position === "bottom" ? Style.barHeight * scaling + Style.marginXS * scaling : undefined
+        }
 
         // Animation properties
         property real scaleValue: 0.8
@@ -123,23 +127,22 @@ NLoader {
 
         ColumnLayout {
           anchors.fill: parent
-          anchors.margins: Style.marginLarge * scaling
-          spacing: Style.marginMedium * scaling
+          anchors.margins: Style.marginL * scaling
+          spacing: Style.marginM * scaling
 
           RowLayout {
             Layout.fillWidth: true
-            spacing: Style.marginMedium * scaling
+            spacing: Style.marginM * scaling
 
-            NText {
+            NIcon {
               text: "wifi"
-              font.family: "Material Symbols Outlined"
-              font.pointSize: Style.fontSizeXL * scaling
+              font.pointSize: Style.fontSizeXXL * scaling
               color: Color.mPrimary
             }
 
             NText {
               text: "WiFi"
-              font.pointSize: Style.fontSizeLarge * scaling
+              font.pointSize: Style.fontSizeL * scaling
               font.bold: true
               color: Color.mOnSurface
               Layout.fillWidth: true
@@ -175,7 +178,7 @@ NLoader {
             ColumnLayout {
               anchors.centerIn: parent
               visible: Settings.data.network.wifiEnabled && NetworkService.isLoading
-              spacing: Style.marginMedium * scaling
+              spacing: Style.marginM * scaling
 
               NBusyIndicator {
                 running: NetworkService.isLoading
@@ -196,19 +199,18 @@ NLoader {
             ColumnLayout {
               anchors.centerIn: parent
               visible: !Settings.data.network.wifiEnabled
-              spacing: Style.marginMedium * scaling
+              spacing: Style.marginM * scaling
 
-              NText {
+              NIcon {
                 text: "wifi_off"
-                font.family: "Material Symbols Outlined"
-                font.pointSize: Style.fontSizeXXL * scaling
+                font.pointSize: Style.fontSizeXXXL * scaling
                 color: Color.mOnSurfaceVariant
                 Layout.alignment: Qt.AlignHCenter
               }
 
               NText {
                 text: "WiFi is disabled"
-                font.pointSize: Style.fontSizeLarge * scaling
+                font.pointSize: Style.fontSizeL * scaling
                 color: Color.mOnSurfaceVariant
                 Layout.alignment: Qt.AlignHCenter
               }
@@ -227,7 +229,7 @@ NLoader {
               anchors.fill: parent
               visible: Settings.data.network.wifiEnabled && !NetworkService.isLoading
               model: Object.values(NetworkService.networks)
-              spacing: Style.marginMedium * scaling
+              spacing: Style.marginM * scaling
               clip: true
 
               delegate: Item {
@@ -242,24 +244,23 @@ NLoader {
                   Rectangle {
                     Layout.fillWidth: true
                     Layout.preferredHeight: Style.baseWidgetSize * 1.5 * scaling
-                    radius: Style.radiusMedium * scaling
+                    radius: Style.radiusM * scaling
                     color: modelData.connected ? Color.mPrimary : (networkMouseArea.containsMouse ? Color.mTertiary : Color.transparent)
 
                     RowLayout {
                       anchors.fill: parent
-                      anchors.margins: Style.marginSmall * scaling
-                      spacing: Style.marginSmall * scaling
+                      anchors.margins: Style.marginS * scaling
+                      spacing: Style.marginS * scaling
 
-                      NText {
+                      NIcon {
                         text: NetworkService.signalIcon(modelData.signal)
-                        font.family: "Material Symbols Outlined"
-                        font.pointSize: Style.fontSizeXL * scaling
+                        font.pointSize: Style.fontSizeXXL * scaling
                         color: modelData.connected ? Color.mSurface : (networkMouseArea.containsMouse ? Color.mSurface : Color.mOnSurface)
                       }
 
                       ColumnLayout {
                         Layout.fillWidth: true
-                        spacing: Style.marginTiny * scaling
+                        spacing: Style.marginXS * scaling
 
                         // SSID
                         NText {
@@ -273,7 +274,7 @@ NLoader {
                         // Security Protocol
                         NText {
                           text: modelData.security && modelData.security !== "--" ? modelData.security : "Open"
-                          font.pointSize: Style.fontSizeTiny * scaling
+                          font.pointSize: Style.fontSizeXS * scaling
                           elide: Text.ElideRight
                           Layout.fillWidth: true
                           color: modelData.connected ? Color.mSurface : (networkMouseArea.containsMouse ? Color.mSurface : Color.mOnSurface)
@@ -284,7 +285,7 @@ NLoader {
                                    && NetworkService.connectStatus === "error" && NetworkService.connectError.length > 0
                           text: NetworkService.connectError
                           color: Color.mError
-                          font.pointSize: Style.fontSizeSmall * scaling
+                          font.pointSize: Style.fontSizeXS * scaling
                           elide: Text.ElideRight
                           Layout.fillWidth: true
                         }
@@ -309,7 +310,7 @@ NLoader {
                       NText {
                         visible: modelData.connected
                         text: "connected"
-                        font.pointSize: Style.fontSizeSmall * scaling
+                        font.pointSize: Style.fontSizeXS * scaling
                         color: modelData.connected ? Color.mSurface : (networkMouseArea.containsMouse ? Color.mSurface : Color.mOnSurface)
                       }
                     }
@@ -340,15 +341,15 @@ NLoader {
                     id: passwordPromptSection
                     Layout.fillWidth: true
                     Layout.preferredHeight: modelData.ssid === passwordPromptSsid && showPasswordPrompt ? 60 : 0
-                    Layout.margins: Style.marginSmall * scaling
+                    Layout.margins: Style.marginS * scaling
                     visible: modelData.ssid === passwordPromptSsid && showPasswordPrompt
                     color: Color.mSurfaceVariant
-                    radius: Style.radiusSmall * scaling
+                    radius: Style.radiusS * scaling
 
                     RowLayout {
                       anchors.fill: parent
-                      anchors.margins: Style.marginSmall * scaling
-                      spacing: Style.marginSmall * scaling
+                      anchors.margins: Style.marginS * scaling
+                      spacing: Style.marginS * scaling
 
                       Item {
                         Layout.fillWidth: true
@@ -356,17 +357,17 @@ NLoader {
 
                         Rectangle {
                           anchors.fill: parent
-                          radius: Style.radiusTiny * scaling
+                          radius: Style.radiusXS * scaling
                           color: Color.transparent
                           border.color: passwordInputField.activeFocus ? Color.mPrimary : Color.mOutline
-                          border.width: Math.max(1, Style.borderThin * scaling)
+                          border.width: Math.max(1, Style.borderS * scaling)
 
                           TextInput {
                             id: passwordInputField
                             anchors.fill: parent
-                            anchors.margins: Style.marginMedium * scaling
+                            anchors.margins: Style.marginM * scaling
                             text: passwordInput
-                            font.pointSize: Style.fontSizeMedium * scaling
+                            font.pointSize: Style.fontSizeM * scaling
                             color: Color.mOnSurface
                             verticalAlignment: TextInput.AlignVCenter
                             clip: true
@@ -393,7 +394,7 @@ NLoader {
                       Rectangle {
                         Layout.preferredWidth: Style.baseWidgetSize * 2.5 * scaling
                         Layout.preferredHeight: Style.barHeight * scaling
-                        radius: Style.radiusMedium * scaling
+                        radius: Style.radiusM * scaling
                         color: Color.mPrimary
 
                         Behavior on color {
@@ -406,7 +407,7 @@ NLoader {
                           anchors.centerIn: parent
                           text: "Connect"
                           color: Color.mSurface
-                          font.pointSize: Style.fontSizeSmall * scaling
+                          font.pointSize: Style.fontSizeXS * scaling
                         }
 
                         MouseArea {

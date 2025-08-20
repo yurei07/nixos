@@ -68,15 +68,19 @@ NLoader {
         property var deviceData: null
 
         color: Color.mSurface
-        radius: Style.radiusLarge * scaling
-        border.color: Color.mOutlineVariant
-        border.width: Math.max(1, Style.borderThin * scaling)
+        radius: Style.radiusL * scaling
+        border.color: Color.mOutline
+        border.width: Math.max(1, Style.borderS * scaling)
         width: 380 * scaling
         height: 500 * scaling
-        anchors.top: parent.top
-        anchors.right: parent.right
-        anchors.topMargin: Style.marginTiny * scaling
-        anchors.rightMargin: Style.marginTiny * scaling
+        anchors {
+          right: parent.right
+          rightMargin: Style.marginXS * scaling
+          top: Settings.data.bar.position === "top" ? parent.top : undefined
+          bottom: Settings.data.bar.position === "bottom" ? parent.bottom : undefined
+          topMargin: Settings.data.bar.position === "top" ? Style.marginXS * scaling : undefined
+          bottomMargin: Settings.data.bar.position === "bottom" ? Style.barHeight * scaling + Style.marginXS * scaling : undefined
+        }
 
         // Animation properties
         property real scaleValue: 0.8
@@ -113,24 +117,23 @@ NLoader {
 
         ColumnLayout {
           anchors.fill: parent
-          anchors.margins: Style.marginLarge * scaling
-          spacing: Style.marginMedium * scaling
+          anchors.margins: Style.marginL * scaling
+          spacing: Style.marginM * scaling
 
           // HEADER
           RowLayout {
             Layout.fillWidth: true
-            spacing: Style.marginMedium * scaling
+            spacing: Style.marginM * scaling
 
-            NText {
+            NIcon {
               text: "bluetooth"
-              font.family: "Material Symbols Outlined"
-              font.pointSize: Style.fontSizeXL * scaling
+              font.pointSize: Style.fontSizeXXL * scaling
               color: Color.mPrimary
             }
 
             NText {
               text: "Bluetooth"
-              font.pointSize: Style.fontSizeLarge * scaling
+              font.pointSize: Style.fontSizeL * scaling
               font.weight: Style.fontWeightBold
               color: Color.mOnSurface
               Layout.fillWidth: true
@@ -173,16 +176,16 @@ NLoader {
               id: column
 
               width: parent.width
-              spacing: Style.marginMedium * scaling
+              spacing: Style.marginM * scaling
               visible: BluetoothService.adapter && BluetoothService.adapter.enabled
 
               RowLayout {
                 width: parent.width
-                spacing: Style.marginMedium * scaling
+                spacing: Style.marginM * scaling
 
                 NText {
                   text: "Available Devices"
-                  font.pointSize: Style.fontSizeLarge * scaling
+                  font.pointSize: Style.fontSizeL * scaling
                   color: Color.mOnSurface
                   font.weight: Style.fontWeightMedium
                 }
@@ -207,7 +210,7 @@ NLoader {
 
                   width: parent.width
                   height: 70
-                  radius: Style.radiusMedium * scaling
+                  radius: Style.radiusM * scaling
                   color: {
                     if (availableDeviceArea.containsMouse && !isBusy)
                       return Color.mTertiary
@@ -221,19 +224,18 @@ NLoader {
                     return Color.mSurfaceVariant
                   }
                   border.color: Color.mOutline
-                  border.width: Math.max(1, Style.borderThin * scaling)
+                  border.width: Math.max(1, Style.borderS * scaling)
 
                   Row {
                     anchors.left: parent.left
-                    anchors.leftMargin: Style.marginMedium * scaling
+                    anchors.leftMargin: Style.marginM * scaling
                     anchors.verticalCenter: parent.verticalCenter
-                    spacing: Style.marginSmall * scaling
+                    spacing: Style.marginS * scaling
 
                     // One device BT icon
-                    NText {
+                    NIcon {
                       text: BluetoothService.getDeviceIcon(modelData)
-                      font.family: "Material Symbols Outlined"
-                      font.pointSize: Style.fontSizeXL * scaling
+                      font.pointSize: Style.fontSizeXXL * scaling
                       color: {
                         if (availableDeviceArea.containsMouse)
                           return Color.mOnTertiary
@@ -250,7 +252,7 @@ NLoader {
                     }
 
                     Column {
-                      spacing: Style.marginTiniest * scaling
+                      spacing: Style.marginXXS * scaling
                       anchors.verticalCenter: parent.verticalCenter
 
                       // One device name
@@ -274,10 +276,10 @@ NLoader {
                       }
 
                       Row {
-                        spacing: Style.marginTiny * scaling
+                        spacing: Style.marginXS * scaling
 
                         Row {
-                          spacing: Style.marginSmall * spacing
+                          spacing: Style.marginS * spacing
 
                           // One device signal strength - "Unknown" when not connected
                           NText {
@@ -290,7 +292,7 @@ NLoader {
 
                               return BluetoothService.getSignalStrength(modelData)
                             }
-                            font.pointSize: Style.fontSizeSmall * scaling
+                            font.pointSize: Style.fontSizeXS * scaling
                             color: {
                               if (availableDeviceArea.containsMouse)
                                 return Color.mOnTertiary
@@ -305,10 +307,9 @@ NLoader {
                             }
                           }
 
-                          NText {
+                          NIcon {
                             text: BluetoothService.getSignalIcon(modelData)
-                            font.family: "Material Symbols Outlined"
-                            font.pointSize: Style.fontSizeSmall * scaling
+                            font.pointSize: Style.fontSizeXS * scaling
                             color: {
                               if (availableDeviceArea.containsMouse)
                                 return Color.mOnTertiary
@@ -328,7 +329,7 @@ NLoader {
                           NText {
                             text: (modelData.signalStrength !== undefined
                                    && modelData.signalStrength > 0) ? modelData.signalStrength + "%" : ""
-                            font.pointSize: Style.fontSizeSmall * scaling
+                            font.pointSize: Style.fontSizeXS * scaling
                             color: {
                               if (availableDeviceArea.containsMouse)
                                 return Color.mOnTertiary
@@ -352,9 +353,9 @@ NLoader {
                   Rectangle {
                     width: 80 * scaling
                     height: 28 * scaling
-                    radius: Style.radiusMedium * scaling
+                    radius: Style.radiusM * scaling
                     anchors.right: parent.right
-                    anchors.rightMargin: Style.marginMedium * scaling
+                    anchors.rightMargin: Style.marginM * scaling
                     anchors.verticalCenter: parent.verticalCenter
                     visible: modelData.state !== BluetoothDeviceState.Connecting
                     color: Color.transparent
@@ -366,7 +367,7 @@ NLoader {
                         return Color.mPrimary
                       }
                     }
-                    border.width: Math.max(1, Style.borderThin * scaling)
+                    border.width: Math.max(1, Style.borderS * scaling)
                     opacity: canConnect || isBusy ? 1 : 0.5
 
                     // On device connect button
@@ -381,7 +382,7 @@ NLoader {
 
                         return "Connect"
                       }
-                      font.pointSize: Style.fontSizeSmall * scaling
+                      font.pointSize: Style.fontSizeXS * scaling
                       font.weight: Style.fontWeightMedium
                       color: {
                         if (availableDeviceArea.containsMouse) {
@@ -412,7 +413,7 @@ NLoader {
               // Fallback if nothing available
               Column {
                 width: parent.width
-                spacing: Style.marginMedium * scaling
+                spacing: Style.marginM * scaling
                 visible: {
                   if (!BluetoothService.adapter || !BluetoothService.adapter.discovering || !Bluetooth.devices)
                     return false
@@ -428,11 +429,10 @@ NLoader {
 
                 Row {
                   anchors.horizontalCenter: parent.horizontalCenter
-                  spacing: Style.marginMedium * scaling
+                  spacing: Style.marginM * scaling
 
-                  NText {
+                  NIcon {
                     text: "sync"
-                    font.family: "Material Symbols Outlined"
                     font.pointSize: Style.fontSizeXLL * 1.5 * scaling
                     color: Color.mPrimary
                     anchors.verticalCenter: parent.verticalCenter
@@ -448,7 +448,7 @@ NLoader {
 
                   NText {
                     text: "Scanning for devices..."
-                    font.pointSize: Style.fontSizeLarge * scaling
+                    font.pointSize: Style.fontSizeL * scaling
                     color: Color.mOnSurface
                     font.weight: Style.fontWeightMedium
                     anchors.verticalCenter: parent.verticalCenter
@@ -457,7 +457,7 @@ NLoader {
 
                 NText {
                   text: "Make sure your device is in pairing mode"
-                  font.pointSize: Style.fontSizeMedium * scaling
+                  font.pointSize: Style.fontSizeM * scaling
                   color: Color.mOnSurfaceVariant
                   anchors.horizontalCenter: parent.horizontalCenter
                 }
@@ -465,7 +465,7 @@ NLoader {
 
               NText {
                 text: "No devices found. Put your device in pairing mode and click Start Scanning."
-                font.pointSize: Style.fontSizeMedium * scaling
+                font.pointSize: Style.fontSizeM * scaling
                 color: Color.mOnSurfaceVariant
                 visible: {
                   if (!BluetoothService.adapter || !Bluetooth.devices)

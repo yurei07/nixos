@@ -11,9 +11,15 @@ NIconButton {
   id: root
 
   readonly property bool wifiEnabled: Settings.data.network.wifiEnabled
+
   sizeMultiplier: 0.8
-  showBorder: false
   visible: wifiEnabled
+
+  colorBg: Color.mSurfaceVariant
+  colorFg: Color.mOnSurface
+  colorBorder: Color.transparent
+  colorBorderHover: Color.transparent
+
   icon: {
     let connected = false
     let signalStrength = 0

@@ -5,3 +5,22 @@
 [templates.noctalia]
 input_path = "templates/noctalia.json"
 output_path = "~/.config/noctalia/colors.json"
+
+# GTK 4 (libadwaita) variables override
+[templates.gtk4]
+input_path = "templates/gtk4.css"
+output_path = "~/.config/gtk-4.0/gtk.css"
+
+# GTK 3 named-colors fallback for legacy apps
+[templates.gtk3]
+input_path = "templates/gtk3.css"
+output_path = "~/.config/gtk-3.0/gtk.css"
+
+# Qt6ct color scheme (can also be used by qt5ct in many distros)
+[templates.qt6]
+input_path = "templates/qtct.conf"
+output_path = "~/.config/qt6ct/colors/noctalia.conf"
+
+[templates.qt5]
+input_path = "templates/qtct.conf"
+output_path = "~/.config/qt5ct/colors/noctalia.conf"

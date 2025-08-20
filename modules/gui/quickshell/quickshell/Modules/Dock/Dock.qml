@@ -118,8 +118,8 @@ NLoader {
           color: Color.mSurface
           anchors.horizontalCenter: parent.horizontalCenter
           anchors.bottom: parent.bottom
-          topLeftRadius: Style.radiusLarge * scaling
-          topRightRadius: Style.radiusLarge * scaling
+          topLeftRadius: Style.radiusL * scaling
+          topRightRadius: Style.radiusL * scaling
 
           MouseArea {
             id: dockMouseArea
@@ -171,7 +171,7 @@ NLoader {
 
             Row {
               id: runningAppsRow
-              spacing: Style.marginLarge * scaling
+              spacing: Style.marginL * scaling
               height: parent.height
               anchors.centerIn: parent
 
@@ -183,7 +183,7 @@ NLoader {
                   width: iconSize * scaling
                   height: iconSize * scaling
                   color: Color.transparent
-                  radius: Style.radiusMedium * scaling
+                  radius: Style.radiusM * scaling
 
                   property bool isActive: ToplevelManager.activeToplevel && ToplevelManager.activeToplevel === modelData
                   property bool hovered: appMouseArea.containsMouse
@@ -292,10 +292,10 @@ NLoader {
                     width: iconSize * 0.75
                     height: 4 * scaling
                     color: Color.mPrimary
-                    radius: Style.radiusTiny
+                    radius: Style.radiusXS
                     anchors.top: parent.bottom
                     anchors.horizontalCenter: parent.horizontalCenter
-                    anchors.topMargin: Style.marginTiniest * scaling
+                    anchors.topMargin: Style.marginXXS * scaling
                   }
                 }
               }

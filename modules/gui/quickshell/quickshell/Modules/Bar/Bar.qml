@@ -25,7 +25,8 @@ Variants {
                           || (Settings.data.bar.monitors.length === 0)) : false
 
     anchors {
-      top: true
+      top: Settings.data.bar.position === "top"
+      bottom: Settings.data.bar.position === "bottom"
       left: true
       right: true
     }
@@ -39,7 +40,7 @@ Variants {
         id: bar
 
         anchors.fill: parent
-        color: Color.mSurface
+        color: Qt.rgba(Color.mSurface.r, Color.mSurface.g, Color.mSurface.b, Settings.data.bar.backgroundOpacity)
         layer.enabled: true
       }
 
@@ -49,9 +50,9 @@ Variants {
 
         height: parent.height
         anchors.left: parent.left
-        anchors.leftMargin: Style.marginSmall * scaling
+        anchors.leftMargin: Style.marginS * scaling
         anchors.verticalCenter: parent.verticalCenter
-        spacing: Style.marginSmall * scaling
+        spacing: Style.marginS * scaling
 
         SystemMonitor {}
 
@@ -67,7 +68,7 @@ Variants {
         height: parent.height
         anchors.horizontalCenter: parent.horizontalCenter
         anchors.verticalCenter: parent.verticalCenter
-        spacing: Style.marginSmall * scaling
+        spacing: Style.marginS * scaling
 
         Workspace {}
       }
@@ -78,23 +79,12 @@ Variants {
 
         height: parent.height
         anchors.right: bar.right
-        anchors.rightMargin: Style.marginSmall * scaling
+        anchors.rightMargin: Style.marginS * scaling
         anchors.verticalCenter: bar.verticalCenter
-        spacing: Style.marginSmall * scaling
+        spacing: Style.marginS * scaling
 
-        // Screen Recording Indicator
-        NIconButton {
-          id: screenRecordingIndicator
-          icon: "videocam"
-          tooltipText: "Screen Recording Active"
-          sizeMultiplier: 0.8
-          showBorder: false
-          showFilled: ScreenRecorderService.isRecording
-          visible: ScreenRecorderService.isRecording
+        ScreenRecorderIndicator {
           anchors.verticalCenter: parent.verticalCenter
-          onClicked: {
-            ScreenRecorderService.toggleRecording()
-          }
         }
 
         Tray {
@@ -112,6 +102,7 @@ Variants {
         Bluetooth {
           anchors.verticalCenter: parent.verticalCenter
         }
+
         Battery {
           anchors.verticalCenter: parent.verticalCenter
         }
@@ -133,39 +124,12 @@ Variants {
         //   icon: "experiment"
         //   tooltipText: "Open Demo Panel"
         //   sizeMultiplier: 0.8
-        //   showBorder: false
         //   anchors.verticalCenter: parent.verticalCenter
         //   onClicked: {
         //     demoPanel.isLoaded = !demoPanel.isLoaded
         //   }
         // }
-        NIconButton {
-          id: sidePanelToggle
-          icon: "widgets"
-          tooltipText: "Open Side Panel"
-          sizeMultiplier: 0.8
-          showBorder: false
-          anchors.verticalCenter: parent.verticalCenter
-          onClicked: {
-            // Map this button's center to the screen and open the side panel below it
-            const localCenterX = width / 2
-            const localCenterY = height / 2
-            const globalPoint = mapToItem(null, localCenterX, localCenterY)
-            if (sidePanel.isLoaded) {
-              // Call hide() instead of directly setting isLoaded to false
-              if (sidePanel.item && sidePanel.item.hide) {
-                sidePanel.item.hide()
-              } else {
-                sidePanel.isLoaded = false
-              }
-            } else if (sidePanel.openAt) {
-              sidePanel.openAt(globalPoint.x, screen)
-            } else {
-              // Fallback: toggle if API unavailable
-              sidePanel.isLoaded = true
-            }
-          }
-        }
+        SidePanelToggle {}
       }
     }
   }

@@ -9,18 +9,24 @@ import qs.Commons
 import qs.Services
 import qs.Widgets
 
-Item {
+Rectangle {
   readonly property real itemSize: 24 * scaling
 
-  visible: Settings.data.bar.showTray
-  width: tray.width
-  height: itemSize
+  visible: Settings.data.bar.showTray && (SystemTray.items.values.length > 0)
+  width: tray.width + Style.marginM * scaling * 2
+
+  height: Math.round(Style.capsuleHeight * scaling)
+  radius: Math.round(Style.radiusM * scaling)
+  color: Color.mSurfaceVariant
+
+  Layout.alignment: Qt.AlignVCenter
 
   Row {
     id: tray
 
-    spacing: Style.marginSmall * scaling
-    Layout.alignment: Qt.AlignVCenter
+    anchors.verticalCenter: parent.verticalCenter
+    anchors.horizontalCenter: parent.horizontalCenter
+    spacing: Style.marginS * scaling
 
     Repeater {
       id: repeater
@@ -33,8 +39,8 @@ Item {
         IconImage {
           id: trayIcon
           anchors.centerIn: parent
-          width: Style.marginLarge * scaling
-          height: Style.marginLarge * scaling
+          width: Style.marginL * scaling
+          height: Style.marginL * scaling
           smooth: false
           asynchronous: true
           backer.fillMode: Image.PreserveAspectFit
@@ -113,6 +119,7 @@ Item {
           id: trayTooltip
           target: trayIcon
           text: modelData.tooltipTitle || modelData.name || modelData.id || "Tray Item"
+          positionAbove: Settings.data.bar.position === "bottom"
         }
       }
     }

@@ -52,9 +52,6 @@ NPill {
 
   icon: root.batteryIcon()
   text: Math.round(root.percent) + "%"
-  pillColor: Color.mSurfaceVariant
-  iconCircleColor: Color.mPrimary
-  iconTextColor: Color.mSurface
   textColor: charging ? Color.mPrimary : Color.mOnSurface
   tooltipText: {
     let lines = []

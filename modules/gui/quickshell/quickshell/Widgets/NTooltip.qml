@@ -10,6 +10,8 @@ Window {
   property Item target: null
   property int delay: Style.tooltipDelay
   property bool positionAbove: false
+  property bool positionLeft: false
+  property bool positionRight: false
 
   flags: Qt.ToolTip | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
   color: Color.transparent
@@ -37,14 +39,24 @@ Window {
 
   function _showNow() {
     // Compute new size everytime we show the tooltip
-    width = Math.max(50 * scaling, tooltipText.implicitWidth + Style.marginLarge * 2 * scaling)
-    height = Math.max(40 * scaling, tooltipText.implicitHeight + Style.marginMedium * 2 * scaling)
+    width = Math.max(50 * scaling, tooltipText.implicitWidth + Style.marginL * 2 * scaling)
+    height = Math.max(40 * scaling, tooltipText.implicitHeight + Style.marginM * 2 * scaling)
 
     if (!target) {
       return
     }
 
-    if (positionAbove) {
+    if (positionLeft) {
+      // Position tooltip to the left of the target
+      var pos = target.mapToGlobal(0, 0)
+      x = pos.x - width - 12 // 12 px margin to the left
+      y = pos.y - height / 2 + target.height / 2
+    } else if (positionRight) {
+      // Position tooltip to the right of the target
+      var pos = target.mapToGlobal(target.width, 0)
+      x = pos.x + 12 // 12 px margin to the right
+      y = pos.y - height / 2 + target.height / 2
+    } else if (positionAbove) {
       // Position tooltip above the target
       var pos = target.mapToGlobal(0, 0)
       x = pos.x - width / 2 + target.width / 2
@@ -134,10 +146,10 @@ Window {
   Rectangle {
     id: tooltipRect
     anchors.fill: parent
-    radius: Style.radiusMedium * scaling
+    radius: Style.radiusM * scaling
     color: Color.mSurface
     border.color: Color.mOutline
-    border.width: Math.max(1, Style.borderThin * scaling)
+    border.width: Math.max(1, Style.borderS * scaling)
     z: 1
 
     // Animation properties
@@ -166,7 +178,7 @@ Window {
       id: tooltipText
       anchors.centerIn: parent
       text: root.text
-      font.pointSize: Style.fontSizeMedium * scaling
+      font.pointSize: Style.fontSizeM * scaling
       horizontalAlignment: Text.AlignHCenter
       verticalAlignment: Text.AlignVCenter
       wrapMode: Text.Wrap

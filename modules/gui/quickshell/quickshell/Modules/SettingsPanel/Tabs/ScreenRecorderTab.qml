@@ -15,7 +15,7 @@ ColumnLayout {
 
     Layout.fillWidth: true
     Layout.fillHeight: true
-    padding: Style.marginMedium * scaling
+    padding: Style.marginM * scaling
     clip: true
     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
@@ -30,26 +30,26 @@ ColumnLayout {
       }
 
       ColumnLayout {
-        spacing: Style.marginTiny * scaling
+        spacing: Style.marginXS * scaling
         Layout.fillWidth: true
 
         NText {
-          text: "Recording"
-          font.pointSize: Style.fontSizeXL * scaling
+          text: "Recordings"
+          font.pointSize: Style.fontSizeXXL * scaling
           font.weight: Style.fontWeightBold
           color: Color.mOnSurface
-          Layout.bottomMargin: Style.marginSmall * scaling
+          Layout.bottomMargin: Style.marginS * scaling
         }
 
         // Output Directory
         ColumnLayout {
-          spacing: Style.marginSmall * scaling
+          spacing: Style.marginS * scaling
           Layout.fillWidth: true
-          Layout.topMargin: Style.marginSmall * scaling
+          Layout.topMargin: Style.marginS * scaling
 
           NTextInput {
             label: "Output Directory"
-            description: "Directory where screen recordings will be saved"
+            description: "Directory where screen recordings will be saved."
             placeholderText: "/home/xxx/Videos"
             text: Settings.data.screenRecorder.directory
             onEditingFinished: {
@@ -58,13 +58,13 @@ ColumnLayout {
           }
 
           ColumnLayout {
-            spacing: Style.marginSmall * scaling
+            spacing: Style.marginS * scaling
             Layout.fillWidth: true
-            Layout.topMargin: Style.marginMedium * scaling
+            Layout.topMargin: Style.marginM * scaling
             // Show Cursor
             NToggle {
               label: "Show Cursor"
-              description: "Record mouse cursor in the video"
+              description: "Record mouse cursor in the video."
               checked: Settings.data.screenRecorder.showCursor
               onToggled: checked => {
                            Settings.data.screenRecorder.showCursor = checked
@@ -75,27 +75,27 @@ ColumnLayout {
 
         NDivider {
           Layout.fillWidth: true
-          Layout.topMargin: Style.marginLarge * 2 * scaling
-          Layout.bottomMargin: Style.marginLarge * scaling
+          Layout.topMargin: Style.marginL * 2 * scaling
+          Layout.bottomMargin: Style.marginL * scaling
         }
 
         // Video Settings
         ColumnLayout {
-          spacing: Style.marginLarge * scaling
+          spacing: Style.marginL * scaling
           Layout.fillWidth: true
 
           NText {
             text: "Video Settings"
-            font.pointSize: Style.fontSizeXL * scaling
+            font.pointSize: Style.fontSizeXXL * scaling
             font.weight: Style.fontWeightBold
             color: Color.mOnSurface
-            Layout.bottomMargin: Style.marginSmall * scaling
+            Layout.bottomMargin: Style.marginS * scaling
           }
 
           // Frame Rate
           NComboBox {
             label: "Frame Rate"
-            description: "Target frame rate for screen recordings (default: 60)"
+            description: "Target frame rate for screen recordings (default: 60)."
             model: ListModel {
               ListElement {
                 key: "30"
@@ -123,7 +123,7 @@ ColumnLayout {
           // Video Quality
           NComboBox {
             label: "Video Quality"
-            description: "Higher quality results in larger file sizes"
+            description: "Higher quality results in larger file sizes."
             model: ListModel {
               ListElement {
                 key: "medium"
@@ -151,7 +151,7 @@ ColumnLayout {
           // Video Codec
           NComboBox {
             label: "Video Codec"
-            description: "Different codecs offer different compression and compatibility"
+            description: "Different codecs offer different compression and compatibility."
             model: ListModel {
               ListElement {
                 key: "h264"
@@ -183,7 +183,7 @@ ColumnLayout {
           // Color Range
           NComboBox {
             label: "Color Range"
-            description: "Limited is recommended for better compatibility"
+            description: "Limited is recommended for better compatibility."
             model: ListModel {
               ListElement {
                 key: "limited"
@@ -203,27 +203,27 @@ ColumnLayout {
 
         NDivider {
           Layout.fillWidth: true
-          Layout.topMargin: Style.marginLarge * 2 * scaling
-          Layout.bottomMargin: Style.marginLarge * scaling
+          Layout.topMargin: Style.marginL * 2 * scaling
+          Layout.bottomMargin: Style.marginL * scaling
         }
 
         // Audio Settings
         ColumnLayout {
-          spacing: Style.marginLarge * scaling
+          spacing: Style.marginL * scaling
           Layout.fillWidth: true
 
           NText {
             text: "Audio Settings"
-            font.pointSize: Style.fontSizeXL * scaling
+            font.pointSize: Style.fontSizeXXL * scaling
             font.weight: Style.fontWeightBold
             color: Color.mOnSurface
-            Layout.bottomMargin: Style.marginSmall * scaling
+            Layout.bottomMargin: Style.marginS * scaling
           }
 
           // Audio Source
           NComboBox {
             label: "Audio Source"
-            description: "Audio source to capture during recording"
+            description: "Audio source to capture during recording."
             model: ListModel {
               ListElement {
                 key: "default_output"
@@ -247,7 +247,7 @@ ColumnLayout {
           // Audio Codec
           NComboBox {
             label: "Audio Codec"
-            description: "Opus is recommended for best performance and smallest audio size"
+            description: "Opus is recommended for best performance and smallest audio size."
             model: ListModel {
               ListElement {
                 key: "opus"

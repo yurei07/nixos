@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import Quickshell.Io
 import qs.Commons
 import qs.Services
 import qs.Widgets
@@ -15,7 +16,7 @@ ColumnLayout {
 
     Layout.fillWidth: true
     Layout.fillHeight: true
-    padding: Style.marginMedium * scaling
+    padding: Style.marginM * scaling
     clip: true
     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
@@ -30,31 +31,31 @@ ColumnLayout {
       }
 
       ColumnLayout {
-        spacing: Style.marginLarge * scaling
+        spacing: Style.marginL * scaling
         Layout.fillWidth: true
 
         NText {
           text: "Directory"
-          font.pointSize: Style.fontSizeXL * scaling
+          font.pointSize: Style.fontSizeXXL * scaling
           font.weight: Style.fontWeightBold
           color: Color.mOnSurface
-          Layout.bottomMargin: Style.marginSmall * scaling
+          Layout.bottomMargin: Style.marginS * scaling
         }
 
         // Wallpaper Settings Category
         ColumnLayout {
-          spacing: Style.marginSmall * scaling
+          spacing: Style.marginS * scaling
           Layout.fillWidth: true
-          Layout.topMargin: Style.marginSmall * scaling
+          Layout.topMargin: Style.marginS * scaling
 
           // Wallpaper Folder
           ColumnLayout {
-            spacing: Style.marginSmall * scaling
+            spacing: Style.marginS * scaling
             Layout.fillWidth: true
 
             NTextInput {
               label: "Wallpaper Directory"
-              description: "Path to your wallpaper directory"
+              description: "Path to your wallpaper directory."
               text: Settings.data.wallpaper.directory
               Layout.fillWidth: true
               onEditingFinished: {
@@ -67,26 +68,26 @@ ColumnLayout {
 
       NDivider {
         Layout.fillWidth: true
-        Layout.topMargin: Style.marginLarge * 2 * scaling
-        Layout.bottomMargin: Style.marginLarge * scaling
+        Layout.topMargin: Style.marginL * 2 * scaling
+        Layout.bottomMargin: Style.marginL * scaling
       }
 
       ColumnLayout {
-        spacing: Style.marginLarge * scaling
+        spacing: Style.marginL * scaling
         Layout.fillWidth: true
 
         NText {
           text: "Automation"
-          font.pointSize: Style.fontSizeXL * scaling
+          font.pointSize: Style.fontSizeXXL * scaling
           font.weight: Style.fontWeightBold
           color: Color.mOnSurface
-          Layout.bottomMargin: Style.marginSmall * scaling
+          Layout.bottomMargin: Style.marginS * scaling
         }
 
         // Random Wallpaper
         NToggle {
           label: "Random Wallpaper"
-          description: "Automatically select random wallpapers from the folder"
+          description: "Automatically select random wallpapers from the folder."
           checked: Settings.data.wallpaper.isRandom
           onToggled: checked => {
                        Settings.data.wallpaper.isRandom = checked
@@ -96,22 +97,10 @@ ColumnLayout {
         // Interval
         ColumnLayout {
           RowLayout {
-            Layout.fillWidth: true
-
-            ColumnLayout {
-              NText {
-                text: "Wallpaper Interval"
-                font.weight: Style.fontWeightBold
-                color: Color.mOnSurface
-              }
-
-              NText {
-                text: "How often to change wallpapers automatically (in seconds)"
-                font.pointSize: Style.fontSizeSmall * scaling
-                color: Color.mOnSurface
-                wrapMode: Text.WordWrap
-                Layout.fillWidth: true
-              }
+            NLabel {
+              label: "Wallpaper Interval"
+              description: "How often to change wallpapers automatically (in seconds)."
+              Layout.fillWidth: true
             }
 
             NText {
@@ -135,45 +124,51 @@ ColumnLayout {
 
       NDivider {
         Layout.fillWidth: true
-        Layout.topMargin: Style.marginLarge * 2 * scaling
-        Layout.bottomMargin: Style.marginLarge * scaling
+        Layout.topMargin: Style.marginL * 2 * scaling
+        Layout.bottomMargin: Style.marginL * scaling
       }
 
       // -------------------------------
       // SWWW
       ColumnLayout {
-        spacing: Style.marginLarge * scaling
+        spacing: Style.marginL * scaling
         Layout.fillWidth: true
 
         NText {
           text: "SWWW"
-          font.pointSize: Style.fontSizeXL * scaling
+          font.pointSize: Style.fontSizeXXL * scaling
           font.weight: Style.fontWeightBold
           color: Color.mOnSurface
-          Layout.bottomMargin: Style.marginSmall * scaling
+          Layout.bottomMargin: Style.marginS * scaling
         }
 
         // Use SWWW
         NToggle {
           label: "Use SWWW"
-          description: "Use SWWW daemon for advanced wallpaper management"
+          description: "Use SWWW daemon for advanced wallpaper management."
           checked: Settings.data.wallpaper.swww.enabled
           onToggled: checked => {
-                       Settings.data.wallpaper.swww.enabled = checked
+                       if (checked) {
+                         // Check if swww is installed
+                         swwwCheck.running = true
+                       } else {
+                         Settings.data.wallpaper.swww.enabled = false
+                         ToastService.showNotice("SWWW", "Disabled")
+                       }
                      }
         }
 
         // SWWW Settings (only visible when useSWWW is enabled)
         ColumnLayout {
-          spacing: Style.marginSmall * scaling
+          spacing: Style.marginS * scaling
           Layout.fillWidth: true
-          Layout.topMargin: Style.marginSmall * scaling
+          Layout.topMargin: Style.marginS * scaling
           visible: Settings.data.wallpaper.swww.enabled
 
           // Resize Mode
           NComboBox {
             label: "Resize Mode"
-            description: "How SWWW should resize wallpapers to fit the screen"
+            description: "How SWWW should resize wallpapers to fit the screen."
             model: ListModel {
               ListElement {
                 key: "no"
@@ -201,7 +196,7 @@ ColumnLayout {
           // Transition Type
           NComboBox {
             label: "Transition Type"
-            description: "Animation type when switching between wallpapers"
+            description: "Animation type when switching between wallpapers."
             model: ListModel {
               ListElement {
                 key: "none"
@@ -279,8 +274,8 @@ ColumnLayout {
                 }
 
                 NText {
-                  text: "Frames per second for transition animations"
-                  font.pointSize: Style.fontSizeSmall * scaling
+                  text: "Frames per second for transition animations."
+                  font.pointSize: Style.fontSizeXS * scaling
                   color: Color.mOnSurface
                   wrapMode: Text.WordWrap
                   Layout.fillWidth: true
@@ -318,8 +313,8 @@ ColumnLayout {
                 }
 
                 NText {
-                  text: "Duration of transition animations in seconds"
-                  font.pointSize: Style.fontSizeSmall * scaling
+                  text: "Duration of transition animations in seconds."
+                  font.pointSize: Style.fontSizeXS * scaling
                   color: Color.mOnSurface
                   wrapMode: Text.WordWrap
                   Layout.fillWidth: true
@@ -346,5 +341,27 @@ ColumnLayout {
         }
       }
     }
+  }
+
+  // Process to check if swww is installed
+  Process {
+    id: swwwCheck
+    command: ["which", "swww"]
+    running: false
+
+    onExited: function (exitCode) {
+      if (exitCode === 0) {
+        // SWWW exists, enable it
+        Settings.data.wallpaper.swww.enabled = true
+        WallpaperService.startSWWWDaemon()
+        ToastService.showNotice("SWWW", "Enabled!")
+      } else {
+        // SWWW not found
+        ToastService.showWarning("SWWW", "Not installed!")
+      }
+    }
+
+    stdout: StdioCollector {}
+    stderr: StdioCollector {}
   }
 }

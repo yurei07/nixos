@@ -13,6 +13,9 @@ NPanel {
   id: powerMenu
   visible: false
 
+  property var entriesCount: 5
+  property var entryHeight: Style.baseWidgetSize * scaling
+
   // Anchors will be set by the parent component
   function show() {
     visible = true
@@ -24,10 +27,10 @@ NPanel {
 
   Rectangle {
     width: 160 * scaling
-    height: 220 * scaling
-    radius: Style.radiusMedium * scaling
+    height: (entryHeight * entriesCount) + (Style.marginS * entriesCount * scaling)
+    radius: Style.radiusM * scaling
     border.color: Color.mOutline
-    border.width: Math.max(1, Style.borderThin * scaling)
+    border.width: Math.max(1, Style.borderS * scaling)
     color: Color.mSurface
 
     visible: true
@@ -35,7 +38,7 @@ NPanel {
 
     anchors.top: parent.top
     anchors.right: parent.right
-    anchors.rightMargin: Style.marginLarge * scaling
+    anchors.rightMargin: Style.marginL * scaling
     anchors.topMargin: 86 * scaling
 
     // Prevent closing when clicking in the panel bg
@@ -48,47 +51,42 @@ NPanel {
 
     ColumnLayout {
       anchors.fill: parent
-      anchors.margins: Style.marginSmall * scaling
-      spacing: Style.marginTiny * scaling
+      anchors.margins: Style.marginS * scaling
+      spacing: Style.marginXS * scaling
 
       // --------------
       // Lock
       Rectangle {
         Layout.fillWidth: true
-        Layout.preferredHeight: Style.barHeight * scaling
-        radius: Style.radiusSmall * scaling
+        Layout.preferredHeight: entryHeight
+        radius: Style.radiusS * scaling
         color: lockButtonArea.containsMouse ? Color.mTertiary : Color.transparent
 
         Item {
           anchors.left: parent.left
           anchors.right: parent.right
           anchors.verticalCenter: parent.verticalCenter
-          anchors.leftMargin: Style.marginMedium * scaling
-          anchors.rightMargin: Style.marginMedium * scaling
+          anchors.leftMargin: Style.marginM * scaling
+          anchors.rightMargin: Style.marginM * scaling
 
           Row {
             id: lockRow
-            spacing: Style.marginSmall * scaling
+            spacing: Style.marginS * scaling
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
 
-            Text {
+            NIcon {
               text: "lock_outline"
-              font.family: "Material Symbols Outlined"
-              font.pointSize: Style.fontSizeLarge * scaling
-              font.variableAxes: {
-                "wght": (Font.Normal + Font.Bold) / 2.0
-              }
               color: lockButtonArea.containsMouse ? Color.mOnTertiary : Color.mOnSurface
-              verticalAlignment: Text.AlignVCenter
               anchors.verticalCenter: parent.verticalCenter
               anchors.verticalCenterOffset: 1 * scaling
             }
 
-            Text {
+            NText {
               text: "Lock Screen"
               color: lockButtonArea.containsMouse ? Color.mOnTertiary : Color.mOnSurface
+              font.pointSize: Style.fontSizeS * scaling
               verticalAlignment: Text.AlignVCenter
               anchors.verticalCenter: parent.verticalCenter
               anchors.verticalCenterOffset: 1 * scaling
@@ -105,7 +103,7 @@ NPanel {
           onClicked: {
             Logger.log("PowerMenu", "Lock screen requested")
             // Lock the screen
-            lockScreen.locked = true
+            lockScreen.isLoaded = true
             powerMenu.visible = false
           }
         }
@@ -115,40 +113,35 @@ NPanel {
       // Suspend
       Rectangle {
         Layout.fillWidth: true
-        Layout.preferredHeight: Style.barHeight * scaling
-        radius: Style.radiusSmall * scaling
+        Layout.preferredHeight: entryHeight
+        radius: Style.radiusS * scaling
         color: suspendButtonArea.containsMouse ? Color.mTertiary : Color.transparent
 
         Item {
           anchors.left: parent.left
           anchors.right: parent.right
           anchors.verticalCenter: parent.verticalCenter
-          anchors.leftMargin: Style.marginMedium * scaling
-          anchors.rightMargin: Style.marginMedium * scaling
+          anchors.leftMargin: Style.marginM * scaling
+          anchors.rightMargin: Style.marginM * scaling
 
           Row {
             id: suspendRow
-            spacing: Style.marginSmall * scaling
+            spacing: Style.marginS * scaling
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
 
-            Text {
+            NIcon {
               text: "bedtime"
-              font.family: "Material Symbols Outlined"
-              font.pointSize: Style.fontSizeLarge * scaling
-              font.variableAxes: {
-                "wght": (Font.Normal + Font.Bold) / 2.0
-              }
               color: suspendButtonArea.containsMouse ? Color.mOnTertiary : Color.mOnSurface
-              verticalAlignment: Text.AlignVCenter
               anchors.verticalCenter: parent.verticalCenter
               anchors.verticalCenterOffset: 1 * scaling
             }
 
-            Text {
+            NText {
               text: "Suspend"
               color: suspendButtonArea.containsMouse ? Color.mOnTertiary : Color.mOnSurface
+              font.pointSize: Style.fontSizeS * scaling
               verticalAlignment: Text.AlignVCenter
               anchors.verticalCenter: parent.verticalCenter
               anchors.verticalCenterOffset: 1 * scaling
@@ -173,40 +166,35 @@ NPanel {
       // Reboot
       Rectangle {
         Layout.fillWidth: true
-        Layout.preferredHeight: Style.barHeight * scaling
-        radius: Style.radiusSmall * scaling
+        Layout.preferredHeight: entryHeight
+        radius: Style.radiusS * scaling
         color: rebootButtonArea.containsMouse ? Color.mTertiary : Color.transparent
 
         Item {
           anchors.left: parent.left
           anchors.right: parent.right
           anchors.verticalCenter: parent.verticalCenter
-          anchors.leftMargin: Style.marginMedium * scaling
-          anchors.rightMargin: Style.marginMedium * scaling
+          anchors.leftMargin: Style.marginM * scaling
+          anchors.rightMargin: Style.marginM * scaling
 
           Row {
             id: rebootRow
-            spacing: Style.marginSmall * scaling
+            spacing: Style.marginS * scaling
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
 
-            Text {
+            NIcon {
               text: "refresh"
-              font.family: "Material Symbols Outlined"
-              font.pointSize: Style.fontSizeLarge * scaling
-              font.variableAxes: {
-                "wght": (Font.Normal + Font.Bold) / 2.0
-              }
               color: rebootButtonArea.containsMouse ? Color.mOnTertiary : Color.mOnSurface
-              verticalAlignment: Text.AlignVCenter
               anchors.verticalCenter: parent.verticalCenter
               anchors.verticalCenterOffset: 1 * scaling
             }
 
-            Text {
+            NText {
               text: "Reboot"
               color: rebootButtonArea.containsMouse ? Color.mOnTertiary : Color.mOnSurface
+              font.pointSize: Style.fontSizeS * scaling
               verticalAlignment: Text.AlignVCenter
               anchors.verticalCenter: parent.verticalCenter
               anchors.verticalCenterOffset: 1 * scaling
@@ -231,40 +219,35 @@ NPanel {
       // Logout
       Rectangle {
         Layout.fillWidth: true
-        Layout.preferredHeight: Style.barHeight * scaling
-        radius: Style.radiusSmall * scaling
+        Layout.preferredHeight: entryHeight
+        radius: Style.radiusS * scaling
         color: logoutButtonArea.containsMouse ? Color.mTertiary : Color.transparent
 
         Item {
           anchors.left: parent.left
           anchors.right: parent.right
           anchors.verticalCenter: parent.verticalCenter
-          anchors.leftMargin: Style.marginMedium * scaling
-          anchors.rightMargin: Style.marginMedium * scaling
+          anchors.leftMargin: Style.marginM * scaling
+          anchors.rightMargin: Style.marginM * scaling
 
           Row {
             id: logoutRow
-            spacing: Style.marginSmall * scaling
+            spacing: Style.marginS * scaling
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
 
-            Text {
+            NIcon {
               text: "exit_to_app"
-              font.family: "Material Symbols Outlined"
-              font.pointSize: Style.fontSizeLarge * scaling
-              font.variableAxes: {
-                "wght": (Font.Normal + Font.Bold) / 2.0
-              }
               color: logoutButtonArea.containsMouse ? Color.mOnTertiary : Color.mOnSurface
-              verticalAlignment: Text.AlignVCenter
               anchors.verticalCenter: parent.verticalCenter
               anchors.verticalCenterOffset: 1 * scaling
             }
 
-            Text {
+            NText {
               text: "Logout"
               color: logoutButtonArea.containsMouse ? Color.mOnTertiary : Color.mOnSurface
+              font.pointSize: Style.fontSizeS * scaling
               verticalAlignment: Text.AlignVCenter
               anchors.verticalCenter: parent.verticalCenter
               anchors.verticalCenterOffset: 1 * scaling
@@ -289,40 +272,35 @@ NPanel {
       // Shutdown
       Rectangle {
         Layout.fillWidth: true
-        Layout.preferredHeight: Style.barHeight * scaling
-        radius: Style.radiusSmall * scaling
+        Layout.preferredHeight: entryHeight
+        radius: Style.radiusS * scaling
         color: shutdownButtonArea.containsMouse ? Color.mTertiary : Color.transparent
 
         Item {
           anchors.left: parent.left
           anchors.right: parent.right
           anchors.verticalCenter: parent.verticalCenter
-          anchors.leftMargin: Style.marginMedium * scaling
-          anchors.rightMargin: Style.marginMedium * scaling
+          anchors.leftMargin: Style.marginM * scaling
+          anchors.rightMargin: Style.marginM * scaling
 
           Row {
             id: shutdownRow
-            spacing: Style.marginSmall * scaling
+            spacing: Style.marginS * scaling
             anchors.left: parent.left
             anchors.right: parent.right
             anchors.verticalCenter: parent.verticalCenter
 
-            Text {
+            NIcon {
               text: "power_settings_new"
-              font.family: "Material Symbols Outlined"
-              font.pointSize: Style.fontSizeLarge * scaling
-              font.variableAxes: {
-                "wght": (Font.Normal + Font.Bold) / 2.0
-              }
               color: shutdownButtonArea.containsMouse ? Color.mOnTertiary : Color.mOnSurface
-              verticalAlignment: Text.AlignVCenter
               anchors.verticalCenter: parent.verticalCenter
               anchors.verticalCenterOffset: 1 * scaling
             }
 
-            Text {
+            NText {
               text: "Shutdown"
               color: shutdownButtonArea.containsMouse ? Color.mOnTertiary : Color.mOnSurface
+              font.pointSize: Style.fontSizeS * scaling
               verticalAlignment: Text.AlignVCenter
               anchors.verticalCenter: parent.verticalCenter
               anchors.verticalCenterOffset: 1 * scaling

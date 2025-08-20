@@ -46,8 +46,8 @@ ColumnLayout {
 
     Layout.fillWidth: true
     Layout.fillHeight: true
-    padding: Style.marginLarge * scaling
-    rightPadding: Style.marginMedium * scaling
+    padding: Style.marginL * scaling
+    rightPadding: Style.marginM * scaling
     clip: true
     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
@@ -58,26 +58,26 @@ ColumnLayout {
 
       NText {
         text: "Noctalia: quiet by design"
-        font.pointSize: Style.fontSizeXXL * scaling
+        font.pointSize: Style.fontSizeXXXL * scaling
         font.weight: Style.fontWeightBold
         color: Color.mOnSurface
         Layout.alignment: Qt.AlignCenter
-        Layout.bottomMargin: Style.marginSmall * scaling
+        Layout.bottomMargin: Style.marginS * scaling
       }
 
       NText {
         text: "It may just be another quickshell setup but it won't get in your way."
-        font.pointSize: Style.fontSizeMedium * scaling
+        font.pointSize: Style.fontSizeM * scaling
         color: Color.mOnSurface
         Layout.alignment: Qt.AlignCenter
-        Layout.bottomMargin: Style.marginLarge * scaling
+        Layout.bottomMargin: Style.marginL * scaling
       }
 
       GridLayout {
         Layout.alignment: Qt.AlignCenter
         columns: 2
-        rowSpacing: Style.marginTiny * scaling
-        columnSpacing: Style.marginSmall * scaling
+        rowSpacing: Style.marginXS * scaling
+        columnSpacing: Style.marginS * scaling
 
         NText {
           text: "Latest Version:"
@@ -106,13 +106,13 @@ ColumnLayout {
 
       Rectangle {
         Layout.alignment: Qt.AlignCenter
-        Layout.topMargin: Style.marginSmall * scaling
+        Layout.topMargin: Style.marginS * scaling
         Layout.preferredWidth: updateText.implicitWidth + 46 * scaling
         Layout.preferredHeight: Style.barHeight * scaling
-        radius: Style.radiusLarge * scaling
+        radius: Style.radiusL * scaling
         color: updateArea.containsMouse ? Color.mPrimary : Color.transparent
         border.color: Color.mPrimary
-        border.width: Math.max(1, Style.borderThin * scaling)
+        border.width: Math.max(1, Style.borderS * scaling)
         visible: {
           if (root.currentVersion === "Unknown" || root.latestVersion === "Unknown")
             return false
@@ -133,19 +133,18 @@ ColumnLayout {
 
         RowLayout {
           anchors.centerIn: parent
-          spacing: Style.marginSmall * scaling
+          spacing: Style.marginS * scaling
 
-          NText {
+          NIcon {
             text: "system_update"
-            font.family: "Material Symbols Outlined"
-            font.pointSize: Style.fontSizeXL * scaling
+            font.pointSize: Style.fontSizeXXL * scaling
             color: updateArea.containsMouse ? Color.mSurface : Color.mPrimary
           }
 
           NText {
             id: updateText
             text: "Download latest release"
-            font.pointSize: Style.fontSizeLarge * scaling
+            font.pointSize: Style.fontSizeL * scaling
             color: updateArea.containsMouse ? Color.mSurface : Color.mPrimary
           }
         }
@@ -164,24 +163,24 @@ ColumnLayout {
 
       NDivider {
         Layout.fillWidth: true
-        Layout.topMargin: Style.marginLarge * 2 * scaling
-        Layout.bottomMargin: Style.marginLarge * scaling
+        Layout.topMargin: Style.marginL * 2 * scaling
+        Layout.bottomMargin: Style.marginL * scaling
       }
 
       NText {
         text: `Shout-out to our ${root.contributors.length} awesome contributors!`
-        font.pointSize: Style.fontSizeLarge * scaling
+        font.pointSize: Style.fontSizeL * scaling
         font.weight: Style.fontWeightBold
         color: Color.mOnSurface
         Layout.alignment: Qt.AlignCenter
-        Layout.topMargin: Style.marginLarge * 2
+        Layout.topMargin: Style.marginL * 2
       }
 
       ScrollView {
         Layout.alignment: Qt.AlignCenter
-        Layout.preferredWidth: 200 * Style.marginTiny * scaling
+        Layout.preferredWidth: 200 * Style.marginXS * scaling
         Layout.fillHeight: true
-        Layout.topMargin: Style.marginLarge * scaling
+        Layout.topMargin: Style.marginL * scaling
         clip: true
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
         ScrollBar.vertical.policy: ScrollBar.AsNeeded
@@ -197,15 +196,15 @@ ColumnLayout {
           model: root.contributors
 
           delegate: Rectangle {
-            width: contributorsGrid.cellWidth - Style.marginLarge * scaling
-            height: contributorsGrid.cellHeight - Style.marginTiny * scaling
-            radius: Style.radiusLarge * scaling
+            width: contributorsGrid.cellWidth - Style.marginL * scaling
+            height: contributorsGrid.cellHeight - Style.marginXS * scaling
+            radius: Style.radiusL * scaling
             color: contributorArea.containsMouse ? Color.mTertiary : Color.transparent
 
             RowLayout {
               anchors.fill: parent
-              anchors.margins: Style.marginSmall * scaling
-              spacing: Style.marginMedium * scaling
+              anchors.margins: Style.marginS * scaling
+              spacing: Style.marginM * scaling
 
               Item {
                 Layout.alignment: Qt.AlignVCenter
@@ -215,16 +214,16 @@ ColumnLayout {
                 NImageRounded {
                   imagePath: modelData.avatar_url || ""
                   anchors.fill: parent
-                  anchors.margins: Style.marginTiny * scaling
+                  anchors.margins: Style.marginXS * scaling
                   fallbackIcon: "person"
                   borderColor: Color.mPrimary
-                  borderWidth: Math.max(1, Style.borderMedium * scaling)
+                  borderWidth: Math.max(1, Style.borderM * scaling)
                   imageRadius: width * 0.5
                 }
               }
 
               ColumnLayout {
-                spacing: Style.marginTiny * scaling
+                spacing: Style.marginXS * scaling
                 Layout.alignment: Qt.AlignVCenter
                 Layout.fillWidth: true
 
@@ -239,7 +238,7 @@ ColumnLayout {
                 NText {
                   text: (modelData.contributions || 0) + " " + ((modelData.contributions
                                                                  || 0) === 1 ? "commit" : "commits")
-                  font.pointSize: Style.fontSizeSmall * scaling
+                  font.pointSize: Style.fontSizeXS * scaling
                   color: contributorArea.containsMouse ? Color.mSurface : Color.mOnSurface
                 }
               }

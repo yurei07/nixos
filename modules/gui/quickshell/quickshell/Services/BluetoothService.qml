@@ -141,4 +141,13 @@ Singleton {
     device.trusted = true
     device.connect()
   }
+
+  function setBluetoothEnabled(enabled) {
+    if (!adapter) {
+      console.warn("BluetoothService: No adapter available")
+      return
+    }
+
+    adapter.enabled = enabled
+  }
 }

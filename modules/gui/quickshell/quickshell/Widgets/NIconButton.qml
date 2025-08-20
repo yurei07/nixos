@@ -12,12 +12,16 @@ Rectangle {
   property real size: Style.baseWidgetSize * sizeMultiplier * scaling
   property string icon
   property string tooltipText
-  property bool showBorder: true
-  property bool showFilled: false
   property bool enabled: true
   property bool hovering: false
-  property real fontPointSize: Style.fontSizeMedium
-  property string fontFamily: "Material Symbols Outlined"
+  property real fontPointSize: Style.fontSizeM
+
+  property color colorBg: Color.mSurfaceVariant
+  property color colorFg: Color.mPrimary
+  property color colorBgHover: Color.mPrimary
+  property color colorFgHover: Color.mOnPrimary
+  property color colorBorder: Color.mOutline
+  property color colorBorderHover: Color.mOutline
 
   signal entered
   signal exited
@@ -26,23 +30,19 @@ Rectangle {
   implicitWidth: size
   implicitHeight: size
 
-  color: (root.hovering || showFilled) ? Color.mPrimary : Color.transparent
+  color: root.hovering ? colorBgHover : colorBg
   radius: width * 0.5
-  border.color: showBorder ? Color.mPrimary : Color.transparent
-  border.width: Math.max(1, Style.borderThin * scaling)
+  border.color: root.hovering ? colorBorderHover : colorBorder
+  border.width: Math.max(1, Style.borderS * scaling)
 
-  NText {
+  NIcon {
     anchors.centerIn: parent
     // Little hack to keep things centered at high scaling
     anchors.horizontalCenterOffset: -1 * (scaling - 1.0)
     anchors.verticalCenterOffset: 0
     text: root.icon
-    font.family: fontFamily
     font.pointSize: root.fontPointSize * scaling
-    font.variableAxes: {
-      "wght": (Font.Normal + Font.Bold) / 2.0
-    }
-    color: (root.hovering || showFilled) ? Color.mOnPrimary : showBorder ? Color.mPrimary : Color.mOnSurface
+    color: root.hovering ? colorFgHover : colorFg
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
     opacity: root.enabled ? Style.opacityFull : Style.opacityMedium
@@ -51,7 +51,7 @@ Rectangle {
   NTooltip {
     id: tooltip
     target: root
-    positionAbove: false
+    positionAbove: Settings.data.bar.position === "bottom"
     text: root.tooltipText
   }
 

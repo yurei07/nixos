@@ -67,15 +67,15 @@ NLoader {
       Rectangle {
         id: notificationRect
         color: Color.mSurface
-        radius: Style.radiusLarge * scaling
-        border.color: Color.mOutlineVariant
-        border.width: Math.max(1, Style.borderThin * scaling)
+        radius: Style.radiusL * scaling
+        border.color: Color.mOutline
+        border.width: Math.max(1, Style.borderS * scaling)
         width: 400 * scaling
         height: 500 * scaling
         anchors.top: parent.top
         anchors.right: parent.right
-        anchors.topMargin: Style.marginTiny * scaling
-        anchors.rightMargin: Style.marginTiny * scaling
+        anchors.topMargin: Style.marginXS * scaling
+        anchors.rightMargin: Style.marginXS * scaling
         clip: true
 
         // Animation properties
@@ -108,23 +108,22 @@ NLoader {
 
         ColumnLayout {
           anchors.fill: parent
-          anchors.margins: Style.marginLarge * scaling
-          spacing: Style.marginMedium * scaling
+          anchors.margins: Style.marginL * scaling
+          spacing: Style.marginM * scaling
 
           RowLayout {
             Layout.fillWidth: true
-            spacing: Style.marginMedium * scaling
+            spacing: Style.marginM * scaling
 
-            NText {
+            NIcon {
               text: "notifications"
-              font.family: "Material Symbols Outlined"
-              font.pointSize: Style.fontSizeXL * scaling
+              font.pointSize: Style.fontSizeXXL * scaling
               color: Color.mPrimary
             }
 
             NText {
               text: "Notification History"
-              font.pointSize: Style.fontSizeLarge * scaling
+              font.pointSize: Style.fontSizeL * scaling
               font.bold: true
               color: Color.mOnSurface
               Layout.fillWidth: true
@@ -157,19 +156,18 @@ NLoader {
 
             ColumnLayout {
               anchors.centerIn: parent
-              spacing: Style.marginMedium * scaling
+              spacing: Style.marginM * scaling
 
-              NText {
+              NIcon {
                 text: "notifications_off"
-                font.family: "Material Symbols Outlined"
-                font.pointSize: Style.fontSizeXXL * scaling
+                font.pointSize: Style.fontSizeXXXL * scaling
                 color: Color.mOnSurfaceVariant
                 Layout.alignment: Qt.AlignHCenter
               }
 
               NText {
                 text: "No notifications"
-                font.pointSize: Style.fontSizeLarge * scaling
+                font.pointSize: Style.fontSizeL * scaling
                 color: Color.mOnSurfaceVariant
                 Layout.alignment: Qt.AlignHCenter
               }
@@ -188,7 +186,7 @@ NLoader {
             Layout.fillWidth: true
             Layout.fillHeight: true
             model: NotificationService.historyModel
-            spacing: Style.marginMedium * scaling
+            spacing: Style.marginM * scaling
             clip: true
             boundsBehavior: Flickable.StopAtBounds
             visible: NotificationService.historyModel.count > 0
@@ -196,26 +194,26 @@ NLoader {
             delegate: Rectangle {
               width: notificationList ? (notificationList.width - 20) : 380 * scaling
               height: Math.max(80, notificationContent.height + 30)
-              radius: Style.radiusMedium * scaling
+              radius: Style.radiusM * scaling
               color: notificationMouseArea.containsMouse ? Color.mPrimary : Color.mSurfaceVariant
 
               RowLayout {
                 anchors {
                   fill: parent
-                  margins: Style.marginMedium * scaling
+                  margins: Style.marginM * scaling
                 }
-                spacing: Style.marginMedium * scaling
+                spacing: Style.marginM * scaling
 
                 // Notification content
                 Column {
                   id: notificationContent
                   Layout.fillWidth: true
                   Layout.alignment: Qt.AlignVCenter
-                  spacing: Style.marginTiniest * scaling
+                  spacing: Style.marginXXS * scaling
 
                   NText {
                     text: (summary || "No summary").substring(0, 100)
-                    font.pointSize: Style.fontSizeMedium * scaling
+                    font.pointSize: Style.fontSizeM * scaling
                     font.weight: Font.Medium
                     color: notificationMouseArea.containsMouse ? Color.mSurface : Color.mOnSurface
                     wrapMode: Text.Wrap
@@ -226,7 +224,7 @@ NLoader {
 
                   NText {
                     text: (body || "").substring(0, 150)
-                    font.pointSize: Style.fontSizeSmall * scaling
+                    font.pointSize: Style.fontSizeXS * scaling
                     color: notificationMouseArea.containsMouse ? Color.mSurface : Color.mOnSurface
                     wrapMode: Text.Wrap
                     width: parent.width - 60
@@ -236,7 +234,7 @@ NLoader {
 
                   NText {
                     text: NotificationService.formatTimestamp(timestamp)
-                    font.pointSize: Style.fontSizeSmall * scaling
+                    font.pointSize: Style.fontSizeXS * scaling
                     color: notificationMouseArea.containsMouse ? Color.mSurface : Color.mOnSurface
                   }
                 }
@@ -258,7 +256,7 @@ NLoader {
               MouseArea {
                 id: notificationMouseArea
                 anchors.fill: parent
-                anchors.rightMargin: Style.marginLarge * 3 * scaling
+                anchors.rightMargin: Style.marginL * 3 * scaling
                 hoverEnabled: true
                 // Remove the onClicked handler since we now have a dedicated delete button
               }

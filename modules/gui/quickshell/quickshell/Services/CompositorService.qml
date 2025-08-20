@@ -44,11 +44,22 @@ Singleton {
   }
 
   Connections {
+    target: Hyprland.toplevels
+    enabled: isHyprland
+    function onValuesChanged() {
+      updateHyprlandWindows()
+      windowListChanged()
+    }
+  }
+
+  Connections {
     target: Hyprland
     enabled: isHyprland
     function onRawEvent(event) {
       updateHyprlandWorkspaces()
       workspaceChanged()
+      updateHyprlandWindows()
+      windowListChanged()
     }
   }
 
@@ -85,7 +96,9 @@ Singleton {
   function initHyprland() {
     try {
       Hyprland.refreshWorkspaces()
+      Hyprland.refreshToplevels()
       updateHyprlandWorkspaces()
+      updateHyprlandWindows()
       setupHyprlandConnections()
       Logger.log("Compositor", "Hyprland initialized successfully")
     } catch (e) {
@@ -122,6 +135,43 @@ Singleton {
       }
     } catch (e) {
       Logger.error("Compositor", "Error updating Hyprland workspaces:", e)
+    }
+  }
+
+  function updateHyprlandWindows() {
+    if (!isHyprland)
+      return
+
+    try {
+      const hlToplevels = Hyprland.toplevels.values
+      const windowsList = []
+
+      for (var i = 0; i < hlToplevels.length; i++) {
+        const toplevel = hlToplevels[i]
+        windowsList.push({
+                           "id": toplevel.address || "",
+                           "title": toplevel.title || "",
+                           "appId": toplevel.class || toplevel.initialClass || "",
+                           "workspaceId": toplevel.workspace?.id || null,
+                           "isFocused": toplevel.activated === true
+                         })
+      }
+
+      windows = windowsList
+
+      // Update focused window index
+      focusedWindowIndex = -1
+      for (var j = 0; j < windowsList.length; j++) {
+        if (windowsList[j].isFocused) {
+          focusedWindowIndex = j
+          break
+        }
+      }
+
+      updateFocusedWindowTitle()
+      activeWindowChanged()
+    } catch (e) {
+      Logger.error("Compositor", "Error updating Hyprland windows:", e)
     }
   }
 

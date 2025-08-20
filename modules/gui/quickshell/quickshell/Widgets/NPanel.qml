@@ -10,7 +10,8 @@ PanelWindow {
   readonly property real scaling: ScalingService.scale(screen)
 
   property bool showOverlay: Settings.data.general.dimDesktop
-  property int topMargin: Style.barHeight * scaling
+  property int topMargin: Settings.data.bar.position === "top" ? Style.barHeight * scaling : 0
+  property int bottomMargin: Settings.data.bar.position === "bottom" ? Style.barHeight * scaling : 0
   // Show dimming if this panel is opened OR if we're in a transition (to prevent flickering)
   property color overlayColor: (showOverlay && (PanelService.openedPanel === root
                                                 || isTransitioning)) ? Color.applyOpacity(Color.mShadow,
@@ -60,6 +61,7 @@ PanelWindow {
   anchors.right: true
   anchors.bottom: true
   margins.top: topMargin
+  margins.bottom: bottomMargin
 
   MouseArea {
     anchors.fill: parent

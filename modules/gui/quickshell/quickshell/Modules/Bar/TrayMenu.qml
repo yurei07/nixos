@@ -7,382 +7,168 @@ import qs.Services
 import qs.Widgets
 
 PopupWindow {
-  id: trayMenu
-
+  id: root
   property QsMenuHandle menu
   property var anchorItem: null
   property real anchorX
   property real anchorY
+  property bool isSubMenu: false
+  property bool isHovered: rootMouseArea.containsMouse
 
-  implicitWidth: Style.baseWidgetSize * 5.625 * scaling
-  implicitHeight: Math.max(60 * scaling, listView.contentHeight + (Style.marginMedium * 2 * scaling))
+  readonly property int menuWidth: 180
+
+  implicitWidth: menuWidth * scaling
+
+  // Use the content height of the Flickable for implicit height
+  implicitHeight: Math.min(Screen.height * 0.9, flickable.contentHeight + (Style.marginM * 2 * scaling))
   visible: false
   color: Color.transparent
-
-  anchor.item: anchorItem ? anchorItem : null
+  anchor.item: anchorItem
   anchor.rect.x: anchorX
-  anchor.rect.y: anchorY - 4
-
-  // Recursive function to destroy all open submenus in delegate tree, safely avoiding infinite recursion
-  function destroySubmenusRecursively(item) {
-    if (!item || !item.contentItem)
-      return
-    var children = item.contentItem.children
-    for (var i = 0; i < children.length; ++i) {
-      var child = children[i]
-      if (child.subMenu) {
-        child.subMenu.hideMenu()
-        child.subMenu.destroy()
-        child.subMenu = null
-      }
-      // Recursively destroy submenus only if the child has contentItem to prevent issues
-      if (child.contentItem) {
-        destroySubmenusRecursively(child)
-      }
-    }
-  }
+  anchor.rect.y: anchorY - (isSubMenu ? 0 : 4)
 
   function showAt(item, x, y) {
     if (!item) {
       Logger.warn("TrayMenu", "anchorItem is undefined, won't show menu.")
       return
     }
+
+    if (!opener.children || opener.children.values.length === 0) {
+      //Logger.warn("TrayMenu", "Menu not ready, delaying show")
+      Qt.callLater(() => showAt(item, x, y))
+      return
+    }
+
     anchorItem = item
     anchorX = x
     anchorY = y
+
     visible = true
     forceActiveFocus()
-    Qt.callLater(() => trayMenu.anchor.updateAnchor())
+
+    // Force update after showing.
+    Qt.callLater(() => {
+                   root.anchor.updateAnchor()
+                 })
   }
 
   function hideMenu() {
     visible = false
-    destroySubmenusRecursively(listView)
+
+    // Clean up all submenus recursively
+    for (var i = 0; i < columnLayout.children.length; i++) {
+      const child = columnLayout.children[i]
+      if (child?.subMenu) {
+        child.subMenu.hideMenu()
+        child.subMenu.destroy()
+        child.subMenu = null
+      }
+    }
+  }
+
+  // Full-sized, transparent MouseArea to track the mouse.
+  MouseArea {
+    id: rootMouseArea
+    anchors.fill: parent
+    hoverEnabled: true
   }
 
   Item {
     anchors.fill: parent
-    Keys.onEscapePressed: trayMenu.hideMenu()
+    Keys.onEscapePressed: root.hideMenu()
   }
 
   QsMenuOpener {
     id: opener
-    menu: trayMenu.menu
+    menu: root.menu
   }
 
   Rectangle {
-    id: bg
     anchors.fill: parent
     color: Color.mSurface
     border.color: Color.mOutline
-    border.width: Math.max(1, Style.borderThin * scaling)
-    radius: Style.radiusMedium * scaling
-    z: 0
+    border.width: Math.max(1, Style.borderS * scaling)
+    radius: Style.radiusM * scaling
   }
 
-  ListView {
-    id: listView
+  Flickable {
+    id: flickable
     anchors.fill: parent
-    anchors.margins: Style.marginMedium * scaling
-    spacing: 0
-    interactive: false
-    enabled: trayMenu.visible
+    anchors.margins: Style.marginS * scaling
+    contentHeight: columnLayout.implicitHeight
+    interactive: true
     clip: true
 
-    model: ScriptModel {
-      values: opener.children ? [...opener.children.values] : []
-    }
+    // Use a ColumnLayout to handle menu item arrangement
+    ColumnLayout {
+      id: columnLayout
+      width: flickable.width
+      spacing: 0
 
-    delegate: Rectangle {
-      id: entry
-      required property var modelData
-
-      width: listView.width
-      height: (modelData?.isSeparator) ? 8 * scaling : Math.max(32 * scaling, text.height + 8)
-      color: Color.transparent
-
-      property var subMenu: null
-
-      NDivider {
-        anchors.centerIn: parent
-        width: parent.width - (Style.marginMedium * scaling * 2)
-        visible: modelData?.isSeparator ?? false
-      }
-
-      Rectangle {
-        id: bg
-        anchors.fill: parent
-        color: mouseArea.containsMouse ? Color.mTertiary : Color.transparent
-        radius: Style.radiusSmall * scaling
-        visible: !(modelData?.isSeparator ?? false)
-
-        RowLayout {
-          anchors.fill: parent
-          anchors.leftMargin: Style.marginMedium * scaling
-          anchors.rightMargin: Style.marginMedium * scaling
-          spacing: Style.marginSmall * scaling
-
-          NText {
-            id: text
-            Layout.fillWidth: true
-            color: (modelData?.enabled
-                    ?? true) ? (mouseArea.containsMouse ? Color.mOnTertiary : Color.mOnSurface) : Color.mOnSurfaceVariant
-            text: modelData?.text ?? ""
-            font.pointSize: Style.fontSizeSmall * scaling
-            verticalAlignment: Text.AlignVCenter
-            elide: Text.ElideRight
-          }
-
-          Image {
-            Layout.preferredWidth: Style.marginLarge * scaling
-            Layout.preferredHeight: Style.marginLarge * scaling
-            source: modelData?.icon ?? ""
-            visible: (modelData?.icon ?? "") !== ""
-            fillMode: Image.PreserveAspectFit
-          }
-
-          // Chevron right for optional submenu
-          Text {
-            text: modelData?.hasChildren ? "menu" : ""
-            font.family: "Material Symbols Outlined"
-            font.pointSize: Style.fontSizeSmall * scaling
-            verticalAlignment: Text.AlignVCenter
-            visible: modelData?.hasChildren ?? false
-            color: (modelData?.enabled ?? true) ? (mouseArea.containsMouse ? Color.mOnTertiary : Color.mOnSurface) : Color.mOnSurfaceVariant
-          }
-        }
-
-        MouseArea {
-          id: mouseArea
-          anchors.fill: parent
-          hoverEnabled: true
-          enabled: (modelData?.enabled ?? true) && !(modelData?.isSeparator ?? false) && trayMenu.visible
-
-          onClicked: {
-            if (modelData && !modelData.isSeparator) {
-              if (modelData.hasChildren) {
-                // Submenus open on hover; ignore click here
-                return
-              }
-              modelData.triggered()
-              trayMenu.hideMenu()
-            }
-          }
-
-          onEntered: {
-            if (!trayMenu.visible)
-              return
-
-            if (modelData?.hasChildren) {
-              // Close sibling submenus immediately
-              for (var i = 0; i < listView.contentItem.children.length; i++) {
-                const sibling = listView.contentItem.children[i]
-                if (sibling !== entry && sibling.subMenu) {
-                  sibling.subMenu.hideMenu()
-                  sibling.subMenu.destroy()
-                  sibling.subMenu = null
-                }
-              }
-              if (entry.subMenu) {
-                entry.subMenu.hideMenu()
-                entry.subMenu.destroy()
-                entry.subMenu = null
-              }
-              var globalPos = entry.mapToGlobal(0, 0)
-              var submenuWidth = 180 * scaling
-              var gap = 12 * scaling
-              var openLeft = (globalPos.x + entry.width + submenuWidth > Screen.width)
-              var anchorX = openLeft ? -submenuWidth - gap : entry.width + gap
-
-              entry.subMenu = subMenuComponent.createObject(trayMenu, {
-                                                              "menu": modelData,
-                                                              "anchorItem": entry,
-                                                              "anchorX": anchorX,
-                                                              "anchorY": 0
-                                                            })
-              entry.subMenu.showAt(entry, anchorX, 0)
-            } else {
-              // Hovered item without submenu; close siblings
-              for (var i = 0; i < listView.contentItem.children.length; i++) {
-                const sibling = listView.contentItem.children[i]
-                if (sibling.subMenu) {
-                  sibling.subMenu.hideMenu()
-                  sibling.subMenu.destroy()
-                  sibling.subMenu = null
-                }
-              }
-              if (entry.subMenu) {
-                entry.subMenu.hideMenu()
-                entry.subMenu.destroy()
-                entry.subMenu = null
-              }
-            }
-          }
-
-          onExited: {
-            if (entry.subMenu && !entry.subMenu.containsMouse()) {
-              entry.subMenu.hideMenu()
-              entry.subMenu.destroy()
-              entry.subMenu = null
-            }
-          }
-        }
-      }
-
-      // Simplified containsMouse without recursive calls to avoid stack overflow
-      function containsMouse() {
-        return mouseArea.containsMouse
-      }
-
-      Component.onDestruction: {
-        if (subMenu) {
-          subMenu.destroy()
-          subMenu = null
-        }
-      }
-    }
-  }
-
-  // -----------------------------------------
-  // Sub Component
-  // -----------------------------------------
-  Component {
-    id: subMenuComponent
-
-    PopupWindow {
-      id: subMenu
-      implicitWidth: Style.baseWidgetSize * 5.625 * scaling
-      implicitHeight: Math.max(40, listView.contentHeight + 12)
-      visible: false
-      color: Color.transparent
-
-      property QsMenuHandle menu
-      property var anchorItem: null
-      property real anchorX
-      property real anchorY
-
-      anchor.item: anchorItem ? anchorItem : null
-      anchor.rect.x: anchorX
-      anchor.rect.y: anchorY
-
-      function showAt(item, x, y) {
-        if (!item) {
-          Logger.warn("TrayMenu", "SubComponent anchorItem is undefined, not showing menu.")
-          return
-        }
-        anchorItem = item
-        anchorX = x
-        anchorY = y
-        visible = true
-        Qt.callLater(() => subMenu.anchor.updateAnchor())
-      }
-
-      function hideMenu() {
-        visible = false
-        // Close all submenus recursively in this submenu
-        for (var i = 0; i < listView.contentItem.children.length; i++) {
-          const child = listView.contentItem.children[i]
-          if (child.subMenu) {
-            child.subMenu.hideMenu()
-            child.subMenu.destroy()
-            child.subMenu = null
-          }
-        }
-      }
-
-      // Simplified containsMouse avoiding recursive calls
-      function containsMouse() {
-        return subMenu.containsMouse
-      }
-
-      Item {
-        anchors.fill: parent
-        Keys.onEscapePressed: subMenu.hideMenu()
-      }
-
-      QsMenuOpener {
-        id: opener
-        menu: subMenu.menu
-      }
-
-      Rectangle {
-        id: bg
-        anchors.fill: parent
-        color: Color.mSurface
-        border.color: Color.mOutline
-        border.width: Math.max(1, Style.borderThin * scaling)
-        radius: Style.radiusMedium * scaling
-        z: 0
-      }
-
-      ListView {
-        id: listView
-        anchors.fill: parent
-        anchors.margins: Style.marginSmall * scaling
-        spacing: Style.marginTiny * scaling
-        interactive: false
-        enabled: subMenu.visible
-        clip: true
-
-        model: ScriptModel {
-          values: opener.children ? [...opener.children.values] : []
-        }
+      Repeater {
+        model: opener.children ? [...opener.children.values] : []
 
         delegate: Rectangle {
           id: entry
           required property var modelData
 
-          width: listView.width
-          height: (modelData?.isSeparator) ? 8 * scaling : Math.max(32 * scaling, subText.height + 8)
-          color: Color.transparent
+          Layout.preferredWidth: parent.width
+          Layout.preferredHeight: {
+            if (modelData?.isSeparator) {
+              return 8 * scaling
+            } else {
+              // Calculate based on text content
+              const textHeight = text.contentHeight || (Style.fontSizeS * scaling * 1.2)
+              return Math.max(28 * scaling, textHeight + (Style.marginS * 2 * scaling))
+            }
+          }
 
+          color: Color.transparent
           property var subMenu: null
 
           NDivider {
             anchors.centerIn: parent
-            width: parent.width - (Style.marginMedium * scaling * 2)
+            width: parent.width - (Style.marginM * scaling * 2)
             visible: modelData?.isSeparator ?? false
           }
 
           Rectangle {
-            id: bg
             anchors.fill: parent
             color: mouseArea.containsMouse ? Color.mTertiary : Color.transparent
-            radius: Style.radiusSmall * scaling
+            radius: Style.radiusS * scaling
             visible: !(modelData?.isSeparator ?? false)
 
             RowLayout {
               anchors.fill: parent
-              anchors.leftMargin: Style.marginMedium * scaling
-              anchors.rightMargin: Style.marginMedium * scaling
-              spacing: Style.marginSmall * scaling
+              anchors.leftMargin: Style.marginM * scaling
+              anchors.rightMargin: Style.marginM * scaling
+              spacing: Style.marginS * scaling
 
               NText {
-                id: subText
+                id: text
                 Layout.fillWidth: true
-                color: (modelData?.enabled ?? true) ? (mouseArea.containsMouse ? Color.mOnTertiary : Color.mOnSurface) : Color.mOnSurfaceVariant
-                text: modelData?.text ?? ""
-                font.pointSize: Style.fontSizeSmall * scaling
+                color: (modelData?.enabled
+                        ?? true) ? (mouseArea.containsMouse ? Color.mOnTertiary : Color.mOnSurface) : Color.mOnSurfaceVariant
+                text: modelData?.text !== "" ? modelData?.text.replace(/[\n\r]+/g, ' ') : "..."
+                font.pointSize: Style.fontSizeS * scaling
                 verticalAlignment: Text.AlignVCenter
-                elide: Text.ElideRight
+                wrapMode: Text.WordWrap
               }
 
               Image {
-                Layout.preferredWidth: Style.marginLarge * scaling
-                Layout.preferredHeight: Style.marginLarge * scaling
+                Layout.preferredWidth: Style.marginL * scaling
+                Layout.preferredHeight: Style.marginL * scaling
                 source: modelData?.icon ?? ""
                 visible: (modelData?.icon ?? "") !== ""
                 fillMode: Image.PreserveAspectFit
               }
 
-              // TBC a Square UTF-8?
-              NText {
-                text: modelData?.hasChildren ? "\uE5CC" : ""
-                font.family: "Material Symbols Outlined"
-                font.pointSize: Style.fontSizeSmall * scaling
+              NIcon {
+                text: modelData?.hasChildren ? "menu" : ""
+                font.pointSize: Style.fontSizeS * scaling
                 verticalAlignment: Text.AlignVCenter
                 visible: modelData?.hasChildren ?? false
-                color: (modelData?.enabled ?? true) ? (mouseArea.containsMouse ? Color.mOnTertiary : Color.mOnSurface) : Color.mOnSurfaceVariant
+                color: Color.mOnSurface
               }
             }
 
@@ -390,80 +176,72 @@ PopupWindow {
               id: mouseArea
               anchors.fill: parent
               hoverEnabled: true
-              enabled: (modelData?.enabled ?? true) && !(modelData?.isSeparator ?? false)
+              enabled: (modelData?.enabled ?? true) && !(modelData?.isSeparator ?? false) && root.visible
 
               onClicked: {
-                if (modelData && !modelData.isSeparator) {
-                  if (modelData.hasChildren) {
-                    return
-                  }
+                if (modelData && !modelData.isSeparator && !modelData.hasChildren) {
                   modelData.triggered()
-                  trayMenu.hideMenu()
+                  root.hideMenu()
                 }
               }
 
               onEntered: {
-                if (subMenu && !subMenu.visible) {
+                if (!root.visible)
                   return
+
+                // Close all sibling submenus
+                for (var i = 0; i < columnLayout.children.length; i++) {
+                  const sibling = columnLayout.children[i]
+                  if (sibling !== entry && sibling?.subMenu) {
+                    sibling.subMenu.hideMenu()
+                    sibling.subMenu.destroy()
+                    sibling.subMenu = null
+                  }
                 }
 
+                // Create submenu if needed
                 if (modelData?.hasChildren) {
-                  for (var i = 0; i < listView.contentItem.children.length; i++) {
-                    const sibling = listView.contentItem.children[i]
-                    if (sibling !== entry && sibling.subMenu) {
-                      sibling.subMenu.hideMenu()
-                      sibling.subMenu.destroy()
-                      sibling.subMenu = null
-                    }
-                  }
                   if (entry.subMenu) {
                     entry.subMenu.hideMenu()
                     entry.subMenu.destroy()
-                    entry.subMenu = null
                   }
-                  var globalPos = entry.mapToGlobal(0, 0)
-                  var submenuWidth = 180 * scaling
-                  var gap = 12 * scaling
-                  var openLeft = (globalPos.x + entry.width + submenuWidth > Screen.width)
-                  var anchorX = openLeft ? -submenuWidth - gap : entry.width + gap
 
-                  entry.subMenu = subMenuComponent.createObject(subMenu, {
-                                                                  "menu": modelData,
-                                                                  "anchorItem": entry,
-                                                                  "anchorX": anchorX,
-                                                                  "anchorY": 0
-                                                                })
-                  entry.subMenu.showAt(entry, anchorX, 0)
-                } else {
-                  for (var i = 0; i < listView.contentItem.children.length; i++) {
-                    const sibling = listView.contentItem.children[i]
-                    if (sibling.subMenu) {
-                      sibling.subMenu.hideMenu()
-                      sibling.subMenu.destroy()
-                      sibling.subMenu = null
-                    }
-                  }
+                  // Need a slight overlap so that menu don't close when moving the mouse to a submenu
+                  const submenuWidth = menuWidth * scaling // Assuming a similar width as the parent
+                  const overlap = 4 * scaling // A small overlap to bridge the mouse path
+
+                  // Check if there's enough space on the right
+                  const globalPos = entry.mapToGlobal(0, 0)
+                  const openLeft = (globalPos.x + entry.width + submenuWidth > Screen.width)
+
+                  // Position with overlap
+                  const anchorX = openLeft ? -submenuWidth + overlap : entry.width - overlap
+
+                  // Create submenu
+                  entry.subMenu = Qt.createComponent("TrayMenu.qml").createObject(root, {
+                                                                                    "menu": modelData,
+                                                                                    "anchorItem": entry,
+                                                                                    "anchorX": anchorX,
+                                                                                    "anchorY": 0,
+                                                                                    "isSubMenu": true
+                                                                                  })
+
                   if (entry.subMenu) {
-                    entry.subMenu.hideMenu()
-                    entry.subMenu.destroy()
-                    entry.subMenu = null
+                    entry.subMenu.showAt(entry, anchorX, 0)
                   }
                 }
               }
 
               onExited: {
-                if (entry.subMenu && !entry.subMenu.containsMouse()) {
-                  entry.subMenu.hideMenu()
-                  entry.subMenu.destroy()
-                  entry.subMenu = null
-                }
+                Qt.callLater(() => {
+                               if (entry.subMenu && !entry.subMenu.isHovered) {
+                                 entry.subMenu.hideMenu()
+                                 entry.subMenu.destroy()
+                                 entry.subMenu = null
+                               }
+                             })
               }
             }
-          }
-
-          // Simplified & safe containsMouse avoiding recursion
-          function containsMouse() {
-            return mouseArea.containsMouse
           }
 
           Component.onDestruction: {

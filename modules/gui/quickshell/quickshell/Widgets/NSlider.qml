@@ -74,7 +74,7 @@ Slider {
       radius: width * 0.5
       color: root.pressed ? Color.mSurfaceVariant : Color.mSurface
       border.color: Color.mPrimary
-      border.width: Math.max(1, Style.borderThick * scaling)
+      border.width: Math.max(1, Style.borderL * scaling)
 
       // Press feedback halo (using accent color, low opacity)
       Rectangle {

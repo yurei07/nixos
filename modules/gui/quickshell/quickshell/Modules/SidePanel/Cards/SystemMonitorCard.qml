@@ -9,22 +9,22 @@ NBox {
   id: root
 
   Layout.preferredWidth: Style.baseWidgetSize * 2.625 * scaling
-  implicitHeight: content.implicitHeight + Style.marginTiny * 2 * scaling
+  implicitHeight: content.implicitHeight + Style.marginXS * 2 * scaling
 
   Column {
     id: content
     anchors.left: parent.left
     anchors.right: parent.right
     anchors.top: parent.top
-    anchors.leftMargin: Style.marginSmall * scaling
-    anchors.rightMargin: Style.marginSmall * scaling
-    anchors.topMargin: Style.marginTiny * scaling
-    anchors.bottomMargin: Style.marginMedium * scaling
-    spacing: Style.marginSmall * scaling
+    anchors.leftMargin: Style.marginS * scaling
+    anchors.rightMargin: Style.marginS * scaling
+    anchors.topMargin: Style.marginXS * scaling
+    anchors.bottomMargin: Style.marginM * scaling
+    spacing: Style.marginS * scaling
 
     // Slight top padding
     Item {
-      height: Style.marginTiny * scaling
+      height: Style.marginXS * scaling
     }
 
     NCircleStat {
@@ -63,7 +63,7 @@ NBox {
 
     // Extra bottom padding to shift the perceived stack slightly upward
     Item {
-      height: Style.marginMedium * scaling
+      height: Style.marginM * scaling
     }
   }
 }

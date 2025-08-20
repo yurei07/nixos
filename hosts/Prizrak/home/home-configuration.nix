@@ -9,7 +9,7 @@
     ../../../modules/gui/gtk
     ../../../modules/gui/quickshell
     ../../../modules/gui/rofi
-    #../../../modules/gui/nextclound
+    ../../../modules/gui/syncthing
     # tui
     ../../../modules/tui/neovim
     ../../../modules/tui/kitty
@@ -54,7 +54,7 @@
       gpu-screen-recorder
       brightnessctl
       ddcutil
-      nextcloud-client
+      prismlauncher
     
     	#themes 
     	gnome-themes-extra

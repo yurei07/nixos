@@ -63,15 +63,15 @@ NLoader {
       Rectangle {
         id: calendarRect
         color: Color.mSurface
-        radius: Style.radiusMedium * scaling
+        radius: Style.radiusM * scaling
         border.color: Color.mOutline
-        border.width: Math.max(1, Style.borderMedium * scaling)
+        border.width: Math.max(1, Style.borderM * scaling)
         width: 340 * scaling
         height: 320 * scaling // Reduced height to eliminate bottom space
         anchors.top: parent.top
         anchors.right: parent.right
-        anchors.topMargin: Style.marginTiny * scaling
-        anchors.rightMargin: Style.marginTiny * scaling
+        anchors.topMargin: Style.marginXS * scaling
+        anchors.rightMargin: Style.marginXS * scaling
 
         // Animation properties
         property real scaleValue: 0.8
@@ -109,15 +109,15 @@ NLoader {
         // Main Column
         ColumnLayout {
           anchors.fill: parent
-          anchors.margins: Style.marginMedium * scaling
-          spacing: Style.marginTiny * scaling
+          anchors.margins: Style.marginM * scaling
+          spacing: Style.marginXS * scaling
 
           // Header: Month/Year with navigation
           RowLayout {
             Layout.fillWidth: true
-            Layout.leftMargin: Style.marginMedium * scaling
-            Layout.rightMargin: Style.marginMedium * scaling
-            spacing: Style.marginSmall * scaling
+            Layout.leftMargin: Style.marginM * scaling
+            Layout.rightMargin: Style.marginM * scaling
+            spacing: Style.marginS * scaling
 
             NIconButton {
               icon: "chevron_left"
@@ -133,7 +133,7 @@ NLoader {
               text: grid.title
               Layout.fillWidth: true
               horizontalAlignment: Text.AlignHCenter
-              font.pointSize: Style.fontSizeMedium * scaling
+              font.pointSize: Style.fontSizeM * scaling
               font.weight: Style.fontWeightBold
               color: Color.mPrimary
             }
@@ -152,15 +152,15 @@ NLoader {
           // Divider between header and weekdays
           NDivider {
             Layout.fillWidth: true
-            Layout.topMargin: Style.marginSmall * scaling
-            Layout.bottomMargin: Style.marginMedium * scaling
+            Layout.topMargin: Style.marginS * scaling
+            Layout.bottomMargin: Style.marginM * scaling
           }
 
           // Columns label (respects locale's first day of week)
           RowLayout {
             Layout.fillWidth: true
-            Layout.leftMargin: Style.marginSmall * scaling // Align with grid
-            Layout.rightMargin: Style.marginSmall * scaling
+            Layout.leftMargin: Style.marginS * scaling // Align with grid
+            Layout.rightMargin: Style.marginS * scaling
             spacing: 0
 
             Repeater {
@@ -174,7 +174,7 @@ NLoader {
                   return Qt.locale().dayName(dayIndex, Locale.ShortFormat)
                 }
                 color: Color.mSecondary
-                font.pointSize: Style.fontSizeMedium * scaling
+                font.pointSize: Style.fontSizeM * scaling
                 font.weight: Style.fontWeightBold
                 horizontalAlignment: Text.AlignHCenter
                 Layout.fillWidth: true
@@ -189,8 +189,8 @@ NLoader {
 
             Layout.fillWidth: true
             Layout.fillHeight: true // Take remaining space
-            Layout.leftMargin: Style.marginSmall * scaling
-            Layout.rightMargin: Style.marginSmall * scaling
+            Layout.leftMargin: Style.marginS * scaling
+            Layout.rightMargin: Style.marginS * scaling
             spacing: 0
             month: Time.date.getMonth()
             year: Time.date.getFullYear()
@@ -210,15 +210,15 @@ NLoader {
             delegate: Rectangle {
               width: (Style.baseWidgetSize * scaling)
               height: (Style.baseWidgetSize * scaling)
-              radius: Style.radiusSmall * scaling
+              radius: Style.radiusS * scaling
               color: model.today ? Color.mPrimary : Color.transparent
 
               NText {
                 anchors.centerIn: parent
                 text: model.day
-                color: model.today ? Color.onAccent : Color.mOnSurface
+                color: model.today ? Color.mOnPrimary : Color.mOnSurface
                 opacity: model.month === grid.month ? Style.opacityHeavy : Style.opacityLight
-                font.pointSize: (Style.fontSizeMedium * scaling)
+                font.pointSize: (Style.fontSizeM * scaling)
                 font.weight: model.today ? Style.fontWeightBold : Style.fontWeightRegular
               }
 

@@ -12,8 +12,8 @@ Rectangle {
   implicitHeight: childrenRect.height
 
   color: Color.mSurfaceVariant
-  radius: Style.radiusMedium * scaling
-  border.color: Color.mOutlineVariant
-  border.width: Math.max(1, Style.borderThin * scaling)
+  radius: Style.radiusM * scaling
+  border.color: Color.mOutline
+  border.width: Math.max(1, Style.borderS * scaling)
   clip: true
 }

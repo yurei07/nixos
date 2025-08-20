@@ -32,10 +32,13 @@ Variants {
                           || (Settings.data.notifications.monitors.length === 0))
                          && (NotificationService.notificationModel.count > 0) : false
 
-    anchors.top: true
+    // Position based on bar location
+    anchors.top: Settings.data.bar.position === "top"
+    anchors.bottom: Settings.data.bar.position === "bottom"
     anchors.right: true
-    margins.top: (Style.barHeight + Style.marginMedium) * scaling
-    margins.right: Style.marginMedium * scaling
+    margins.top: Settings.data.bar.position === "top" ? (Style.barHeight + Style.marginM) * scaling : 0
+    margins.bottom: Settings.data.bar.position === "bottom" ? (Style.barHeight + Style.marginM) * scaling : 0
+    margins.right: Style.marginM * scaling
     implicitWidth: 360 * scaling
     implicitHeight: Math.min(notificationStack.implicitHeight, (NotificationService.maxVisible * 120) * scaling)
     WlrLayershell.layer: WlrLayer.Overlay
@@ -57,9 +60,11 @@ Variants {
     // Main notification container
     Column {
       id: notificationStack
-      anchors.top: parent.top
+      // Position based on bar location
+      anchors.top: Settings.data.bar.position === "top" ? parent.top : undefined
+      anchors.bottom: Settings.data.bar.position === "bottom" ? parent.bottom : undefined
       anchors.right: parent.right
-      spacing: Style.marginSmall * scaling
+      spacing: Style.marginS * scaling
       width: 360 * scaling
       visible: true
 
@@ -68,11 +73,11 @@ Variants {
         model: notificationModel
         delegate: Rectangle {
           width: 360 * scaling
-          height: Math.max(80 * scaling, contentColumn.implicitHeight + (Style.marginMedium * 2 * scaling))
+          height: Math.max(80 * scaling, contentColumn.implicitHeight + (Style.marginM * 2 * scaling))
           clip: true
-          radius: Style.radiusMedium * scaling
+          radius: Style.radiusM * scaling
           border.color: Color.mPrimary
-          border.width: Math.max(1, Style.borderThin * scaling)
+          border.width: Math.max(1, Style.borderS * scaling)
           color: Color.mSurface
 
           // Animation properties
@@ -134,20 +139,20 @@ Variants {
           Column {
             id: contentColumn
             anchors.fill: parent
-            anchors.margins: Style.marginMedium * scaling
-            spacing: Style.marginSmall * scaling
+            anchors.margins: Style.marginM * scaling
+            spacing: Style.marginS * scaling
 
             RowLayout {
-              spacing: Style.marginSmall * scaling
+              spacing: Style.marginS * scaling
               NText {
                 text: (model.appName || model.desktopEntry) || "Unknown App"
                 color: Color.mSecondary
-                font.pointSize: Style.fontSizeSmall * scaling
+                font.pointSize: Style.fontSizeXS * scaling
               }
               Rectangle {
                 width: 6 * scaling
                 height: 6 * scaling
-                radius: Style.radiusTiny * scaling
+                radius: Style.radiusXS * scaling
                 color: (model.urgency === NotificationUrgency.Critical) ? Color.mError : (model.urgency === NotificationUrgency.Low) ? Color.mOnSurface : Color.mPrimary
                 Layout.alignment: Qt.AlignVCenter
               }
@@ -157,13 +162,13 @@ Variants {
               NText {
                 text: NotificationService.formatTimestamp(model.timestamp)
                 color: Color.mOnSurface
-                font.pointSize: Style.fontSizeSmall * scaling
+                font.pointSize: Style.fontSizeXS * scaling
               }
             }
 
             NText {
               text: model.summary || "No summary"
-              font.pointSize: Style.fontSizeLarge * scaling
+              font.pointSize: Style.fontSizeL * scaling
               font.weight: Style.fontWeightBold
               color: Color.mOnSurface
               wrapMode: Text.Wrap
@@ -174,7 +179,7 @@ Variants {
 
             NText {
               text: model.body || ""
-              font.pointSize: Style.fontSizeSmall * scaling
+              font.pointSize: Style.fontSizeXS * scaling
               color: Color.mOnSurface
               wrapMode: Text.Wrap
               width: 300 * scaling
@@ -187,10 +192,9 @@ Variants {
             icon: "close"
             tooltipText: "Close"
             sizeMultiplier: 0.8
-            showBorder: false
             anchors.top: parent.top
             anchors.right: parent.right
-            anchors.margins: Style.marginSmall * scaling
+            anchors.margins: Style.marginS * scaling
 
             onClicked: {
               animateOut()

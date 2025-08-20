@@ -12,9 +12,13 @@ NIconButton {
 
   visible: Settings.data.bar.showNotificationsHistory
   sizeMultiplier: 0.8
-  showBorder: false
   icon: "notifications"
   tooltipText: "Notification History"
+  colorBg: Color.mSurfaceVariant
+  colorFg: Color.mOnSurface
+  colorBorder: Color.transparent
+  colorBorderHover: Color.transparent
+
   onClicked: {
     if (!notificationHistoryPanel.active) {
       notificationHistoryPanel.isLoaded = true

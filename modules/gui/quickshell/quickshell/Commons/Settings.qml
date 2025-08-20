@@ -17,6 +17,7 @@ Singleton {
                                                                          "HOME") + "/.config") + "/" + shellName + "/"
   property string cacheDir: Quickshell.env("NOCTALIA_CACHE_DIR") || (Quickshell.env("XDG_CACHE_HOME") || Quickshell.env(
                                                                        "HOME") + "/.cache") + "/" + shellName + "/"
+  property string cacheDirImages: cacheDir + "images/"
 
   property string settingsFile: Quickshell.env("NOCTALIA_SETTINGS_FILE") || (configDir + "settings.json")
 
@@ -31,12 +32,44 @@ Singleton {
 
   // Needed to only have one NPanel loaded at a time. <--- VERY BROKEN
   //property var openPanel: null
+
+  // Function to validate monitor configurations
+  function validateMonitorConfigurations() {
+    var availableScreenNames = []
+    for (var i = 0; i < Quickshell.screens.length; i++) {
+      availableScreenNames.push(Quickshell.screens[i].name)
+    }
+
+    Logger.log("Settings", "Available monitors: [" + availableScreenNames.join(", ") + "]")
+    Logger.log("Settings", "Configured bar monitors: [" + adapter.bar.monitors.join(", ") + "]")
+
+    // Check bar monitors
+    if (adapter.bar.monitors.length > 0) {
+      var hasValidBarMonitor = false
+      for (var j = 0; j < adapter.bar.monitors.length; j++) {
+        if (availableScreenNames.includes(adapter.bar.monitors[j])) {
+          hasValidBarMonitor = true
+          break
+        }
+      }
+      if (!hasValidBarMonitor) {
+        Logger.log("Settings",
+                   "No configured bar monitors found on system, clearing bar monitor list to show on all screens")
+        adapter.bar.monitors = []
+      } else {
+        Logger.log("Settings", "Found valid bar monitors, keeping configuration")
+      }
+    } else {
+      Logger.log("Settings", "Bar monitor list is empty, will show on all available screens")
+    }
+  }
   Item {
     Component.onCompleted: {
 
       // ensure settings dir exists
       Quickshell.execDetached(["mkdir", "-p", configDir])
       Quickshell.execDetached(["mkdir", "-p", cacheDir])
+      Quickshell.execDetached(["mkdir", "-p", cacheDirImages])
     }
   }
 
@@ -56,6 +89,10 @@ Singleton {
           Logger.log("Settings", "Set current wallpaper", adapter.wallpaper.current)
           WallpaperService.setCurrentWallpaper(adapter.wallpaper.current, true)
         }
+
+        // Validate monitor configurations - if none of the configured monitors exist, clear the lists
+        validateMonitorConfigurations()
+
         isInitialLoad = false
       })
     }
@@ -72,12 +109,14 @@ Singleton {
       property JsonObject bar
 
       bar: JsonObject {
+        property string position: "top" // Possible values: "top", "bottom"
         property bool showActiveWindow: true
         property bool showSystemInfo: false
         property bool showMedia: false
         property bool showBrightness: true
         property bool showNotificationsHistory: true
         property bool showTray: true
+        property real backgroundOpacity: 1.0
         property list<string> monitors: []
       }
 
@@ -88,6 +127,7 @@ Singleton {
         property string avatarImage: defaultAvatar
         property bool dimDesktop: true
         property bool showScreenCorners: false
+        property real radiusRatio: 1.0
       }
 
       // location
@@ -181,7 +221,11 @@ Singleton {
 
       ui: JsonObject {
         property string fontFamily: "Roboto" // Family for all text
-        property list<string> monitorsScale: []
+      }
+
+      // Scaling (not stored inside JsonObject, or it crashes)
+      property var monitorsScaling: {
+
       }
 
       // brightness
@@ -197,6 +241,8 @@ Singleton {
         property bool useWallpaperColors: false
         property string predefinedScheme: ""
         property bool darkMode: true
+        // External app theming (GTK & Qt)
+        property bool themeApps: false
       }
     }
   }

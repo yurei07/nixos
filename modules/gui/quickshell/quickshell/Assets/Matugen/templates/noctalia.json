@@ -13,9 +13,10 @@
 
   "mSurface": "{{colors.surface.default.hex}}",
   "mOnSurface": "{{colors.on_surface.default.hex}}",
-  "mSurfaceVariant": "{{colors.surface_variant.default.hex}}",
+
+  "mSurfaceVariant": "{{colors.surface_container.default.hex}}",
   "mOnSurfaceVariant": "{{colors.on_surface_variant.default.hex}}",
-  "mOutline": "{{colors.outline.default.hex}}",
-  "mOutlineVariant": "{{colors.outline_variant.default.hex}}",
+  
+  "mOutline": "{{colors.outline_variant.default.hex}}",
   "mShadow": "{{colors.shadow.default.hex}}"
 } 

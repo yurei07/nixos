@@ -6,10 +6,17 @@ import Quickshell.Io
 import qs.Commons
 import qs.Services
 
-// --------------------------------
-// Noctalia Colors - Material Design 3
-// We only use a very small subset of all available m3 colors to avoid complexity
-// All color names start with a 'm' to avoid QML assuming some of them are signals (ex: onPrimary)
+
+/*
+  Noctalia is not strictly a Material Design project, it supports both some predefined
+  color schemes and dynamic color generation from the wallpaper (using Matugen).
+
+  We ultimately decided to use a restricted set of colors that follows the
+  Material Design 3 naming convention.
+
+  NOTE: All color names are prefixed with 'm' (e.g., mPrimary) to prevent QML from
+  misinterpreting them as signals (e.g., the 'onPrimary' property name).
+*/
 Singleton {
   id: root
 
@@ -28,10 +35,11 @@ Singleton {
   // --- Surface and Variant Colors: These provide additional options for surfaces and their contents, creating visual hierarchy
   property color mSurface: customColors.mSurface
   property color mOnSurface: customColors.mOnSurface
+
   property color mSurfaceVariant: customColors.mSurfaceVariant
   property color mOnSurfaceVariant: customColors.mOnSurfaceVariant
+
   property color mOutline: customColors.mOutline
-  property color mOutlineVariant: customColors.mOutlineVariant
   property color mShadow: customColors.mShadow
 
   property color transparent: "transparent"
@@ -49,8 +57,10 @@ Singleton {
 
     property color mPrimary: "#c7a1d8"
     property color mOnPrimary: "#1a151f"
+
     property color mSecondary: "#a984c4"
     property color mOnSecondary: "#f3edf7"
+
     property color mTertiary: "#e0b7c9"
     property color mOnTertiary: "#20161f"
 
@@ -59,10 +69,11 @@ Singleton {
 
     property color mSurface: "#1c1822"
     property color mOnSurface: "#e9e4f0"
+
     property color mSurfaceVariant: "#262130"
     property color mOnSurfaceVariant: "#a79ab0"
-    property color mOutline: "#4d445a"
-    property color mOutlineVariant: "#342c42"
+
+    property color mOutline: "#342c42"
     property color mShadow: "#120f18"
   }
 
@@ -74,8 +85,10 @@ Singleton {
 
     property color mPrimary: customColorsData.mPrimary
     property color mOnPrimary: customColorsData.mOnPrimary
+
     property color mSecondary: customColorsData.mSecondary
     property color mOnSecondary: customColorsData.mOnSecondary
+
     property color mTertiary: customColorsData.mTertiary
     property color mOnTertiary: customColorsData.mOnTertiary
 
@@ -84,10 +97,11 @@ Singleton {
 
     property color mSurface: customColorsData.mSurface
     property color mOnSurface: customColorsData.mOnSurface
+
     property color mSurfaceVariant: customColorsData.mSurfaceVariant
     property color mOnSurfaceVariant: customColorsData.mOnSurfaceVariant
+
     property color mOutline: customColorsData.mOutline
-    property color mOutlineVariant: customColorsData.mOutlineVariant
     property color mShadow: customColorsData.mShadow
   }
 
@@ -115,8 +129,10 @@ Singleton {
 
       property color mPrimary: defaultColors.mPrimary
       property color mOnPrimary: defaultColors.mOnPrimary
+
       property color mSecondary: defaultColors.mSecondary
       property color mOnSecondary: defaultColors.mOnSecondary
+
       property color mTertiary: defaultColors.mTertiary
       property color mOnTertiary: defaultColors.mOnTertiary
 
@@ -125,10 +141,11 @@ Singleton {
 
       property color mSurface: defaultColors.mSurface
       property color mOnSurface: defaultColors.mOnSurface
+
       property color mSurfaceVariant: defaultColors.mSurfaceVariant
       property color mOnSurfaceVariant: defaultColors.mOnSurfaceVariant
+
       property color mOutline: defaultColors.mOutline
-      property color mOutlineVariant: defaultColors.mOutlineVariant
       property color mShadow: defaultColors.mShadow
     }
   }

@@ -1,3 +1,11 @@
+
+/*
+ * Noctalia – made by https://github.com/noctalia-dev
+ * Licensed under the MIT License.
+ * Forks and modifications are allowed under the MIT License,
+ * but proper credit must be given to the original author.
+*/
+
 // Disable reload popup add this as a new row:  //pragma Env QS_NO_RELOAD_POPUP=1
 import QtQuick
 import Quickshell
@@ -16,6 +24,7 @@ import qs.Modules.LockScreen
 import qs.Modules.Notification
 import qs.Modules.SettingsPanel
 import qs.Modules.SidePanel
+import qs.Modules.Toast
 import qs.Services
 import qs.Widgets
 
@@ -60,9 +69,14 @@ ShellRoot {
     id: lockScreen
   }
 
+  ToastManager {}
+
   IPCManager {}
 
   Component.onCompleted: {
+    // Save a ref. to our sidePanel so we can access it from services
+    PanelService.sidePanel = sidePanel
+
     // Ensure our singleton is created as soon as possible so we start fetching weather asap
     LocationService.init()
   }

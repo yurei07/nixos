@@ -1,31 +1,37 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import Quickshell.Io
 import qs.Commons
 import qs.Services
 import qs.Widgets
-import Quickshell.Io
 
 ColumnLayout {
   id: root
 
   spacing: 0
 
-  // Helper function to get color from scheme file
+  // Helper function to get color from scheme file (supports dark/light variants)
   function getSchemeColor(schemePath, colorKey) {
     // Extract scheme name from path
     var schemeName = schemePath.split("/").pop().replace(".json", "")
 
     // Try to get from cached data first
-    if (schemeColorsCache[schemeName] && schemeColorsCache[schemeName][colorKey]) {
-      return schemeColorsCache[schemeName][colorKey]
+    if (schemeColorsCache[schemeName]) {
+      var entry = schemeColorsCache[schemeName]
+      var variant = entry
+      if (entry.dark || entry.light) {
+        variant = Settings.data.colorSchemes.darkMode ? (entry.dark || entry.light) : (entry.light || entry.dark)
+      }
+      if (variant && variant[colorKey])
+        return variant[colorKey]
     }
 
     // Return a default color if not cached yet
     return "#000000"
   }
 
-  // Cache for scheme colors
+  // Cache for scheme JSON (can be flat or {dark, light})
   property var schemeColorsCache: ({})
 
   // Scale properties for card animations
@@ -34,33 +40,9 @@ ColumnLayout {
 
   // This function is called by the FileView Repeater when a scheme file is loaded
   function schemeLoaded(schemeName, jsonData) {
-    var colors = {}
-
-    // Extract colors from JSON data
-    if (jsonData && typeof jsonData === 'object') {
-      colors.mPrimary = jsonData.mPrimary || jsonData.primary || "#000000"
-      colors.mSecondary = jsonData.mSecondary || jsonData.secondary || "#000000"
-      colors.mTertiary = jsonData.mTertiary || jsonData.tertiary || "#000000"
-      colors.mError = jsonData.mError || jsonData.error || "#ff0000"
-      colors.mSurface = jsonData.mSurface || jsonData.surface || "#ffffff"
-      colors.mOnSurface = jsonData.mOnSurface || jsonData.onSurface || "#000000"
-      colors.mOutline = jsonData.mOutline || jsonData.outline || "#666666"
-    } else {
-      // Default colors on failure
-      colors = {
-        "mPrimary": "#000000",
-        "mSecondary": "#000000",
-        "mTertiary": "#000000",
-        "mError": "#ff0000",
-        "mSurface": "#ffffff",
-        "mOnSurface": "#000000",
-        "mOutline": "#666666"
-      }
-    }
-
-    // Update the cache. This must be done by re-assigning the whole object to trigger updates.
+    var value = jsonData || {}
     var newCache = schemeColorsCache
-    newCache[schemeName] = colors
+    newCache[schemeName] = value
     schemeColorsCache = newCache
   }
 
@@ -107,7 +89,7 @@ ColumnLayout {
 
     Layout.fillWidth: true
     Layout.fillHeight: true
-    padding: Style.marginMedium * scaling
+    padding: Style.marginM * scaling
     clip: true
     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
@@ -122,49 +104,72 @@ ColumnLayout {
       }
 
       ColumnLayout {
-        spacing: Style.marginLarge * scaling
+        spacing: Style.marginL * scaling
         Layout.fillWidth: true
 
-        // Use Matugen
+        // Dark Mode Toggle (affects both Matugen and predefined schemes that provide variants)
         NToggle {
-          label: "Use Matugen"
-          description: "Automatically generate colors based on your active wallpaper using Matugen"
-          checked: Settings.data.colorSchemes.useWallpaperColors
+          label: "Dark Mode"
+          description: Settings.data.colorSchemes.useWallpaperColors ? "Generate dark theme colors when using Matugen." : "Use a dark variant if available."
+          checked: Settings.data.colorSchemes.darkMode
+          enabled: true
           onToggled: checked => {
-                       Settings.data.colorSchemes.useWallpaperColors = checked
+                       Settings.data.colorSchemes.darkMode = checked
+                       if (Settings.data.colorSchemes.useWallpaperColors) {
+                         ColorSchemeService.changedWallpaper()
+                       } else if (Settings.data.colorSchemes.predefinedScheme) {
+                         // Re-apply current scheme to pick the right variant
+                         ColorSchemeService.applyScheme(Settings.data.colorSchemes.predefinedScheme)
+                         // Force refresh of previews
+                         var tmp = schemeColorsCache
+                         schemeColorsCache = {}
+                         schemeColorsCache = tmp
+                       }
+                     }
+        }
+
+        // GTK/QT theming
+        NToggle {
+          label: "Theme external apps (GTK & Qt)"
+          description: "Writes GTK (gtk.css) and Qt (qt6ct) themes based on your colors."
+          checked: Settings.data.colorSchemes.themeApps
+          onToggled: checked => {
+                       Settings.data.colorSchemes.themeApps = checked
                        if (Settings.data.colorSchemes.useWallpaperColors) {
                          ColorSchemeService.changedWallpaper()
                        }
                      }
         }
 
-        // Dark Mode Toggle
+        // Use Matugen
         NToggle {
-          label: "Dark Mode"
-          description: "Generate dark theme colors when using Matugen. Disable for light theme."
-          checked: Settings.data.colorSchemes.darkMode
-          enabled: Settings.data.colorSchemes.useWallpaperColors
+          label: "Enable Matugen"
+          description: "Automatically generate colors based on your active wallpaper."
+          checked: Settings.data.colorSchemes.useWallpaperColors
           onToggled: checked => {
-                       Settings.data.colorSchemes.darkMode = checked
-                       if (Settings.data.colorSchemes.useWallpaperColors) {
-                         ColorSchemeService.changedWallpaper()
+                       if (checked) {
+                         // Check if matugen is installed
+                         matugenCheck.running = true
+                       } else {
+                         Settings.data.colorSchemes.useWallpaperColors = false
+                         ToastService.showNotice("Matugen", "Disabled")
                        }
                      }
         }
 
         NDivider {
           Layout.fillWidth: true
-          Layout.topMargin: Style.marginLarge * scaling
-          Layout.bottomMargin: Style.marginLarge * scaling
+          Layout.topMargin: Style.marginL * scaling
+          Layout.bottomMargin: Style.marginL * scaling
         }
 
         ColumnLayout {
-          spacing: Style.marginTiniest * scaling
+          spacing: Style.marginXXS * scaling
           Layout.fillWidth: true
 
           NText {
             text: "Predefined Color Schemes"
-            font.pointSize: Style.fontSizeLarge * scaling
+            font.pointSize: Style.fontSizeL * scaling
             font.weight: Style.fontWeightBold
             color: Color.mOnSurface
             Layout.fillWidth: true
@@ -172,7 +177,7 @@ ColumnLayout {
 
           NText {
             text: "These color schemes only apply when 'Use Matugen' is disabled. When enabled, Matugen will generate colors based on your wallpaper instead. You can toggle between light and dark themes when using Matugen."
-            font.pointSize: Style.fontSizeSmall * scaling
+            font.pointSize: Style.fontSizeXS * scaling
             color: Color.mOnSurface
             Layout.fillWidth: true
             wrapMode: Text.WordWrap
@@ -180,15 +185,15 @@ ColumnLayout {
         }
 
         ColumnLayout {
-          spacing: Style.marginTiny * scaling
+          spacing: Style.marginXS * scaling
           Layout.fillWidth: true
-          Layout.topMargin: Style.marginLarge * scaling
+          Layout.topMargin: Style.marginL * scaling
 
           // Color Schemes Grid
           GridLayout {
             columns: 4
-            rowSpacing: Style.marginLarge * scaling
-            columnSpacing: Style.marginLarge * scaling
+            rowSpacing: Style.marginL * scaling
+            columnSpacing: Style.marginL * scaling
             Layout.fillWidth: true
 
             Repeater {
@@ -201,9 +206,9 @@ ColumnLayout {
 
                 Layout.fillWidth: true
                 Layout.preferredHeight: 120 * scaling
-                radius: Style.radiusMedium * scaling
+                radius: Style.radiusM * scaling
                 color: getSchemeColor(modelData, "mSurface")
-                border.width: Math.max(1, Style.borderThick * scaling)
+                border.width: Math.max(1, Style.borderL * scaling)
                 border.color: Settings.data.colorSchemes.predefinedScheme === modelData ? Color.mPrimary : Color.mOutline
                 scale: root.cardScaleLow
 
@@ -232,7 +237,7 @@ ColumnLayout {
                 ColumnLayout {
                   anchors.fill: parent
                   anchors.margins: Style.marginXL * scaling
-                  spacing: Style.marginSmall * scaling
+                  spacing: Style.marginS * scaling
 
                   // Scheme name
                   NText {
@@ -241,7 +246,7 @@ ColumnLayout {
                       var chunks = schemePath.replace(".json", "").split("/")
                       return chunks[chunks.length - 1]
                     }
-                    font.pointSize: Style.fontSizeMedium * scaling
+                    font.pointSize: Style.fontSizeM * scaling
                     font.weight: Style.fontWeightBold
                     color: getSchemeColor(modelData, "mOnSurface")
                     Layout.fillWidth: true
@@ -251,7 +256,7 @@ ColumnLayout {
 
                   // Color swatches
                   RowLayout {
-                    spacing: Style.marginSmall * scaling
+                    spacing: Style.marginS * scaling
                     Layout.fillWidth: true
                     Layout.alignment: Qt.AlignHCenter
 
@@ -294,7 +299,7 @@ ColumnLayout {
                   visible: Settings.data.colorSchemes.predefinedScheme === schemePath
                   anchors.right: parent.right
                   anchors.top: parent.top
-                  anchors.margins: Style.marginSmall * scaling
+                  anchors.margins: Style.marginS * scaling
                   width: 24 * scaling
                   height: 24 * scaling
                   radius: width * 0.5
@@ -303,7 +308,7 @@ ColumnLayout {
                   NText {
                     anchors.centerIn: parent
                     text: "✓"
-                    font.pointSize: Style.fontSizeSmall * scaling
+                    font.pointSize: Style.fontSizeXS * scaling
                     font.weight: Style.fontWeightBold
                     color: Color.mOnPrimary
                   }
@@ -334,5 +339,27 @@ ColumnLayout {
         }
       }
     }
+  }
+
+  // Simple process to check if matugen exists
+  Process {
+    id: matugenCheck
+    command: ["which", "matugen"]
+    running: false
+
+    onExited: function (exitCode) {
+      if (exitCode === 0) {
+        // Matugen exists, enable it
+        Settings.data.colorSchemes.useWallpaperColors = true
+        ColorSchemeService.changedWallpaper()
+        ToastService.showNotice("Matugen", "Enabled!")
+      } else {
+        // Matugen not found
+        ToastService.showWarning("Matugen", "Not installed!")
+      }
+    }
+
+    stdout: StdioCollector {}
+    stderr: StdioCollector {}
   }
 }

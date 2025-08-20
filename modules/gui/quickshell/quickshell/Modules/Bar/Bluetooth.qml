@@ -12,8 +12,12 @@ NIconButton {
 
   readonly property bool bluetoothEnabled: Settings.data.network.bluetoothEnabled
   sizeMultiplier: 0.8
-  showBorder: false
   visible: bluetoothEnabled
+
+  colorBg: Color.mSurfaceVariant
+  colorFg: Color.mOnSurface
+  colorBorder: Color.transparent
+  colorBorderHover: Color.transparent
 
   icon: {
     // Show different icons based on connection status

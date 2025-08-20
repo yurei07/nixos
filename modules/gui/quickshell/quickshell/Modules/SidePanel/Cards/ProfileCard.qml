@@ -18,15 +18,15 @@ NBox {
 
   Layout.fillWidth: true
   // Height driven by content
-  implicitHeight: content.implicitHeight + Style.marginMedium * 2 * scaling
+  implicitHeight: content.implicitHeight + Style.marginM * 2 * scaling
 
   RowLayout {
     id: content
     anchors.left: parent.left
     anchors.right: parent.right
     anchors.top: parent.top
-    anchors.margins: Style.marginMedium * scaling
-    spacing: Style.marginMedium * scaling
+    anchors.margins: Style.marginM * scaling
+    spacing: Style.marginM * scaling
 
     NImageRounded {
       width: Style.baseWidgetSize * 1.25 * scaling
@@ -34,12 +34,12 @@ NBox {
       imagePath: Settings.data.general.avatarImage
       fallbackIcon: "person"
       borderColor: Color.mPrimary
-      borderWidth: Math.max(1, Style.borderMedium * scaling)
+      borderWidth: Math.max(1, Style.borderM * scaling)
     }
 
     ColumnLayout {
       Layout.fillWidth: true
-      spacing: Style.marginTiniest * scaling
+      spacing: Style.marginXXS * scaling
       NText {
         text: Quickshell.env("USER") || "user"
         font.weight: Style.fontWeightBold
@@ -51,7 +51,7 @@ NBox {
     }
 
     RowLayout {
-      spacing: Style.marginSmall * scaling
+      spacing: Style.marginS * scaling
       Layout.alignment: Qt.AlignRight | Qt.AlignVCenter
       Item {
         Layout.fillWidth: true

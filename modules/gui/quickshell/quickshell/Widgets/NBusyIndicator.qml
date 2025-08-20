@@ -8,7 +8,7 @@ Item {
   property bool running: true
   property color color: Color.mPrimary
   property int size: Style.baseWidgetSize * scaling
-  property int strokeWidth: Style.borderThick * scaling
+  property int strokeWidth: Style.borderL * scaling
   property int duration: 1000
 
   implicitWidth: size

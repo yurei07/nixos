@@ -201,9 +201,9 @@ NLoader {
       Rectangle {
         id: bgRect
         color: Color.mSurface
-        radius: Style.radiusLarge * scaling
-        border.color: Color.mOutlineVariant
-        border.width: Math.max(1, Style.borderThin * scaling)
+        radius: Style.radiusL * scaling
+        border.color: Color.mOutline
+        border.width: Math.max(1, Style.borderS * scaling)
         layer.enabled: true
         width: Math.max(screen.width * 0.5, 1280) * scaling
         height: Math.max(screen.height * 0.5, 720) * scaling
@@ -241,22 +241,22 @@ NLoader {
 
         RowLayout {
           anchors.fill: parent
-          anchors.margins: Style.marginLarge * scaling
-          spacing: Style.marginLarge * scaling
+          anchors.margins: Style.marginL * scaling
+          spacing: Style.marginL * scaling
 
           Rectangle {
             id: sidebar
             Layout.preferredWidth: Style.sliderWidth * 1.3 * scaling
             Layout.fillHeight: true
             color: Color.mSurfaceVariant
-            border.color: Color.mOutlineVariant
-            border.width: Math.max(1, Style.borderThin * scaling)
-            radius: Style.radiusMedium * scaling
+            border.color: Color.mOutline
+            border.width: Math.max(1, Style.borderS * scaling)
+            radius: Style.radiusM * scaling
 
             Column {
               anchors.fill: parent
-              anchors.margins: Style.marginSmall * scaling
-              spacing: Style.marginTiny * 1.5 * scaling
+              anchors.margins: Style.marginS * scaling
+              spacing: Style.marginXS * 1.5 * scaling
 
               Repeater {
                 id: sections
@@ -265,31 +265,27 @@ NLoader {
                   id: tabItem
                   width: parent.width
                   height: 32 * scaling
-                  radius: Style.radiusSmall * scaling
+                  radius: Style.radiusS * scaling
                   color: selected ? Color.mPrimary : (tabItem.hovering ? Color.mTertiary : Color.transparent)
                   readonly property bool selected: index === currentTabIndex
                   property bool hovering: false
                   property color tabTextColor: selected ? Color.mOnPrimary : (tabItem.hovering ? Color.mOnTertiary : Color.mOnSurface)
                   RowLayout {
                     anchors.fill: parent
-                    anchors.leftMargin: Style.marginSmall * scaling
-                    anchors.rightMargin: Style.marginSmall * scaling
-                    spacing: Style.marginSmall * scaling
+                    anchors.leftMargin: Style.marginS * scaling
+                    anchors.rightMargin: Style.marginS * scaling
+                    spacing: Style.marginS * scaling
                     // Tab icon on the left side
-                    NText {
+                    NIcon {
                       text: modelData.icon
                       color: tabTextColor
-                      font.family: "Material Symbols Outlined"
-                      font.variableAxes: {
-                        "wght": (Font.Normal + Font.Bold) / 2.0
-                      }
-                      font.pointSize: Style.fontSizeLarge * scaling
+                      font.pointSize: Style.fontSizeL * scaling
                     }
                     // Tab label on the left side
                     NText {
                       text: modelData.label
                       color: tabTextColor
-                      font.pointSize: Style.fontSizeMedium * scaling
+                      font.pointSize: Style.fontSizeM * scaling
                       font.weight: Style.fontWeightBold
                       Layout.fillWidth: true
                     }
@@ -313,27 +309,27 @@ NLoader {
             id: contentPane
             Layout.fillWidth: true
             Layout.fillHeight: true
-            radius: Style.radiusMedium * scaling
+            radius: Style.radiusM * scaling
             color: Color.mSurfaceVariant
-            border.color: Color.mOutlineVariant
-            border.width: Math.max(1, Style.borderThin * scaling)
+            border.color: Color.mOutline
+            border.width: Math.max(1, Style.borderS * scaling)
             clip: true
 
             ColumnLayout {
               id: contentLayout
               anchors.fill: parent
-              anchors.margins: Style.marginLarge * scaling
-              spacing: Style.marginSmall * scaling
+              anchors.margins: Style.marginL * scaling
+              spacing: Style.marginS * scaling
 
               RowLayout {
                 id: headerRow
                 Layout.fillWidth: true
-                spacing: Style.marginSmall * scaling
+                spacing: Style.marginS * scaling
 
                 // Tab label on the main right side
                 NText {
                   text: panel.tabsModel[currentTabIndex].label
-                  font.pointSize: Style.fontSizeLarge * scaling
+                  font.pointSize: Style.fontSizeL * scaling
                   font.weight: Style.fontWeightBold
                   color: Color.mPrimary
                   Layout.fillWidth: true

@@ -42,7 +42,7 @@ Item {
     target: "lockScreen"
 
     function toggle() {
-      lockScreen.locked = !lockScreen.locked
+      lockScreen.isLoaded = !lockScreen.isLoaded
     }
   }
 

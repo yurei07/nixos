@@ -1,0 +1,6 @@
+# Base: only write Noctalia colors.json for the shell
+[config]
+
+[templates.noctalia]
+input_path = "templates/noctalia.json"
+output_path = "~/.config/noctalia/colors.json"

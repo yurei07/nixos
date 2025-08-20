@@ -15,13 +15,13 @@ RadioButton {
     radius: width * 0.5
     color: Color.transparent
     border.color: root.checked ? Color.mPrimary : Color.mOnSurface
-    border.width: Math.max(1, Style.borderMedium * scaling)
+    border.width: Math.max(1, Style.borderM * scaling)
     anchors.verticalCenter: parent.verticalCenter
 
     Rectangle {
       anchors.centerIn: parent
-      implicitWidth: Style.marginSmall * scaling
-      implicitHeight: Style.marginSmall * scaling
+      implicitWidth: Style.marginS * scaling
+      implicitHeight: Style.marginS * scaling
 
       radius: width * 0.5
       color: Qt.alpha(Color.mPrimary, root.checked ? 1 : 0)
@@ -37,9 +37,9 @@ RadioButton {
 
   contentItem: NText {
     text: root.text
-    font.pointSize: Style.fontSizeMedium * scaling
+    font.pointSize: Style.fontSizeM * scaling
     anchors.verticalCenter: parent.verticalCenter
     anchors.left: outerCircle.right
-    anchors.leftMargin: Style.marginSmall * scaling
+    anchors.leftMargin: Style.marginS * scaling
   }
 }

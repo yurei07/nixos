@@ -31,7 +31,7 @@ Item {
   // Exposed width logic
   readonly property int pillHeight: Style.baseWidgetSize * sizeMultiplier * scaling
   readonly property int iconSize: Style.baseWidgetSize * sizeMultiplier * scaling
-  readonly property int pillPaddingHorizontal: Style.marginMedium * scaling
+  readonly property int pillPaddingHorizontal: Style.marginM * scaling
   readonly property int pillOverlap: iconSize * 0.5
   readonly property int maxPillWidth: Math.max(1, textItem.implicitWidth + pillPaddingHorizontal * 2 + pillOverlap)
 
@@ -53,7 +53,7 @@ Item {
       id: textItem
       anchors.centerIn: parent
       text: root.text
-      font.pointSize: Style.fontSizeSmall * scaling
+      font.pointSize: Style.fontSizeXS * scaling
       font.weight: Style.fontWeightBold
       color: textColor
       visible: showPill
@@ -80,7 +80,7 @@ Item {
     width: iconSize
     height: iconSize
     radius: width * 0.5
-    color: showPill ? iconCircleColor : Color.transparent
+    color: showPill ? iconCircleColor : Color.mSurfaceVariant
     anchors.verticalCenter: parent.verticalCenter
     anchors.right: parent.right
 
@@ -91,12 +91,11 @@ Item {
       }
     }
 
-    Text {
-      anchors.centerIn: parent
-      font.family: showPill ? "Material Symbols Rounded" : "Material Symbols Outlined"
-      font.pointSize: Style.fontSizeMedium * scaling
+    NIcon {
       text: root.icon
-      color: showPill ? iconTextColor : collapsedIconColor
+      font.pointSize: Style.fontSizeM * scaling
+      color: showPill ? iconTextColor : Color.mOnSurface
+      anchors.centerIn: parent
     }
   }
 
@@ -169,7 +168,7 @@ Item {
 
   NTooltip {
     id: tooltip
-    positionAbove: false
+    positionAbove: Settings.data.bar.position === "bottom"
     target: pill
     delay: Style.tooltipDelayLong
     text: root.tooltipText

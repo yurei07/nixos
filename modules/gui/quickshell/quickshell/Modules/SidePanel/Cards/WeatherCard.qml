@@ -14,35 +14,34 @@ NBox {
   // TBC weatherReady is not turning to false when we reset weather...
   Layout.fillWidth: true
   // Height driven by content
-  implicitHeight: content.implicitHeight + Style.marginLarge * 2 * scaling
+  implicitHeight: content.implicitHeight + Style.marginL * 2 * scaling
 
   ColumnLayout {
     id: content
     anchors.left: parent.left
     anchors.right: parent.right
     anchors.top: parent.top
-    anchors.margins: Style.marginMedium * scaling
-    spacing: Style.marginMedium * scaling
+    anchors.margins: Style.marginM * scaling
+    spacing: Style.marginM * scaling
 
     RowLayout {
-      spacing: Style.marginSmall * scaling
-      NText {
+      spacing: Style.marginS * scaling
+      NIcon {
         text: weatherReady ? LocationService.weatherSymbolFromCode(
                                LocationService.data.weather.current_weather.weathercode) : ""
-        font.family: "Material Symbols Outlined"
-        font.pointSize: Style.fontSizeXXL * 1.5 * scaling
+        font.pointSize: Style.fontSizeXXXL * 1.5 * scaling
         color: Color.mPrimary
       }
 
       ColumnLayout {
-        spacing: -Style.marginTiny * scaling
+        spacing: -Style.marginXS * scaling
         NText {
           text: {
             // Ensure the name is not too long if one had to specify the country
             const chunks = Settings.data.location.name.split(",")
             return chunks[0]
           }
-          font.pointSize: Style.fontSizeLarger * scaling
+          font.pointSize: Style.fontSizeXL * scaling
           font.weight: Style.fontWeightBold
         }
 
@@ -62,13 +61,13 @@ NBox {
               temp = Math.round(temp)
               return `${temp}°${suffix}`
             }
-            font.pointSize: Style.fontSizeXL * scaling
+            font.pointSize: Style.fontSizeXXL * scaling
             font.weight: Style.fontWeightBold
           }
 
           NText {
             text: weatherReady ? `(${LocationService.data.weather.timezone_abbreviation})` : ""
-            font.pointSize: Style.fontSizeSmall * scaling
+            font.pointSize: Style.fontSizeXS * scaling
             visible: LocationService.data.weather
           }
         }
@@ -84,20 +83,19 @@ NBox {
       visible: weatherReady
       Layout.fillWidth: true
       Layout.alignment: Qt.AlignHCenter
-      spacing: Style.marginLarge * scaling
+      spacing: Style.marginL * scaling
       Repeater {
         model: weatherReady ? LocationService.data.weather.daily.time : []
         delegate: ColumnLayout {
           Layout.alignment: Qt.AlignHCenter
-          spacing: Style.marginSmall * scaling
+          spacing: Style.marginS * scaling
           NText {
             text: Qt.formatDateTime(new Date(LocationService.data.weather.daily.time[index]), "ddd")
             color: Color.mOnSurface
           }
-          NText {
+          NIcon {
             text: LocationService.weatherSymbolFromCode(LocationService.data.weather.daily.weathercode[index])
-            font.family: "Material Symbols Outlined"
-            font.pointSize: Style.fontSizeXL * scaling
+            font.pointSize: Style.fontSizeXXL * scaling
             color: Color.mPrimary
           }
           NText {
@@ -112,7 +110,7 @@ NBox {
               min = Math.round(min)
               return `${max}°/${min}°`
             }
-            font.pointSize: Style.fontSizeSmall * scaling
+            font.pointSize: Style.fontSizeXS * scaling
             color: Color.mOnSurfaceVariant
           }
         }

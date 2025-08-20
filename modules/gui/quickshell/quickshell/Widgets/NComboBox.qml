@@ -19,24 +19,12 @@ ColumnLayout {
 
   signal selected(string key)
 
-  spacing: Style.marginSmall * scaling
+  spacing: Style.marginS * scaling
   Layout.fillWidth: true
 
-  ColumnLayout {
-    spacing: Style.marginTiniest * scaling
-    Layout.fillWidth: true
-    NText {
-      text: label
-      font.pointSize: Style.fontSizeMedium * scaling
-      font.weight: Style.fontWeightBold
-      color: Color.mOnSurface
-    }
-    NText {
-      text: description
-      font.pointSize: Style.fontSizeSmall * scaling
-      color: Color.mOnSurface
-      wrapMode: Text.WordWrap
-    }
+  NLabel {
+    label: root.label
+    description: root.description
   }
 
   function findIndexByKey(key) {
@@ -63,33 +51,32 @@ ColumnLayout {
       implicitHeight: preferredHeight
       color: Color.mSurface
       border.color: combo.activeFocus ? Color.mTertiary : Color.mOutline
-      border.width: Math.max(1, Style.borderThin * scaling)
-      radius: Style.radiusMedium * scaling
+      border.width: Math.max(1, Style.borderS * scaling)
+      radius: Style.radiusM * scaling
     }
 
     contentItem: NText {
-      leftPadding: Style.marginLarge * scaling
-      rightPadding: combo.indicator.width + Style.marginLarge * scaling
-      font.pointSize: Style.fontSizeMedium * scaling
+      leftPadding: Style.marginL * scaling
+      rightPadding: combo.indicator.width + Style.marginL * scaling
+      font.pointSize: Style.fontSizeM * scaling
       verticalAlignment: Text.AlignVCenter
       elide: Text.ElideRight
       text: (combo.currentIndex >= 0 && combo.currentIndex < root.model.count) ? root.model.get(
                                                                                    combo.currentIndex).name : ""
     }
 
-    indicator: NText {
-      x: combo.width - width - Style.marginMedium * scaling
+    indicator: NIcon {
+      x: combo.width - width - Style.marginM * scaling
       y: combo.topPadding + (combo.availableHeight - height) / 2
       text: "arrow_drop_down"
-      font.family: "Material Symbols Outlined"
-      font.pointSize: Style.fontSizeXL * scaling
+      font.pointSize: Style.fontSizeXXL * scaling
     }
 
     popup: Popup {
       y: combo.height
       width: combo.width
-      implicitHeight: Math.min(160 * scaling, contentItem.implicitHeight + Style.marginMedium * scaling * 2)
-      padding: Style.marginMedium * scaling
+      implicitHeight: Math.min(160 * scaling, contentItem.implicitHeight + Style.marginM * scaling * 2)
+      padding: Style.marginM * scaling
 
       contentItem: ListView {
         property var comboBoxRoot: root
@@ -117,16 +104,16 @@ ColumnLayout {
 
           contentItem: NText {
             text: name
-            font.pointSize: Style.fontSizeMedium * scaling
+            font.pointSize: Style.fontSizeM * scaling
             color: highlighted ? Color.mSurface : Color.mOnSurface
             verticalAlignment: Text.AlignVCenter
             elide: Text.ElideRight
           }
 
           background: Rectangle {
-            width: combo.width - Style.marginMedium * scaling * 3
+            width: combo.width - Style.marginM * scaling * 3
             color: highlighted ? Color.mTertiary : Color.transparent
-            radius: Style.radiusSmall * scaling
+            radius: Style.radiusS * scaling
           }
         }
       }
@@ -134,8 +121,8 @@ ColumnLayout {
       background: Rectangle {
         color: Color.mSurfaceVariant
         border.color: Color.mOutline
-        border.width: Math.max(1, Style.borderThin * scaling)
-        radius: Style.radiusMedium * scaling
+        border.width: Math.max(1, Style.borderS * scaling)
+        radius: Style.radiusM * scaling
       }
     }
   }

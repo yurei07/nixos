@@ -23,75 +23,40 @@ Item {
     ColumnLayout {
       width: parent.width
       ColumnLayout {
-        spacing: Style.marginLarge * scaling
-        Layout.margins: Style.marginLarge * scaling
+        spacing: Style.marginL * scaling
+        Layout.margins: Style.marginL * scaling
         Layout.fillWidth: true
 
         NText {
           text: "Brightness Settings"
-          font.pointSize: Style.fontSizeXL * scaling
+          font.pointSize: Style.fontSizeXXL * scaling
           font.weight: Style.fontWeightBold
           color: Color.mOnSurface
         }
 
-        NText {
-          text: "Configure brightness controls and monitor settings."
-          font.pointSize: Style.fontSize * scaling
-          color: Color.mOnSurfaceVariant
-        }
-
         // Bar Visibility Section
-        ColumnLayout {
-          spacing: Style.marginSmall * scaling
-          Layout.fillWidth: true
-          Layout.topMargin: Style.marginLarge * scaling
-
-          NText {
-            text: "Bar Integration"
-            font.pointSize: Style.fontSizeLarge * scaling
-            font.weight: Style.fontWeightBold
-            color: Color.mOnSurface
-          }
-
-          NToggle {
-            label: "Show Brightness Icon"
-            description: "Display the brightness control icon in the top bar"
-            checked: Settings.data.bar.showBrightness
-            onToggled: checked => {
-                         Settings.data.bar.showBrightness = checked
-                       }
-          }
-        }
-
-        NDivider {
-          Layout.fillWidth: true
-          Layout.topMargin: Style.marginLarge * scaling
-          Layout.bottomMargin: Style.marginLarge * scaling
+        NToggle {
+          label: "Show Bar Icon"
+          description: "Display the brightness control icon in the bar."
+          checked: Settings.data.bar.showBrightness
+          onToggled: checked => {
+                       Settings.data.bar.showBrightness = checked
+                     }
         }
 
         // Brightness Step Section
         ColumnLayout {
-          spacing: Style.marginSmall * scaling
+          spacing: Style.marginS * scaling
           Layout.fillWidth: true
 
-          NText {
-            text: "Brightness Step Size"
-            font.pointSize: Style.fontSizeLarge * scaling
-            font.weight: Style.fontWeightBold
-            color: Color.mOnSurface
-          }
-
-          NText {
-            text: "Adjust the step size for brightness changes (scroll wheel, keyboard shortcuts)"
-            font.pointSize: Style.fontSizeSmall * scaling
-            color: Color.mOnSurfaceVariant
-            wrapMode: Text.WordWrap
-            Layout.fillWidth: true
+          NLabel {
+            label: "Brightness Step Size"
+            description: "Adjust the step size for brightness changes (scroll wheel, keyboard shortcuts)."
           }
 
           RowLayout {
             Layout.fillWidth: true
-            spacing: Style.marginMedium * scaling
+            spacing: Style.marginM * scaling
 
             NSlider {
               Layout.fillWidth: true
@@ -110,7 +75,7 @@ Item {
               text: Settings.data.brightness.brightnessStep + "%"
               Layout.alignment: Qt.AlignVCenter
               color: Color.mOnSurface
-              font.pointSize: Style.fontSizeMedium * scaling
+              font.pointSize: Style.fontSizeM * scaling
               font.weight: Style.fontWeightBold
             }
           }
@@ -118,28 +83,18 @@ Item {
 
         NDivider {
           Layout.fillWidth: true
-          Layout.topMargin: Style.marginLarge * scaling
-          Layout.bottomMargin: Style.marginLarge * scaling
+          Layout.topMargin: Style.marginL * scaling
+          Layout.bottomMargin: Style.marginL * scaling
         }
 
         // Monitor Overview Section
         ColumnLayout {
-          spacing: Style.marginSmall * scaling
+          spacing: Style.marginS * scaling
           Layout.fillWidth: true
 
-          NText {
-            text: "Monitor Brightness Overview"
-            font.pointSize: Style.fontSizeLarge * scaling
-            font.weight: Style.fontWeightBold
-            color: Color.mOnSurface
-          }
-
-          NText {
-            text: "Current brightness levels for all detected monitors"
-            font.pointSize: Style.fontSizeSmall * scaling
-            color: Color.mOnSurfaceVariant
-            wrapMode: Text.WordWrap
-            Layout.fillWidth: true
+          NLabel {
+            label: "Monitors Brightness Control"
+            description: "Current brightness levels for all detected monitors."
           }
 
           // Single monitor display using the same data source as the bar icon
@@ -147,25 +102,25 @@ Item {
             model: BrightnessService.monitors
             Rectangle {
               Layout.fillWidth: true
-              radius: Style.radiusMedium * scaling
+              radius: Style.radiusM * scaling
               color: Color.mSurface
               border.color: Color.mOutline
-              border.width: Math.max(1, Style.borderThin * scaling)
+              border.width: Math.max(1, Style.borderS * scaling)
               implicitHeight: contentCol.implicitHeight + Style.marginXL * 2 * scaling
 
               ColumnLayout {
                 id: contentCol
                 anchors.fill: parent
-                anchors.margins: Style.marginLarge * scaling
-                spacing: Style.marginMedium * scaling
+                anchors.margins: Style.marginL * scaling
+                spacing: Style.marginM * scaling
 
                 RowLayout {
                   Layout.fillWidth: true
-                  spacing: Style.marginMedium * scaling
+                  spacing: Style.marginM * scaling
 
                   NText {
                     text: `${model.modelData.name} [${model.modelData.model}]`
-                    font.pointSize: Style.fontSizeLarge * scaling
+                    font.pointSize: Style.fontSizeL * scaling
                     font.weight: Style.fontWeightBold
                     color: Color.mSecondary
                   }
@@ -176,7 +131,7 @@ Item {
 
                   NText {
                     text: model.method
-                    font.pointSize: Style.fontSizeSmall * scaling
+                    font.pointSize: Style.fontSizeXS * scaling
                     color: Color.mOnSurfaceVariant
                     Layout.alignment: Qt.AlignRight
                   }
@@ -184,11 +139,11 @@ Item {
 
                 RowLayout {
                   Layout.fillWidth: true
-                  spacing: Style.marginMedium * scaling
+                  spacing: Style.marginM * scaling
 
                   NText {
                     text: "Brightness:"
-                    font.pointSize: Style.fontSizeMedium * scaling
+                    font.pointSize: Style.fontSizeM * scaling
                     color: Color.mOnSurface
                   }
 
@@ -208,7 +163,7 @@ Item {
 
                   NText {
                     text: Math.round(model.brightness * 100) + "%"
-                    font.pointSize: Style.fontSizeMedium * scaling
+                    font.pointSize: Style.fontSizeM * scaling
                     font.weight: Style.fontWeightBold
                     color: Color.mPrimary
                     Layout.alignment: Qt.AlignRight

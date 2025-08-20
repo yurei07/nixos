@@ -19,9 +19,9 @@ Rectangle {
   width: 68 * scaling
   height: 92 * scaling
   color: flat ? Color.transparent : Color.mSurface
-  radius: Style.radiusSmall * scaling
+  radius: Style.radiusS * scaling
   border.color: flat ? Color.transparent : Color.mSurfaceVariant
-  border.width: flat ? 0 : Math.max(1, Style.borderThin * scaling)
+  border.width: flat ? 0 : Math.max(1, Style.borderS * scaling)
   clip: true
 
   // Repaint gauge when the bound value changes
@@ -30,8 +30,8 @@ Rectangle {
   Row {
     id: innerRow
     anchors.fill: parent
-    anchors.margins: Style.marginSmall * scaling * contentScale
-    spacing: Style.marginSmall * scaling * contentScale
+    anchors.margins: Style.marginS * scaling * contentScale
+    spacing: Style.marginS * scaling * contentScale
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.verticalCenter: parent.verticalCenter
 
@@ -77,7 +77,7 @@ Rectangle {
         id: valueLabel
         anchors.centerIn: parent
         text: `${root.value}${root.suffix}`
-        font.pointSize: Style.fontSizeMedium * scaling * contentScale
+        font.pointSize: Style.fontSizeM * scaling * contentScale
         font.weight: Style.fontWeightBold
         color: Color.mOnSurface
         horizontalAlignment: Text.AlignHCenter
@@ -91,16 +91,15 @@ Rectangle {
         radius: width / 2
         color: Color.mSurface
         // border.color: Color.mPrimary
-        // border.width: Math.max(1, Style.borderThin * scaling)
+        // border.width: Math.max(1, Style.borderS * scaling)
         anchors.right: parent.right
         anchors.top: parent.top
         anchors.rightMargin: -6 * scaling * contentScale
-        anchors.topMargin: Style.marginTiniest * scaling * contentScale
+        anchors.topMargin: Style.marginXXS * scaling * contentScale
 
-        Text {
+        NIcon {
           anchors.centerIn: parent
           text: root.icon
-          font.family: "Material Symbols Outlined"
           font.pointSize: Style.fontSizeLargeXL * scaling * contentScale
           color: Color.mOnSurface
           horizontalAlignment: Text.AlignHCenter

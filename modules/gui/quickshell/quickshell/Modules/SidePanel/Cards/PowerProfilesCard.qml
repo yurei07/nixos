@@ -11,7 +11,7 @@ import qs.Widgets
 NBox {
   Layout.fillWidth: true
   Layout.preferredWidth: 1
-  implicitHeight: powerRow.implicitHeight + Style.marginMedium * 2 * scaling
+  implicitHeight: powerRow.implicitHeight + Style.marginM * 2 * scaling
 
   // PowerProfiles service
   property var powerProfiles: PowerProfiles
@@ -20,7 +20,7 @@ NBox {
   RowLayout {
     id: powerRow
     anchors.fill: parent
-    anchors.margins: Style.marginSmall * scaling
+    anchors.margins: Style.marginS * scaling
     spacing: sidePanel.cardSpacing
     Item {
       Layout.fillWidth: true
@@ -31,8 +31,8 @@ NBox {
       tooltipText: "Set Performance Power Profile"
       enabled: hasPP
       opacity: enabled ? Style.opacityFull : Style.opacityMedium
-      showFilled: enabled && powerProfiles.profile === PowerProfile.Performance
-      showBorder: !enabled || powerProfiles.profile !== PowerProfile.Performance
+      colorBg: (enabled && powerProfiles.profile === PowerProfile.Performance) ? Color.mPrimary : Color.mSurfaceVariant
+      colorFg: (enabled && powerProfiles.profile === PowerProfile.Performance) ? Color.mOnPrimary : Color.mPrimary
       onClicked: {
         if (enabled) {
           powerProfiles.profile = PowerProfile.Performance
@@ -45,8 +45,8 @@ NBox {
       tooltipText: "Set Balanced Power Profile"
       enabled: hasPP
       opacity: enabled ? Style.opacityFull : Style.opacityMedium
-      showFilled: enabled && powerProfiles.profile === PowerProfile.Balanced
-      showBorder: !enabled || powerProfiles.profile !== PowerProfile.Balanced
+      colorBg: (enabled && powerProfiles.profile === PowerProfile.Balanced) ? Color.mPrimary : Color.mSurfaceVariant
+      colorFg: (enabled && powerProfiles.profile === PowerProfile.Balanced) ? Color.mOnPrimary : Color.mPrimary
       onClicked: {
         if (enabled) {
           powerProfiles.profile = PowerProfile.Balanced
@@ -59,8 +59,8 @@ NBox {
       tooltipText: "Set Eco Power Profile"
       enabled: hasPP
       opacity: enabled ? Style.opacityFull : Style.opacityMedium
-      showFilled: enabled && powerProfiles.profile === PowerProfile.PowerSaver
-      showBorder: !enabled || powerProfiles.profile !== PowerProfile.PowerSaver
+      colorBg: (enabled && powerProfiles.profile === PowerProfile.PowerSaver) ? Color.mPrimary : Color.mSurfaceVariant
+      colorFg: (enabled && powerProfiles.profile === PowerProfile.PowerSaver) ? Color.mOnPrimary : Color.mPrimary
       onClicked: {
         if (enabled) {
           powerProfiles.profile = PowerProfile.PowerSaver

@@ -9,7 +9,7 @@ import qs.Widgets
 Row {
   id: root
   anchors.verticalCenter: parent.verticalCenter
-  spacing: Style.marginSmall * scaling
+  spacing: Style.marginS * scaling
   visible: Settings.data.bar.showMedia && (MediaService.canPlay || MediaService.canPause)
 
   function getTitle() {
@@ -26,29 +26,32 @@ Row {
 
   Rectangle {
     // Let the Rectangle size itself based on its content (the Row)
-    width: row.width + Style.marginMedium * scaling * 2
-    height: row.height + Style.marginSmall * scaling
+    width: row.width + Style.marginM * scaling * 2
+
+    height: Math.round(Style.capsuleHeight * scaling)
+    radius: Math.round(Style.radiusM * scaling)
     color: Color.mSurfaceVariant
-    radius: Style.radiusSmall * scaling
+    border.color: Color.mOutline
+    border.width: Math.max(1, Math.round(Style.borderS * scaling))
+
     anchors.verticalCenter: parent.verticalCenter
 
     Item {
       id: mainContainer
       anchors.fill: parent
-      anchors.leftMargin: Style.marginSmall * scaling
-      anchors.rightMargin: Style.marginSmall * scaling
+      anchors.leftMargin: Style.marginS * scaling
+      anchors.rightMargin: Style.marginS * scaling
 
       Row {
         id: row
         anchors.verticalCenter: parent.verticalCenter
-        spacing: Style.marginTiny * scaling
+        spacing: Style.marginXS * scaling
 
         // Window icon
-        NText {
+        NIcon {
           id: windowIcon
           text: MediaService.isPlaying ? "pause" : "play_arrow"
-          font.family: "Material Symbols Outlined"
-          font.pointSize: Style.fontSizeLarge * scaling
+          font.pointSize: Style.fontSizeL * scaling
           verticalAlignment: Text.AlignVCenter
           anchors.verticalCenter: parent.verticalCenter
           visible: getTitle() !== ""
@@ -63,12 +66,12 @@ Row {
                                                       400 * scaling) : Math.min(fullTitleMetrics.contentWidth,
                                                                                 150 * scaling)
           text: getTitle()
-          font.pointSize: Style.fontSizeReduced * scaling
-          font.weight: Style.fontWeightBold
+          font.pointSize: Style.fontSizeS * scaling
+          font.weight: Style.fontWeightMedium
           elide: Text.ElideRight
           anchors.verticalCenter: parent.verticalCenter
           verticalAlignment: Text.AlignVCenter
-          color: Color.mSecondary
+          color: Color.mTertiary
 
           Behavior on width {
             NumberAnimation {

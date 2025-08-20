@@ -169,8 +169,8 @@ Singleton {
   }
 
   // --------------------------------
-  function errorCallback(message) {
-    Logger.error(message)
+  function errorCallback(module, message) {
+    Logger.error(module, message)
     isFetchingWeather = false
   }
 

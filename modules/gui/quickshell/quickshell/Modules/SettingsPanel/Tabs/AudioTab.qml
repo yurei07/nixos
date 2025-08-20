@@ -26,7 +26,7 @@ ColumnLayout {
 
     Layout.fillWidth: true
     Layout.fillHeight: true
-    padding: Style.marginMedium * scaling
+    padding: Style.marginM * scaling
     clip: true
     ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
@@ -41,45 +41,33 @@ ColumnLayout {
       }
 
       ColumnLayout {
-        spacing: Style.marginTiny * scaling
+        spacing: Style.marginXS * scaling
         Layout.fillWidth: true
 
         NText {
-          text: "Audio"
-          font.pointSize: Style.fontSizeXL * scaling
+          text: "Audio Output Volume"
+          font.pointSize: Style.fontSizeXXL * scaling
           font.weight: Style.fontWeightBold
           color: Color.mOnSurface
-          Layout.bottomMargin: Style.marginSmall * scaling
+          Layout.bottomMargin: Style.marginS * scaling
         }
 
         // Volume Controls
         ColumnLayout {
-          spacing: Style.marginSmall * scaling
+          spacing: Style.marginS * scaling
           Layout.fillWidth: true
-          Layout.topMargin: Style.marginSmall * scaling
+          Layout.topMargin: Style.marginS * scaling
 
           // Master Volume
           ColumnLayout {
-            spacing: Style.marginSmall * scaling
+            spacing: Style.marginS * scaling
             Layout.fillWidth: true
 
-            ColumnLayout {
-              spacing: Style.marginTiniest * scaling
-
-              NText {
-                text: "Master Volume"
-                font.weight: Style.fontWeightBold
-                color: Color.mOnSurface
-              }
-
-              NText {
-                text: "System-wide volume level"
-                font.pointSize: Style.fontSizeSmall * scaling
-                color: Color.mOnSurface
-                wrapMode: Text.WordWrap
-                Layout.fillWidth: true
-              }
+            NLabel {
+              label: "Master Volume"
+              description: "System-wide volume level."
             }
+
             RowLayout {
               // Pipewire seems a bit finicky, if we spam too many volume changes it breaks easily
               // Probably because they have some quick fades in and out to avoid clipping
@@ -109,6 +97,7 @@ ColumnLayout {
               NText {
                 text: Math.floor(AudioService.volume * 100) + "%"
                 Layout.alignment: Qt.AlignVCenter
+                Layout.leftMargin: Style.marginS * scaling
                 color: Color.mOnSurface
               }
             }
@@ -116,13 +105,13 @@ ColumnLayout {
 
           // Mute Toggle
           ColumnLayout {
-            spacing: Style.marginSmall * scaling
+            spacing: Style.marginS * scaling
             Layout.fillWidth: true
-            Layout.topMargin: Style.marginMedium * scaling
+            Layout.topMargin: Style.marginM * scaling
 
             NToggle {
-              label: "Mute AudioService"
-              description: "Mute or unmute the default audio output"
+              label: "Mute Audio Output"
+              description: "Mute or unmute the default audio output."
               checked: AudioService.muted
               onToggled: checked => {
                            if (AudioService.sink && AudioService.sink.audio) {
@@ -135,21 +124,21 @@ ColumnLayout {
 
         NDivider {
           Layout.fillWidth: true
-          Layout.topMargin: Style.marginLarge * 2 * scaling
-          Layout.bottomMargin: Style.marginLarge * scaling
+          Layout.topMargin: Style.marginL * 2 * scaling
+          Layout.bottomMargin: Style.marginL * scaling
         }
 
         // AudioService Devices
         ColumnLayout {
-          spacing: Style.marginLarge * scaling
+          spacing: Style.marginL * scaling
           Layout.fillWidth: true
 
           NText {
             text: "Audio Devices"
-            font.pointSize: Style.fontSizeXL * scaling
+            font.pointSize: Style.fontSizeXXL * scaling
             font.weight: Style.fontWeightBold
             color: Color.mOnSurface
-            Layout.bottomMargin: Style.marginSmall * scaling
+            Layout.bottomMargin: Style.marginS * scaling
           }
 
           // -------------------------------
@@ -159,23 +148,13 @@ ColumnLayout {
           }
 
           ColumnLayout {
-            spacing: Style.marginTiniest * scaling
+            spacing: Style.marginXS * scaling
             Layout.fillWidth: true
-            Layout.bottomMargin: Style.marginLarge * scaling
+            Layout.bottomMargin: Style.marginL * scaling
 
-            NText {
-              text: "Output Device"
-              font.pointSize: Style.fontSizeMedium * scaling
-              font.weight: Style.fontWeightBold
-              color: Color.mOnSurface
-            }
-
-            NText {
-              text: "Select the desired audio output device"
-              font.pointSize: Style.fontSizeSmall * scaling
-              color: Color.mOnSurface
-              wrapMode: Text.WordWrap
-              Layout.fillWidth: true
+            NLabel {
+              label: "Output Device"
+              description: "Select the desired audio output device."
             }
 
             Repeater {
@@ -198,23 +177,13 @@ ColumnLayout {
         }
 
         ColumnLayout {
-          spacing: Style.marginTiniest * scaling
+          spacing: Style.marginXS * scaling
           Layout.fillWidth: true
-          Layout.bottomMargin: Style.marginLarge * scaling
+          Layout.bottomMargin: Style.marginL * scaling
 
-          NText {
-            text: "Input Device"
-            font.pointSize: Style.fontSizeMedium * scaling
-            font.weight: Style.fontWeightBold
-            color: Color.mOnSurface
-          }
-
-          NText {
-            text: "Select desired audio input device"
-            font.pointSize: Style.fontSizeSmall * scaling
-            color: Color.mOnSurface
-            wrapMode: Text.WordWrap
-            Layout.fillWidth: true
+          NLabel {
+            label: "Input Device"
+            description: "Select the desired audio input device."
           }
 
           Repeater {
@@ -233,21 +202,21 @@ ColumnLayout {
       // Divider
       NDivider {
         Layout.fillWidth: true
-        Layout.topMargin: Style.marginLarge * scaling
-        Layout.bottomMargin: Style.marginMedium * scaling
+        Layout.topMargin: Style.marginL * scaling
+        Layout.bottomMargin: Style.marginM * scaling
       }
 
       // AudioService Visualizer Category
       ColumnLayout {
-        spacing: Style.marginSmall * scaling
+        spacing: Style.marginS * scaling
         Layout.fillWidth: true
 
         NText {
           text: "Audio Visualizer"
-          font.pointSize: Style.fontSizeXL * scaling
+          font.pointSize: Style.fontSizeXXL * scaling
           font.weight: Style.fontWeightBold
           color: Color.mOnSurface
-          Layout.bottomMargin: Style.marginSmall * scaling
+          Layout.bottomMargin: Style.marginS * scaling
         }
 
         // AudioService Visualizer section
@@ -263,6 +232,14 @@ ColumnLayout {
             ListElement {
               key: "linear"
               name: "Linear"
+            }
+            ListElement {
+              key: "mirrored"
+              name: "Mirrored"
+            }
+            ListElement {
+              key: "wave"
+              name: "Wave"
             }
           }
           currentKey: Settings.data.audio.visualizerType
