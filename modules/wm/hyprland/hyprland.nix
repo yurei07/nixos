@@ -110,6 +110,8 @@ in
         gaps_out = 25;
 	      gaps_in = 10;
         layout = "dwindle";  
+        "col.active_border" = "rgb(4575da) rgb(6804b5)";
+        "col.inactive_border" = "rgb(595959)";
       };
 
       decoration = {
@@ -162,9 +164,6 @@ in
       
       misc = {
         disable_hyprland_logo = true;
-        disable_splash_rendering = true;
-        vfr = true;
-        vrr = 0;
       };
     };
   };
