@@ -1,6 +1,7 @@
 import QtQuick
 import qs.Commons
 import qs.Services
+import qs.Widgets
 
 // Compact circular statistic display used in the SidePanel
 Rectangle {
@@ -73,7 +74,7 @@ Rectangle {
       }
 
       // Percent centered in the circle
-      Text {
+      NText {
         id: valueLabel
         anchors.centerIn: parent
         text: `${root.value}${root.suffix}`

@@ -16,12 +16,13 @@ NBox {
   // PowerProfiles service
   property var powerProfiles: PowerProfiles
   readonly property bool hasPP: powerProfiles.hasPerformanceProfile
+  property real spacing: 0
 
   RowLayout {
     id: powerRow
     anchors.fill: parent
     anchors.margins: Style.marginS * scaling
-    spacing: sidePanel.cardSpacing
+    spacing: spacing
     Item {
       Layout.fillWidth: true
     }

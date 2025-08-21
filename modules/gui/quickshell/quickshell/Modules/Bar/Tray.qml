@@ -76,37 +76,34 @@ Rectangle {
 
                        if (mouse.button === Qt.LeftButton) {
                          // Close any open menu first
-                         if (trayMenu && trayMenu.visible) {
-                           trayMenu.hideMenu()
-                         }
+                         trayPanel.close()
 
                          if (!modelData.onlyMenu) {
                            modelData.activate()
                          }
                        } else if (mouse.button === Qt.MiddleButton) {
                          // Close any open menu first
-                         if (trayMenu && trayMenu.visible) {
-                           trayMenu.hideMenu()
-                         }
+                         trayPanel.close()
 
                          modelData.secondaryActivate && modelData.secondaryActivate()
                        } else if (mouse.button === Qt.RightButton) {
                          trayTooltip.hide()
-                         // If menu is already visible, close it
-                         if (trayMenu && trayMenu.visible) {
-                           trayMenu.hideMenu()
+
+                         // Close the menu if it was visible
+                         if (trayPanel && trayPanel.visible) {
+                           trayPanel.close()
                            return
                          }
 
                          if (modelData.hasMenu && modelData.menu && trayMenu) {
+                           trayPanel.open()
+
                            // Anchor the menu to the tray icon item (parent) and position it below the icon
                            const menuX = (width / 2) - (trayMenu.width / 2)
                            const menuY = (Style.barHeight * scaling)
                            trayMenu.menu = modelData.menu
                            trayMenu.showAt(parent, menuX, menuY)
-                           trayPanel.show()
                          } else {
-
                            Logger.log("Tray", "No menu available for", modelData.id, "or trayMenu not set")
                          }
                        }
@@ -125,94 +122,37 @@ Rectangle {
     }
   }
 
-  // Attached TrayMenu drop down
-  // Wrapped in NPanel so we can detect click outside of the menu to close the TrayMenu
-  NPanel {
+  PanelWindow {
     id: trayPanel
-    showOverlay: false // no colors overlay even if activated in settings
+    anchors.top: true
+    anchors.left: true
+    anchors.right: true
+    anchors.bottom: true
+    visible: false
+    color: Color.transparent
+    screen: screen
 
-    // Override hide function to animate first
-    function hide() {
-      // Start hide animation
-      trayMenuRect.scaleValue = 0.8
-      trayMenuRect.opacityValue = 0.0
+    function open() {
+      visible = true
 
-      // Hide after animation completes
-      hideTimer.start()
+      // Register into the panel service
+      // so this will autoclose if we open another panel
+      PanelService.registerOpen(trayPanel)
     }
 
-    Connections {
-      target: trayPanel
-      ignoreUnknownSignals: true
-      function onDismissed() {
-        // Start hide animation
-        trayMenuRect.scaleValue = 0.8
-        trayMenuRect.opacityValue = 0.0
-
-        // Hide after animation completes
-        hideTimer.start()
-      }
+    function close() {
+      visible = false
+      trayMenu.hideMenu()
     }
 
-    // Also handle visibility changes from external sources
-    onVisibleChanged: {
-      if (!visible && trayMenuRect.opacityValue > 0) {
-        // Start hide animation
-        trayMenuRect.scaleValue = 0.8
-        trayMenuRect.opacityValue = 0.0
-
-        // Hide after animation completes
-        hideTimer.start()
-      }
-    }
-
-    // Timer to hide panel after animation
-    Timer {
-      id: hideTimer
-      interval: Style.animationSlow
-      repeat: false
-      onTriggered: {
-        trayPanel.visible = false
-        trayMenu.hideMenu()
-      }
-    }
-
-    Rectangle {
-      id: trayMenuRect
-      color: Color.transparent
+    // Clicking outside of the rectangle to close
+    MouseArea {
       anchors.fill: parent
+      onClicked: trayPanel.close()
+    }
 
-      // Animation properties
-      property real scaleValue: 0.8
-      property real opacityValue: 0.0
-
-      scale: scaleValue
-      opacity: opacityValue
-
-      // Animate in when component is completed
-      Component.onCompleted: {
-        scaleValue = 1.0
-        opacityValue = 1.0
-      }
-
-      // Animation behaviors
-      Behavior on scale {
-        NumberAnimation {
-          duration: Style.animationSlow
-          easing.type: Easing.OutExpo
-        }
-      }
-
-      Behavior on opacity {
-        NumberAnimation {
-          duration: Style.animationNormal
-          easing.type: Easing.OutQuad
-        }
-      }
-
-      TrayMenu {
-        id: trayMenu
-      }
+    TrayMenu {
+      id: trayMenu
     }
   }
 }

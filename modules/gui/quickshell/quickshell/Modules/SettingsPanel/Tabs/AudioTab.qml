@@ -120,6 +120,27 @@ ColumnLayout {
                          }
             }
           }
+
+          // Volume Step Size
+          ColumnLayout {
+            spacing: Style.marginS * scaling
+            Layout.fillWidth: true
+            Layout.topMargin: Style.marginM * scaling
+
+            NSpinBox {
+              Layout.fillWidth: true
+              label: "Volume Step Size"
+              description: "Adjust the step size for volume changes (scroll wheel, keyboard shortcuts)."
+              minimum: 1
+              maximum: 25
+              value: Settings.data.audio.volumeStep
+              stepSize: 1
+              suffix: "%"
+              onValueChanged: {
+                Settings.data.audio.volumeStep = value
+              }
+            }
+          }
         }
 
         NDivider {
@@ -203,7 +224,47 @@ ColumnLayout {
       NDivider {
         Layout.fillWidth: true
         Layout.topMargin: Style.marginL * scaling
-        Layout.bottomMargin: Style.marginM * scaling
+        Layout.bottomMargin: Style.marginXL * scaling
+      }
+
+      // Bar Mini Media player
+      ColumnLayout {
+        spacing: Style.marginL * scaling
+        Layout.fillWidth: true
+
+        NText {
+          text: "Bar Media Player"
+          font.pointSize: Style.fontSizeXXL * scaling
+          font.weight: Style.fontWeightBold
+          color: Color.mOnSurface
+          Layout.bottomMargin: Style.marginS * scaling
+        }
+
+        // Miniplayer section
+        NToggle {
+          label: "Show Album Art In Bar Media Player"
+          description: "Show the album art of the currently playing song next to the title."
+          checked: Settings.data.audio.showMiniplayerAlbumArt
+          onToggled: checked => {
+                       Settings.data.audio.showMiniplayerAlbumArt = checked
+                     }
+        }
+
+        NToggle {
+          label: "Show Audio Visualizer In Bar Media Player"
+          description: "Shows an audio visualizer in the background of the miniplayer."
+          checked: Settings.data.audio.showMiniplayerCava
+          onToggled: checked => {
+                       Settings.data.audio.showMiniplayerCava = checked
+                     }
+        }
+      }
+
+      // Divider
+      NDivider {
+        Layout.fillWidth: true
+        Layout.topMargin: Style.marginXL * scaling
+        Layout.bottomMargin: Style.marginXL * scaling
       }
 
       // AudioService Visualizer Category
@@ -243,7 +304,7 @@ ColumnLayout {
             }
           }
           currentKey: Settings.data.audio.visualizerType
-          onSelected: function (key) {
+          onSelected: key => {
             Settings.data.audio.visualizerType = key
           }
         }

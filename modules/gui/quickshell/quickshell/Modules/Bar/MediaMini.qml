@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
+import qs.Modules.Audio
 import qs.Commons
 import qs.Services
 import qs.Widgets
@@ -31,8 +32,6 @@ Row {
     height: Math.round(Style.capsuleHeight * scaling)
     radius: Math.round(Style.radiusM * scaling)
     color: Color.mSurfaceVariant
-    border.color: Color.mOutline
-    border.width: Math.max(1, Math.round(Style.borderS * scaling))
 
     anchors.verticalCenter: parent.verticalCenter
 
@@ -42,19 +41,105 @@ Row {
       anchors.leftMargin: Style.marginS * scaling
       anchors.rightMargin: Style.marginS * scaling
 
+      Loader {
+        anchors.verticalCenter: parent.verticalCenter
+        anchors.horizontalCenter: parent.horizontalCenter
+        active: Settings.data.audio.showMiniplayerCava && Settings.data.audio.visualizerType == "linear"
+                && MediaService.isPlaying
+        z: 0
+
+        sourceComponent: LinearSpectrum {
+          width: mainContainer.width - Style.marginS * scaling
+          height: 20 * scaling
+          values: CavaService.values
+          fillColor: Color.mOnSurfaceVariant
+          opacity: 0.4
+        }
+
+        Loader {
+          anchors.verticalCenter: parent.verticalCenter
+          anchors.horizontalCenter: parent.horizontalCenter
+          active: Settings.data.audio.showMiniplayerCava && Settings.data.audio.visualizerType == "mirrored"
+                  && MediaService.isPlaying
+          z: 0
+
+          sourceComponent: MirroredSpectrum {
+            width: mainContainer.width - Style.marginS * scaling
+            height: mainContainer.height - Style.marginS * scaling
+            values: CavaService.values
+            fillColor: Color.mOnSurfaceVariant
+            opacity: 0.4
+          }
+        }
+
+        Loader {
+          anchors.verticalCenter: parent.verticalCenter
+          anchors.horizontalCenter: parent.horizontalCenter
+          active: Settings.data.audio.showMiniplayerCava && Settings.data.audio.visualizerType == "wave"
+                  && MediaService.isPlaying
+          z: 0
+
+          sourceComponent: WaveSpectrum {
+            width: mainContainer.width - Style.marginS * scaling
+            height: mainContainer.height - Style.marginS * scaling
+            values: CavaService.values
+            fillColor: Color.mOnSurfaceVariant
+            opacity: 0.4
+          }
+        }
+      }
+
       Row {
         id: row
         anchors.verticalCenter: parent.verticalCenter
         spacing: Style.marginXS * scaling
+        z: 1 // Above the visualizer
 
-        // Window icon
         NIcon {
           id: windowIcon
           text: MediaService.isPlaying ? "pause" : "play_arrow"
           font.pointSize: Style.fontSizeL * scaling
           verticalAlignment: Text.AlignVCenter
           anchors.verticalCenter: parent.verticalCenter
-          visible: getTitle() !== ""
+          visible: !Settings.data.audio.showMiniplayerAlbumArt && getTitle() !== "" && !trackArt.visible
+        }
+
+        Column {
+          anchors.verticalCenter: parent.verticalCenter
+          visible: Settings.data.audio.showMiniplayerAlbumArt
+
+          Rectangle {
+            width: 16 * scaling
+            height: 16 * scaling
+            radius: width * 0.5
+            color: Color.transparent
+            antialiasing: true
+            clip: true
+
+            NImageRounded {
+              id: trackArt
+              visible: MediaService.trackArtUrl.toString() !== ""
+              anchors.fill: parent
+              anchors.verticalCenter: parent.verticalCenter
+              anchors.margins: scaling
+              imagePath: MediaService.trackArtUrl
+              fallbackIcon: MediaService.isPlaying ? "pause" : "play_arrow"
+              borderWidth: 0
+              border.color: Color.transparent
+              imageRadius: width
+              antialiasing: true
+            }
+
+            // Fallback icon when no album art available
+            NIcon {
+              id: windowIconFallback
+              text: MediaService.isPlaying ? "pause" : "play_arrow"
+              font.pointSize: Style.fontSizeL * scaling
+              verticalAlignment: Text.AlignVCenter
+              anchors.verticalCenter: parent.verticalCenter
+              visible: getTitle() !== "" && !trackArt.visible
+            }
+          }
         }
 
         NText {

@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Wayland
 import qs.Commons
 import qs.Services
 import qs.Widgets
@@ -16,6 +17,8 @@ Variants {
     required property ShellScreen modelData
     readonly property real scaling: ScalingService.scale(screen)
     screen: modelData
+
+    WlrLayershell.namespace: "noctalia-bar"
 
     implicitHeight: Style.barHeight * scaling
     color: Color.transparent
@@ -119,16 +122,6 @@ Variants {
           anchors.verticalCenter: parent.verticalCenter
         }
 
-        // NIconButton {
-        //   id: demoPanelToggle
-        //   icon: "experiment"
-        //   tooltipText: "Open Demo Panel"
-        //   sizeMultiplier: 0.8
-        //   anchors.verticalCenter: parent.verticalCenter
-        //   onClicked: {
-        //     demoPanel.isLoaded = !demoPanel.isLoaded
-        //   }
-        // }
         SidePanelToggle {}
       }
     }

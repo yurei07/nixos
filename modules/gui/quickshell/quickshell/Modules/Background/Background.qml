@@ -4,49 +4,53 @@ import Quickshell.Wayland
 import qs.Commons
 import qs.Services
 
-Variants {
-  model: Quickshell.screens
+Loader {
+  active: !Settings.data.wallpaper.swww.enabled
 
-  delegate: PanelWindow {
-    required property ShellScreen modelData
-    property string wallpaperSource: WallpaperService.currentWallpaper !== ""
-                                     && !Settings.data.wallpaper.swww.enabled ? WallpaperService.currentWallpaper : ""
+  sourceComponent: Variants {
+    model: Quickshell.screens
 
-    visible: wallpaperSource !== "" && !Settings.data.wallpaper.swww.enabled
+    delegate: PanelWindow {
+      required property ShellScreen modelData
+      property string wallpaperSource: WallpaperService.currentWallpaper !== ""
+                                       && !Settings.data.wallpaper.swww.enabled ? WallpaperService.currentWallpaper : ""
 
-    // Force update when SWWW setting changes
-    onVisibleChanged: {
-      if (visible) {
+      visible: wallpaperSource !== "" && !Settings.data.wallpaper.swww.enabled
 
-      } else {
+      // Force update when SWWW setting changes
+      onVisibleChanged: {
+        if (visible) {
 
+        } else {
+
+        }
       }
-    }
-    color: Color.transparent
-    screen: modelData
-    WlrLayershell.layer: WlrLayer.Background
-    WlrLayershell.exclusionMode: ExclusionMode.Ignore
-    WlrLayershell.namespace: "quickshell-wallpaper"
+      color: Color.transparent
+      screen: modelData
+      WlrLayershell.layer: WlrLayer.Background
+      WlrLayershell.exclusionMode: ExclusionMode.Ignore
+      WlrLayershell.namespace: "quickshell-wallpaper"
 
-    anchors {
-      bottom: true
-      top: true
-      right: true
-      left: true
-    }
+      anchors {
+        bottom: true
+        top: true
+        right: true
+        left: true
+      }
 
-    margins {
-      top: 0
-    }
+      margins {
+        top: 0
+      }
 
-    Image {
-      anchors.fill: parent
-      fillMode: Image.PreserveAspectCrop
-      source: wallpaperSource
-      visible: wallpaperSource !== ""
-      cache: true
-      smooth: true
-      mipmap: false
+      Image {
+        anchors.fill: parent
+        fillMode: Image.PreserveAspectCrop
+        source: wallpaperSource
+        visible: wallpaperSource !== ""
+        cache: true
+        smooth: true
+        mipmap: false
+      }
     }
   }
 }

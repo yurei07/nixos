@@ -1,7 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env -S bash
 
 # A Bash script to monitor system stats and output them in JSON format.
-# This script is a conversion of ZigStat
 
 # --- Configuration ---
 # Default sleep duration in seconds. Can be overridden by the first argument.
@@ -114,7 +113,7 @@ get_cpu_temp() {
         local name
         name=$(<"$dir/name")
         # Check for supported sensor types.
-        if [[ "$name" == "coretemp" || "$name" == "k10temp" ]]; then
+        if [[ "$name" == "coretemp" || "$name" == "k10temp" || "$name" == "zenpower" ]]; then
           TEMP_SENSOR_PATH=$dir
           TEMP_SENSOR_TYPE=$name
           break # Found it, no need to keep searching.
@@ -172,6 +171,24 @@ get_cpu_temp() {
     else
       echo 0 # Fallback
     fi
+  elif [[ "$TEMP_SENSOR_TYPE" == "zenpower" ]]; then
+          # For zenpower, read the first available temp sensor
+          for temp_file in "$TEMP_SENSOR_PATH"/temp*_input; do
+                  if [[ -f "$temp_file" ]]; then
+                          local temp_value
+                          temp_value=$(cat "$temp_file" | tr -d '\n\r') # Remove any newlines
+                          echo "$((temp_value / 1000))"
+                          return
+                  fi
+          done
+          echo 0
+
+          if [[ -f "$tctl_input" ]]; then
+                  # Read the temperature and convert from millidegrees to degrees.
+                  echo "$(($(<"$tctl_input") / 1000))"
+          else
+                  echo 0 # Fallback
+          fi
   else
     echo 0 # Should not happen if cache logic is correct.
   fi

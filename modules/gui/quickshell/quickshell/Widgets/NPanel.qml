@@ -4,111 +4,187 @@ import Quickshell.Wayland
 import qs.Commons
 import qs.Services
 
-PanelWindow {
+Loader {
   id: root
 
+  active: false
+  asynchronous: true
+
   readonly property real scaling: ScalingService.scale(screen)
+  property ShellScreen screen
 
-  property bool showOverlay: Settings.data.general.dimDesktop
-  property int topMargin: Settings.data.bar.position === "top" ? Style.barHeight * scaling : 0
-  property int bottomMargin: Settings.data.bar.position === "bottom" ? Style.barHeight * scaling : 0
-  // Show dimming if this panel is opened OR if we're in a transition (to prevent flickering)
-  property color overlayColor: (showOverlay && (PanelService.openedPanel === root
-                                                || isTransitioning)) ? Color.applyOpacity(Color.mShadow,
-                                                                                          "AA") : Color.transparent
-  property bool isTransitioning: false
-  signal dismissed
+  property Component panelContent: null
+  property int panelWidth: 1500
+  property int panelHeight: 400
+  property bool panelAnchorCentered: false
+  property bool panelAnchorLeft: false
+  property bool panelAnchorRight: false
 
-  function hide() {
-    // Clear the panel service when hiding
-    if (PanelService.openedPanel === root) {
-      PanelService.openedPanel = null
-    }
-    isTransitioning = false
-    visible = false
-    root.dismissed()
-  }
+  // Animation properties
+  readonly property real originalScale: 0.7
+  readonly property real originalOpacity: 0.0
+  property real scaleValue: originalScale
+  property real opacityValue: originalOpacity
 
-  function show() {
-    // Ensure only one panel is visible at a time using PanelService as ephemeral storage
-    try {
-      if (PanelService.openedPanel && PanelService.openedPanel !== root && PanelService.openedPanel.hide) {
-        // Mark both panels as transitioning to prevent dimming flicker
-        isTransitioning = true
-        PanelService.openedPanel.isTransitioning = true
-        PanelService.openedPanel.hide()
-        // Small delay to ensure smooth transition
-        showTimer.start()
-        return
-      }
-      // No previous panel, show immediately
-      PanelService.openedPanel = root
-      visible = true
-    } catch (e) {
+  property alias isClosing: hideTimer.running
 
-      // ignore
+  signal opened
+  signal closed
+
+  // -----------------------------------------
+  function toggle(aScreen) {
+    if (!active || isClosing) {
+      open(aScreen)
+    } else {
+      close()
     }
   }
 
-  implicitWidth: screen.width
-  implicitHeight: screen.height
-  color: visible ? overlayColor : Color.transparent
-  visible: false
-  WlrLayershell.exclusionMode: ExclusionMode.Ignore
-
-  anchors.top: true
-  anchors.left: true
-  anchors.right: true
-  anchors.bottom: true
-  margins.top: topMargin
-  margins.bottom: bottomMargin
-
-  MouseArea {
-    anchors.fill: parent
-    onClicked: root.hide()
-  }
-
-  Behavior on color {
-    ColorAnimation {
-      duration: Style.animationSlow
-      easing.type: Easing.InOutCubic
+  // -----------------------------------------
+  function open(aScreen) {
+    if (aScreen !== null) {
+      screen = aScreen
     }
+
+    // Special case if currently closing/animating
+    if (isClosing) {
+      hideTimer.stop() // in case we were closing
+      scaleValue = 1.0
+      opacityValue = 1.0
+    }
+
+    PanelService.registerOpen(root)
+
+    active = true
+    root.opened()
   }
 
+  // -----------------------------------------
+  function close() {
+    scaleValue = originalScale
+    opacityValue = originalOpacity
+    hideTimer.start()
+  }
+
+  // -----------------------------------------
+  function closeCompleted() {
+    root.closed()
+    active = false
+  }
+
+  // -----------------------------------------
+  // Timer to disable the loader after the close animation is completed
   Timer {
-    id: showTimer
-    interval: 50 // Small delay to ensure smooth transition
+    id: hideTimer
+    interval: Style.animationSlow
     repeat: false
     onTriggered: {
-      PanelService.openedPanel = root
-      isTransitioning = false
-      visible = true
+      closeCompleted()
     }
   }
 
-  Component.onDestruction: {
-    try {
-      if (visible && Settings.openPanel === root)
-        Settings.openPanel = null
-    } catch (e) {
+  // -----------------------------------------
+  sourceComponent: Component {
+    PanelWindow {
+      id: panelWindow
 
-    }
-  }
+      visible: true
 
-  onVisibleChanged: {
-    try {
-      if (!visible) {
-        // Clear panel service when panel becomes invisible
-        if (PanelService.openedPanel === root) {
-          PanelService.openedPanel = null
+      // Dim desktop if required
+      color: (root.active && !root.isClosing && Settings.data.general.dimDesktop) ? Color.applyOpacity(
+                                                                                      Color.mShadow,
+                                                                                      "BB") : Color.transparent
+
+      WlrLayershell.exclusionMode: ExclusionMode.Ignore
+      WlrLayershell.namespace: "noctalia-panel"
+      WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+
+      Behavior on color {
+        ColorAnimation {
+          duration: Style.animationNormal
         }
-        if (Settings.openPanel === root) {
-          Settings.openPanel = null
-        }
-        isTransitioning = false
       }
-    } catch (e) {
 
+      anchors.top: true
+      anchors.left: true
+      anchors.right: true
+      anchors.bottom: true
+      margins.top: Settings.data.bar.position === "top" ? Style.barHeight * scaling : 0
+      margins.bottom: Settings.data.bar.position === "bottom" ? Style.barHeight * scaling : 0
+
+      // Close any panel with Esc without requiring focus
+      Shortcut {
+        sequences: ["Escape"]
+        enabled: root.active && !root.isClosing
+        onActivated: root.close()
+        context: Qt.WindowShortcut
+      }
+
+      // Clicking outside of the rectangle to close
+      MouseArea {
+        anchors.fill: parent
+        onClicked: root.close()
+      }
+
+      Rectangle {
+        id: panelBackground
+        color: Color.mSurface
+        radius: Style.radiusL * scaling
+        border.color: Color.mOutline
+        border.width: Math.max(1, Style.borderS * scaling)
+        layer.enabled: true
+        width: panelWidth
+        height: panelHeight
+
+        anchors {
+          centerIn: panelAnchorCentered ? parent : null
+          left: !panelAnchorCentered && panelAnchorLeft ? parent.left : parent.center
+          right: !panelAnchorCentered && panelAnchorRight ? parent.right : parent.center
+          top: !panelAnchorCentered && (Settings.data.bar.position === "top") ? parent.top : undefined
+          bottom: !panelAnchorCentered && (Settings.data.bar.position === "bottom") ? parent.bottom : undefined
+
+          // margins
+          topMargin: !panelAnchorCentered
+                     && (Settings.data.bar.position === "top") ? Style.marginS * scaling : undefined
+          bottomMargin: !panelAnchorCentered
+                        && (Settings.data.bar.position === "bottom") ? Style.marginS * scaling : undefined
+          rightMargin: !panelAnchorCentered && panelAnchorRight ? Style.marginS * scaling : undefined
+        }
+
+        scale: root.scaleValue
+        opacity: root.opacityValue
+
+        // Animate in when component is completed
+        Component.onCompleted: {
+          root.scaleValue = 1.0
+          root.opacityValue = 1.0
+        }
+
+        // Prevent closing when clicking in the panel bg
+        MouseArea {
+          anchors.fill: parent
+        }
+
+        // Animation behaviors
+        Behavior on scale {
+          NumberAnimation {
+            duration: Style.animationSlow
+            easing.type: Easing.OutExpo
+          }
+        }
+
+        Behavior on opacity {
+          NumberAnimation {
+            duration: Style.animationNormal
+            easing.type: Easing.OutQuad
+          }
+        }
+
+        Loader {
+          anchors.fill: parent
+          sourceComponent: root.panelContent
+        }
+      }
     }
   }
 }

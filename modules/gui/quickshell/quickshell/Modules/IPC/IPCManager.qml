@@ -1,5 +1,7 @@
 import QtQuick
+import Quickshell
 import Quickshell.Io
+import qs.Services
 
 Item {
   id: root
@@ -8,7 +10,7 @@ Item {
     target: "settings"
 
     function toggle() {
-      settingsPanel.isLoaded = !settingsPanel.isLoaded
+      settingsPanel.toggle(Quickshell.screens[0])
     }
   }
 
@@ -16,7 +18,7 @@ Item {
     target: "notifications"
 
     function toggleHistory() {
-      notificationHistoryPanel.isLoaded = !notificationHistoryPanel.isLoaded
+      notificationHistoryPanel.toggle(Quickshell.screens[0])
     }
 
     function toggleDoNotDisturb() {// TODO
@@ -26,7 +28,8 @@ Item {
   IpcHandler {
     target: "idleInhibitor"
 
-    function toggle() {// TODO
+    function toggle() {
+      return IdleInhibitorService.manualToggle()
     }
   }
 
@@ -34,7 +37,7 @@ Item {
     target: "appLauncher"
 
     function toggle() {
-      appLauncherPanel.isLoaded = !appLauncherPanel.isLoaded
+      appLauncherPanel.toggle(Quickshell.screens[0])
     }
   }
 
@@ -42,7 +45,11 @@ Item {
     target: "lockScreen"
 
     function toggle() {
-      lockScreen.isLoaded = !lockScreen.isLoaded
+      // Only lock if not already locked (prevents the red screen issue)
+      // Note: No unlock via IPC for security reasons
+      if (!lockScreen.active) {
+        lockScreen.active = true
+      }
     }
   }
 

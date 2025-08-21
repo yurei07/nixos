@@ -30,13 +30,12 @@ Singleton {
       videoDir += "/"
     }
     outputPath = videoDir + filename
-    var command = "gpu-screen-recorder -w portal" + " -f " + settings.frameRate + " -ac " + settings.audioCodec
-        + " -k " + settings.videoCodec + " -a " + settings.audioSource + " -q " + settings.quality
-        + " -cursor " + (settings.showCursor ? "yes" : "no") + " -cr " + settings.colorRange + " -o " + outputPath
+    var command = `gpu-screen-recorder -w ${settings.videoSource} -f ${settings.frameRate} -ac ${settings.audioCodec} -k ${settings.videoCodec} -a ${settings.audioSource} -q ${settings.quality} -cursor ${settings.showCursor ? "yes" : "no"} -cr ${settings.colorRange} -o ${outputPath}`
 
     //Logger.log("ScreenRecorder", command)
     Quickshell.execDetached(["sh", "-c", command])
     Logger.log("ScreenRecorder", "Started recording")
+    //Logger.log("ScreenRecorder", command)
   }
 
   // Stop recording using Quickshell.execDetached
@@ -45,7 +44,7 @@ Singleton {
       return
     }
 
-    Quickshell.execDetached(["sh", "-c", "pkill -SIGINT -f 'gpu-screen-recorder.*portal'"])
+    Quickshell.execDetached(["sh", "-c", "pkill -SIGINT -f 'gpu-screen-recorder'"])
     Logger.log("ScreenRecorder", "Finished recording:", outputPath)
 
     // Just in case, force kill after 3 seconds
@@ -59,7 +58,7 @@ Singleton {
     running: false
     repeat: false
     onTriggered: {
-      Quickshell.execDetached(["sh", "-c", "pkill -9 -f 'gpu-screen-recorder.*portal' 2>/dev/null || true"])
+      Quickshell.execDetached(["sh", "-c", "pkill -9 -f 'gpu-screen-recorder' 2>/dev/null || true"])
     }
   }
 }

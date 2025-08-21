@@ -31,25 +31,10 @@ NIconButton {
   }
   tooltipText: "Bluetooth Devices"
   onClicked: {
-    if (!bluetoothMenuLoader.active) {
-      bluetoothMenuLoader.isLoaded = true
-    }
-    if (bluetoothMenuLoader.item) {
-      if (bluetoothMenuLoader.item.visible) {
-        // Panel is visible, hide it with animation
-        if (bluetoothMenuLoader.item.hide) {
-          bluetoothMenuLoader.item.hide()
-        } else {
-          bluetoothMenuLoader.item.visible = false
-        }
-      } else {
-        // Panel is hidden, show it
-        bluetoothMenuLoader.item.visible = true
-      }
-    }
+    bluetoothPanel.toggle(screen)
   }
 
-  BluetoothMenu {
-    id: bluetoothMenuLoader
+  BluetoothPanel {
+    id: bluetoothPanel
   }
 }

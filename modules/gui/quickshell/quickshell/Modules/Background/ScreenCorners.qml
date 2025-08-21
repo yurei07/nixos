@@ -6,10 +6,10 @@ import qs.Commons
 import qs.Services
 import qs.Widgets
 
-NLoader {
-  isLoaded: Settings.data.general.showScreenCorners
+Loader {
+  active: Settings.data.general.showScreenCorners
 
-  content: Variants {
+  sourceComponent: Variants {
     model: Quickshell.screens
 
     PanelWindow {
@@ -43,9 +43,9 @@ NLoader {
       }
 
       margins {
-        top: (Settings.data.bar.monitors.includes(modelData.name) || (Settings.data.bar.monitors.length === 0))
+        top: ((modelData && Settings.data.bar.monitors.includes(modelData.name)) || (Settings.data.bar.monitors.length === 0))
              && Settings.data.bar.position === "top" ? Math.floor(Style.barHeight * scaling) : 0
-        bottom: (Settings.data.bar.monitors.includes(modelData.name) || (Settings.data.bar.monitors.length === 0))
+        bottom: ((modelData && Settings.data.bar.monitors.includes(modelData.name)) || (Settings.data.bar.monitors.length === 0))
                 && Settings.data.bar.position === "bottom" ? Math.floor(Style.barHeight * scaling) : 0
       }
 

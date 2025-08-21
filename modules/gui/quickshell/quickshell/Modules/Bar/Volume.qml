@@ -65,7 +65,7 @@ Item {
     }
     onClicked: {
       settingsPanel.requestedTab = SettingsPanel.Tab.AudioService
-      settingsPanel.isLoaded = true
+      settingsPanel.open(screen)
     }
   }
 }

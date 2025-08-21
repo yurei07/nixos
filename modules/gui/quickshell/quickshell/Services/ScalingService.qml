@@ -9,7 +9,15 @@ Singleton {
   // -------------------------------------------
   // Manual scaling via Settings
   function scale(aScreen) {
-    return scaleByName(aScreen.name)
+    try {
+      if (aScreen !== undefined && aScreen.name !== undefined) {
+        return scaleByName(aScreen.name)
+      }
+    } catch (e) {
+
+      //Logger.warn(e)
+    }
+    return 1.0
   }
 
   function scaleByName(aScreenName) {

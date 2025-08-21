@@ -4,6 +4,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Pipewire
+import qs.Commons
 
 Singleton {
   id: root
@@ -34,7 +35,7 @@ Singleton {
   readonly property alias muted: root._muted
   property bool _muted: !!sink?.audio?.muted
 
-  readonly property real stepVolume: 0.05
+  readonly property real stepVolume: Settings.data.audio.volumeStep / 100.0
 
   PwObjectTracker {
     objects: [...root.sinks, ...root.sources]

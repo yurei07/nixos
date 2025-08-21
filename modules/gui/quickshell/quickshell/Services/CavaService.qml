@@ -9,7 +9,7 @@ Singleton {
   id: root
 
   property var values: Array(barsCount).fill(0)
-  property int barsCount: 32
+  property int barsCount: 24
 
   property var config: ({
                           "general": {
@@ -37,7 +37,8 @@ Singleton {
   Process {
     id: process
     stdinEnabled: true
-    running: (Settings.data.audio.visualizerType !== "none") && PanelService.sidePanel.isLoaded
+    running: (Settings.data.audio.visualizerType !== "none") && (PanelService.sidePanel.active
+                                                                 || Settings.data.audio.showMiniplayerCava)
     command: ["cava", "-p", "/dev/stdin"]
     onExited: {
       stdinEnabled = true

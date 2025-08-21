@@ -9,6 +9,9 @@ import qs.Widgets
 
 // Utilities: record & wallpaper
 NBox {
+
+  property real spacing: 0
+
   Layout.fillWidth: true
   Layout.preferredWidth: 1
   implicitHeight: utilRow.implicitHeight + Style.marginM * 2 * scaling
@@ -16,7 +19,7 @@ NBox {
     id: utilRow
     anchors.fill: parent
     anchors.margins: Style.marginS * scaling
-    spacing: sidePanel.cardSpacing
+    spacing: spacing
     Item {
       Layout.fillWidth: true
     }
@@ -31,13 +34,24 @@ NBox {
       }
     }
 
+    // Idle Inhibitor
+    NIconButton {
+      icon: "coffee"
+      tooltipText: IdleInhibitorService.isInhibited ? "Disable Keep Awake" : "Enable Keep Awake"
+      colorBg: IdleInhibitorService.isInhibited ? Color.mPrimary : Color.mSurfaceVariant
+      colorFg: IdleInhibitorService.isInhibited ? Color.mOnPrimary : Color.mPrimary
+      onClicked: {
+        IdleInhibitorService.manualToggle()
+      }
+    }
+
     // Wallpaper
     NIconButton {
       icon: "image"
       tooltipText: "Open Wallpaper Selector"
       onClicked: {
         settingsPanel.requestedTab = SettingsPanel.Tab.WallpaperSelector
-        settingsPanel.isLoaded = true
+        settingsPanel.open(screen)
       }
     }
 

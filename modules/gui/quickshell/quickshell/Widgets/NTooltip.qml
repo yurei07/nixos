@@ -109,6 +109,14 @@ Window {
       }
     }
   }
+  Connections {
+    target: root
+    function onTextChanged() {
+      if (root.visible) {
+        root._showNow()
+      }
+    }
+  }
 
   Timer {
     id: timerShow

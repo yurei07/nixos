@@ -30,9 +30,6 @@ Singleton {
   // Flag to prevent unnecessary wallpaper calls during reloads
   property bool isInitialLoad: true
 
-  // Needed to only have one NPanel loaded at a time. <--- VERY BROKEN
-  //property var openPanel: null
-
   // Function to validate monitor configurations
   function validateMonitorConfigurations() {
     var availableScreenNames = []
@@ -73,25 +70,38 @@ Singleton {
     }
   }
 
+  // Don't write settings to disk immediately
+  // This avoid excessive IO when a variable changes rapidly (ex: sliders)
+  Timer {
+    id: saveTimer
+    running: false
+    interval: 1000
+    onTriggered: settingsFileView.writeAdapter()
+  }
+
   FileView {
+    id: settingsFileView
     path: settingsFile
     watchChanges: true
     onFileChanged: reload()
-    onAdapterUpdated: writeAdapter()
+    onAdapterUpdated: saveTimer.start()
     Component.onCompleted: function () {
       reload()
     }
     onLoaded: function () {
-      Logger.log("Settings", "OnLoaded")
       Qt.callLater(function () {
-        // Only set wallpaper on initial load, not on reloads
-        if (isInitialLoad && adapter.wallpaper.current !== "") {
-          Logger.log("Settings", "Set current wallpaper", adapter.wallpaper.current)
-          WallpaperService.setCurrentWallpaper(adapter.wallpaper.current, true)
-        }
+        if (isInitialLoad) {
+          Logger.log("Settings", "OnLoaded")
+          // Only set wallpaper on initial load, not on reloads
+          if (adapter.wallpaper.current !== "") {
+            Logger.log("Settings", "Set current wallpaper", adapter.wallpaper.current)
+            WallpaperService.setCurrentWallpaper(adapter.wallpaper.current, true)
+          }
 
-        // Validate monitor configurations - if none of the configured monitors exist, clear the lists
-        validateMonitorConfigurations()
+          // Validate monitor configurations, only once
+          // if none of the configured monitors exist, clear the lists
+          validateMonitorConfigurations()
+        }
 
         isInitialLoad = false
       })
@@ -111,11 +121,13 @@ Singleton {
       bar: JsonObject {
         property string position: "top" // Possible values: "top", "bottom"
         property bool showActiveWindow: true
+        property bool showActiveWindowIcon: true
         property bool showSystemInfo: false
         property bool showMedia: false
         property bool showBrightness: true
         property bool showNotificationsHistory: true
         property bool showTray: true
+        property bool alwaysShowBatteryPercentage: false
         property real backgroundOpacity: 1.0
         property list<string> monitors: []
       }
@@ -125,7 +137,7 @@ Singleton {
 
       general: JsonObject {
         property string avatarImage: defaultAvatar
-        property bool dimDesktop: true
+        property bool dimDesktop: false
         property bool showScreenCorners: false
         property real radiusRatio: 1.0
       }
@@ -153,6 +165,7 @@ Singleton {
         property string colorRange: "limited"
         property bool showCursor: true
         property string audioSource: "default_output"
+        property string videoSource: "portal"
       }
 
       // wallpaper
@@ -182,6 +195,10 @@ Singleton {
       property JsonObject appLauncher
 
       appLauncher: JsonObject {
+        // When disabled, Launcher hides clipboard command and ignores cliphist
+        property bool enableClipboardHistory: true
+        // Position: center, top_left, top_right, bottom_left, bottom_right
+        property string position: "center"
         property list<string> pinnedExecs: []
       }
 
@@ -213,14 +230,25 @@ Singleton {
       property JsonObject audio
 
       audio: JsonObject {
+        property bool showMiniplayerAlbumArt: false
+        property bool showMiniplayerCava: false
         property string visualizerType: "linear"
+        property int volumeStep: 5
       }
 
       // ui
       property JsonObject ui
 
       ui: JsonObject {
-        property string fontFamily: "Roboto" // Family for all text
+        property string fontDefault: "Roboto" // Default font for all text
+        property string fontFixed: "DejaVu Sans Mono" // Fixed width font for terminal
+        property string fontBillboard: "Inter" // Large bold font for clocks and prominent displays
+
+        // Legacy compatibility
+        property string fontFamily: fontDefault // Keep for backward compatibility
+
+        // Idle inhibitor state
+        property bool idleInhibitorEnabled: false
       }
 
       // Scaling (not stored inside JsonObject, or it crashes)

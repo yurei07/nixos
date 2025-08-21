@@ -24,7 +24,7 @@ Rectangle {
     }
 
     onEntered: {
-      if (!calendarPanel.isLoaded) {
+      if (!calendarPanel.active) {
         tooltip.show()
       }
     }
@@ -33,7 +33,7 @@ Rectangle {
     }
     onClicked: {
       tooltip.hide()
-      calendarPanel.isLoaded = !calendarPanel.isLoaded
+      calendarPanel.toggle(screen)
     }
   }
 }

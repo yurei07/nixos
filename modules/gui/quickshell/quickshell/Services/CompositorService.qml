@@ -48,6 +48,8 @@ Singleton {
     enabled: isHyprland
     function onValuesChanged() {
       updateHyprlandWindows()
+      // Keep workspace occupancy up to date when windows change
+      updateHyprlandWorkspaces()
       windowListChanged()
     }
   }
@@ -118,6 +120,19 @@ Singleton {
     workspaces.clear()
     try {
       const hlWorkspaces = Hyprland.workspaces.values
+      // Determine occupied workspace ids from current toplevels
+      const occupiedIds = {}
+      try {
+        const hlToplevels = Hyprland.toplevels.values
+        for (var t = 0; t < hlToplevels.length; t++) {
+          const tws = hlToplevels[t].workspace?.id
+          if (tws !== undefined && tws !== null) {
+            occupiedIds[tws] = true
+          }
+        }
+      } catch (e2) {
+        // ignore occupancy errors; fall back to false
+      }
       for (var i = 0; i < hlWorkspaces.length; i++) {
         const ws = hlWorkspaces[i]
         // Only append workspaces with id >= 1
@@ -129,7 +144,8 @@ Singleton {
                               "output": ws.monitor?.name || "",
                               "isActive": ws.active === true,
                               "isFocused": ws.focused === true,
-                              "isUrgent": ws.urgent === true
+                              "isUrgent": ws.urgent === true,
+                              "isOccupied": occupiedIds[ws.id] === true
                             })
         }
       }
@@ -265,6 +281,68 @@ Singleton {
 
           if (event.WorkspacesChanged) {
             niriWorkspaceProcess.running = true
+          } else if (event.WindowOpenedOrChanged) {
+            try {
+              const windowData = event.WindowOpenedOrChanged.window
+              
+              // Find if this window already exists
+              const existingIndex = windows.findIndex(w => w.id === windowData.id)
+              
+              const newWindow = {
+                "id": windowData.id,
+                "title": windowData.title || "",
+                "appId": windowData.app_id || "",
+                "workspaceId": windowData.workspace_id || null,
+                "isFocused": windowData.is_focused === true
+              }
+              
+              if (existingIndex >= 0) {
+                // Update existing window
+                windows[existingIndex] = newWindow
+              } else {
+                // Add new window
+                windows.push(newWindow)
+                windows.sort((a, b) => a.id - b.id)
+              }
+              
+              // Update focused window index if this window is focused
+              if (newWindow.isFocused) {
+                focusedWindowIndex = windows.findIndex(w => w.id === windowData.id)
+                updateFocusedWindowTitle()
+                activeWindowChanged()
+              }
+              
+              windowListChanged()
+            } catch (e) {
+              Logger.error("Compositor", "Error parsing WindowOpenedOrChanged event:", e)
+            }
+          } else if (event.WindowClosed) {
+            try {
+              const windowId = event.WindowClosed.id
+              
+              // Remove the window from the list
+              const windowIndex = windows.findIndex(w => w.id === windowId)
+              if (windowIndex >= 0) {
+                // If this was the focused window, clear focus
+                if (windowIndex === focusedWindowIndex) {
+                  focusedWindowIndex = -1
+                  updateFocusedWindowTitle()
+                  activeWindowChanged()
+                }
+                
+                // Remove the window
+                windows.splice(windowIndex, 1)
+                
+                // Adjust focused window index if needed
+                if (focusedWindowIndex > windowIndex) {
+                  focusedWindowIndex--
+                }
+                
+                windowListChanged()
+              }
+            } catch (e) {
+              Logger.error("Compositor", "Error parsing WindowClosed event:", e)
+            }
           } else if (event.WindowsChanged) {
             try {
               const windowsData = event.WindowsChanged.windows
@@ -396,6 +474,25 @@ Singleton {
     }
   }
 
+  // Get current workspace
+  function getCurrentWorkspace() {
+    for (var i = 0; i < workspaces.count; i++) {
+      const ws = workspaces.get(i)
+      if (ws.isFocused) {
+        return ws
+      }
+    }
+    return null
+  }
+
+  // Get focused window
+  function getFocusedWindow() {
+    if (focusedWindowIndex >= 0 && focusedWindowIndex < windows.length) {
+      return windows[focusedWindowIndex]
+    }
+    return null
+  }
+
   // Generic logout/shutdown commands
   function logout() {
     if (isHyprland) {
@@ -415,22 +512,15 @@ Singleton {
     }
   }
 
-  // Get current workspace
-  function getCurrentWorkspace() {
-    for (var i = 0; i < workspaces.count; i++) {
-      const ws = workspaces.get(i)
-      if (ws.isFocused) {
-        return ws
-      }
-    }
-    return null
+  function shutdown() {
+    Quickshell.execDetached(["shutdown", "-h", "now"])
   }
 
-  // Get focused window
-  function getFocusedWindow() {
-    if (focusedWindowIndex >= 0 && focusedWindowIndex < windows.length) {
-      return windows[focusedWindowIndex]
-    }
-    return null
+  function reboot() {
+    Quickshell.execDetached(["reboot"])
+  }
+
+  function suspend() {
+    Quickshell.execDetached(["systemctl", "suspend"])
   }
 }

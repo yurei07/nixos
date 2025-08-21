@@ -49,11 +49,8 @@
       steam
     	mate.mate-polkit
       xdg-desktop-portal-gnome
-      swww
       matugen
       gpu-screen-recorder
-      brightnessctl
-      ddcutil
       prismlauncher
     
     	#themes 

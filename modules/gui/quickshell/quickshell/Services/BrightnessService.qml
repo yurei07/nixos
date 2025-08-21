@@ -27,6 +27,15 @@ Singleton {
     return methods
   }
 
+  // Global helpers for IPC and shortcuts
+  function increaseBrightness(): void {
+    monitors.forEach(m => m.increaseBrightness())
+  }
+
+  function decreaseBrightness(): void {
+    monitors.forEach(m => m.decreaseBrightness())
+  }
+
   function getDetectedDisplays(): list<var> {
     return detectedDisplays
   }

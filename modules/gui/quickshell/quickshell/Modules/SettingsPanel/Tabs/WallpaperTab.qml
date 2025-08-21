@@ -188,7 +188,7 @@ ColumnLayout {
               }
             }
             currentKey: Settings.data.wallpaper.swww.resizeMethod
-            onSelected: function (key) {
+            onSelected: key => {
               Settings.data.wallpaper.swww.resizeMethod = key
             }
           }
@@ -256,7 +256,7 @@ ColumnLayout {
               }
             }
             currentKey: Settings.data.wallpaper.swww.transitionType
-            onSelected: function (key) {
+            onSelected: key => {
               Settings.data.wallpaper.swww.transitionType = key
             }
           }

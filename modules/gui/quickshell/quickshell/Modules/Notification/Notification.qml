@@ -47,12 +47,28 @@ Variants {
     // Connect to animation signal from service
     Component.onCompleted: {
       NotificationService.animateAndRemove.connect(function (notification, index) {
-        // Find the delegate and trigger its animation
-        if (notificationStack.children && notificationStack.children[index]) {
-          let delegate = notificationStack.children[index]
-          if (delegate && delegate.animateOut) {
-            delegate.animateOut()
+        // Prefer lookup by identity to avoid index mismatches
+        var delegate = null
+        if (notificationStack.children && notificationStack.children.length > 0) {
+          for (var i = 0; i < notificationStack.children.length; i++) {
+            var child = notificationStack.children[i]
+            if (child && child.model && child.model.rawNotification === notification) {
+              delegate = child
+              break
+            }
           }
+        }
+
+        // Fallback to index if identity lookup failed
+        if (!delegate && notificationStack.children && notificationStack.children[index]) {
+          delegate = notificationStack.children[index]
+        }
+
+        if (delegate && delegate.animateOut) {
+          delegate.animateOut()
+        } else {
+          // As a last resort, force-remove without animation to avoid stuck popups
+          NotificationService.forceRemoveNotification(notification)
         }
       })
     }

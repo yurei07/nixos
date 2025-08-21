@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Widgets
 import qs.Commons
 import qs.Services
 import qs.Widgets
@@ -43,6 +44,14 @@ Row {
     return focusedWindow ? (focusedWindow.title || focusedWindow.appId || "") : ""
   }
 
+  function getAppIcon() {
+    const focusedWindow = CompositorService.getFocusedWindow()
+    if (!focusedWindow || !focusedWindow.appId)
+      return ""
+
+    return Icons.iconForAppId(focusedWindow.appId)
+  }
+
   //  A hidden text element to safely measure the full title width
   NText {
     id: fullTitleMetrics
@@ -72,13 +81,20 @@ Row {
         spacing: Style.marginXS * scaling
 
         // Window icon
-        NIcon {
-          id: windowIcon
-          text: "dialogs"
-          font.pointSize: Style.fontSizeL * scaling
-          verticalAlignment: Text.AlignVCenter
+        Item {
+          width: Style.fontSizeL * scaling * 1.2
+          height: Style.fontSizeL * scaling * 1.2
           anchors.verticalCenter: parent.verticalCenter
-          visible: getTitle() !== ""
+          visible: getTitle() !== "" && Settings.data.bar.showActiveWindowIcon
+
+          IconImage {
+            id: windowIcon
+            anchors.fill: parent
+            source: getAppIcon()
+            asynchronous: true
+            smooth: true
+            visible: source !== ""
+          }
         }
 
         NText {

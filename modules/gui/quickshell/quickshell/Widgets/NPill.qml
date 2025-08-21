@@ -16,6 +16,10 @@ Item {
   property color collapsedIconColor: Color.mOnSurface
   property real sizeMultiplier: 0.8
   property bool autoHide: false
+  // When true, keep the pill expanded regardless of hover state
+  property bool forceShown: false
+  // Effective shown state (true if hovered/animated open or forced)
+  readonly property bool effectiveShown: forceShown || showPill
 
   signal shown
   signal hidden
@@ -35,15 +39,15 @@ Item {
   readonly property int pillOverlap: iconSize * 0.5
   readonly property int maxPillWidth: Math.max(1, textItem.implicitWidth + pillPaddingHorizontal * 2 + pillOverlap)
 
-  width: iconSize + (showPill ? maxPillWidth - pillOverlap : 0)
+  width: iconSize + (effectiveShown ? maxPillWidth - pillOverlap : 0)
   height: pillHeight
 
   Rectangle {
     id: pill
-    width: showPill ? maxPillWidth : 1
+    width: effectiveShown ? maxPillWidth : 1
     height: pillHeight
     x: (iconCircle.x + iconCircle.width / 2) - width
-    opacity: showPill ? Style.opacityFull : Style.opacityNone
+    opacity: effectiveShown ? Style.opacityFull : Style.opacityNone
     color: pillColor
     topLeftRadius: pillHeight * 0.5
     bottomLeftRadius: pillHeight * 0.5
@@ -56,7 +60,7 @@ Item {
       font.pointSize: Style.fontSizeXS * scaling
       font.weight: Style.fontWeightBold
       color: textColor
-      visible: showPill
+      visible: effectiveShown
     }
 
     Behavior on width {
@@ -80,7 +84,8 @@ Item {
     width: iconSize
     height: iconSize
     radius: width * 0.5
-    color: showPill ? iconCircleColor : Color.mSurfaceVariant
+    // When forced shown, match pill background; otherwise use accent when hovered
+    color: forceShown ? pillColor : (showPill ? iconCircleColor : Color.mSurfaceVariant)
     anchors.verticalCenter: parent.verticalCenter
     anchors.right: parent.right
 
@@ -94,7 +99,8 @@ Item {
     NIcon {
       text: root.icon
       font.pointSize: Style.fontSizeM * scaling
-      color: showPill ? iconTextColor : Color.mOnSurface
+      // When forced shown, use pill text color; otherwise accent color when hovered
+      color: forceShown ? textColor : (showPill ? iconTextColor : Color.mOnSurface)
       anchors.centerIn: parent
     }
   }
@@ -188,12 +194,16 @@ Item {
     anchors.fill: parent
     hoverEnabled: true
     onEntered: {
-      showDelayed()
+      if (!forceShown) {
+        showDelayed()
+      }
       tooltip.show()
       root.entered()
     }
     onExited: {
-      hide()
+      if (!forceShown) {
+        hide()
+      }
       tooltip.hide()
       root.exited()
     }
@@ -216,6 +226,9 @@ Item {
   }
 
   function hide() {
+    if (forceShown) {
+      return
+    }
     if (showPill) {
       hideAnim.start()
     }
@@ -229,6 +242,18 @@ Item {
     } else {
       hideAnim.stop()
       delayedHideAnim.restart()
+    }
+  }
+
+  onForceShownChanged: {
+    if (forceShown) {
+      // Immediately lock open without animations
+      showAnim.stop()
+      hideAnim.stop()
+      delayedHideAnim.stop()
+      showPill = true
+    } else {
+      hide()
     }
   }
 }

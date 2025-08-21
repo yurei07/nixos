@@ -61,7 +61,7 @@ NBox {
         tooltipText: "Open Settings"
         onClicked: {
           settingsPanel.requestedTab = SettingsPanel.Tab.General
-          settingsPanel.isLoaded = !settingsPanel.isLoaded
+          settingsPanel.open(screen)
         }
       }
 
@@ -70,16 +70,20 @@ NBox {
         icon: "power_settings_new"
         tooltipText: "Power Menu"
         onClicked: {
-          powerMenu.show()
+          powerPanel.open(screen)
+          sidePanel.close()
+        }
+      }
+
+      NIconButton {
+        id: closeButton
+        icon: "close"
+        tooltipText: "Close Side Panel"
+        onClicked: {
+          sidePanel.close()
         }
       }
     }
-  }
-
-  PowerMenu {
-    id: powerMenu
-    anchors.top: powerButton.bottom
-    anchors.right: powerButton.right
   }
 
   // ----------------------------------

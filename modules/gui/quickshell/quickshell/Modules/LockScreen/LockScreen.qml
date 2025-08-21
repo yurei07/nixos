@@ -12,27 +12,43 @@ import qs.Commons
 import qs.Services
 import qs.Widgets
 
-NLoader {
+Loader {
   id: lockScreen
+  active: false
+
+  // Log state changes to help debug lock screen issues
+  onActiveChanged: {
+    Logger.log("LockScreen", "State changed:", active)
+  }
+
   // Allow a small grace period after unlocking so the compositor releases the lock surfaces
   Timer {
     id: unloadAfterUnlockTimer
     interval: 250
     repeat: false
-    onTriggered: lockScreen.isLoaded = false
+    onTriggered: {
+      Logger.log("LockScreen", "Unload timer triggered - deactivating")
+      lockScreen.active = false
+    }
   }
   function scheduleUnloadAfterUnlock() {
+    Logger.log("LockScreen", "Scheduling unload after unlock")
     unloadAfterUnlockTimer.start()
   }
-  content: Component {
+  sourceComponent: Component {
     WlSessionLock {
       id: lock
+
       // Tie session lock to loader visibility
-      locked: lockScreen.isLoaded
+      locked: lockScreen.active
 
       // Lockscreen is a different beast, needs a capital 'S' in 'Screen' to access the current screen
       // Also we use a different scaling algorithm based on the resolution, as the design is full screen
-      readonly property real scaling: ScalingService.dynamicScale(Screen)
+      readonly property real scaling: {
+        var tt = ScalingService.dynamicScale(Screen)
+        console.log(tt)
+        return tt
+      }
 
       property string errorMessage: ""
       property bool authenticating: false
@@ -233,15 +249,15 @@ NLoader {
 
             // Time display - Large and prominent with pulse animation
             Column {
-              spacing: Style.marginS * scaling
+              spacing: Style.marginXS * scaling
               Layout.alignment: Qt.AlignHCenter
 
-              Text {
+              NText {
                 id: timeText
                 text: Qt.formatDateTime(new Date(), "HH:mm")
-                font.family: "Inter"
+                font.family: Settings.data.ui.fontBillboard
                 font.pointSize: Style.fontSizeXXXL * 6 * scaling
-                font.weight: Font.Bold
+                font.weight: Style.fontWeightBold
                 font.letterSpacing: -2 * scaling
                 color: Color.mOnSurface
                 horizontalAlignment: Text.AlignHCenter
@@ -261,10 +277,10 @@ NLoader {
                 }
               }
 
-              Text {
+              NText {
                 id: dateText
                 text: Qt.formatDateTime(new Date(), "dddd, MMMM d")
-                font.family: "Inter"
+                font.family: Settings.data.ui.fontBillboard
                 font.pointSize: Style.fontSizeXXL * scaling
                 font.weight: Font.Light
                 color: Color.mOnSurface
@@ -404,12 +420,12 @@ NLoader {
                       anchors.margins: Style.marginM * scaling
                       spacing: Style.marginM * scaling
 
-                      Text {
+                      NText {
                         text: "SECURE TERMINAL"
                         color: Color.mOnSurface
-                        font.family: "DejaVu Sans Mono"
+                        font.family: Settings.data.ui.fontFixed
                         font.pointSize: Style.fontSizeL * scaling
-                        font.weight: Font.Bold
+                        font.weight: Style.fontWeightBold
                         Layout.fillWidth: true
                       }
 
@@ -424,12 +440,12 @@ NLoader {
                           color: batteryIndicator.charging ? Color.mPrimary : Color.mOnSurface
                         }
 
-                        Text {
+                        NText {
                           text: Math.round(batteryIndicator.percent) + "%"
                           color: Color.mOnSurface
-                          font.family: "DejaVu Sans Mono"
+                          font.family: Settings.data.ui.fontFixed
                           font.pointSize: Style.fontSizeM * scaling
-                          font.weight: Font.Bold
+                          font.weight: Style.fontWeightBold
                         }
                       }
                     }
@@ -450,19 +466,19 @@ NLoader {
                       Layout.fillWidth: true
                       spacing: Style.marginM * scaling
 
-                      Text {
+                      NText {
                         text: "root@noctalia:~$"
                         color: Color.mPrimary
-                        font.family: "DejaVu Sans Mono"
+                        font.family: Settings.data.ui.fontFixed
                         font.pointSize: Style.fontSizeL * scaling
-                        font.weight: Font.Bold
+                        font.weight: Style.fontWeightBold
                       }
 
-                      Text {
+                      NText {
                         id: welcomeText
                         text: ""
                         color: Color.mOnSurface
-                        font.family: "DejaVu Sans Mono"
+                        font.family: Settings.data.ui.fontFixed
                         font.pointSize: Style.fontSizeL * scaling
                         property int currentIndex: 0
                         property string fullText: "Welcome back, " + Quickshell.env("USER") + "!"
@@ -488,18 +504,18 @@ NLoader {
                       Layout.fillWidth: true
                       spacing: Style.marginM * scaling
 
-                      Text {
+                      NText {
                         text: "root@noctalia:~$"
                         color: Color.mPrimary
-                        font.family: "DejaVu Sans Mono"
+                        font.family: Settings.data.ui.fontFixed
                         font.pointSize: Style.fontSizeL * scaling
-                        font.weight: Font.Bold
+                        font.weight: Style.fontWeightBold
                       }
 
-                      Text {
+                      NText {
                         text: "sudo unlock-session"
                         color: Color.mOnSurface
-                        font.family: "DejaVu Sans Mono"
+                        font.family: Settings.data.ui.fontFixed
                         font.pointSize: Style.fontSizeL * scaling
                       }
 
@@ -509,7 +525,7 @@ NLoader {
                         width: 0
                         height: 0
                         visible: false
-                        font.family: "DejaVu Sans Mono"
+                        font.family: Settings.data.ui.fontFixed
                         font.pointSize: Style.fontSizeL * scaling
                         color: Color.mOnSurface
                         echoMode: TextInput.Password
@@ -535,11 +551,11 @@ NLoader {
                       }
 
                       // Visual password display with integrated cursor
-                      Text {
+                      NText {
                         id: asterisksText
                         text: "*".repeat(passwordInput.text.length)
                         color: Color.mOnSurface
-                        font.family: "DejaVu Sans Mono"
+                        font.family: Settings.data.ui.fontFixed
                         font.pointSize: Style.fontSizeL * scaling
                         visible: passwordInput.activeFocus
 
@@ -585,7 +601,7 @@ NLoader {
                     }
 
                     // Status messages
-                    Text {
+                    NText {
                       text: lock.authenticating ? "Authenticating..." : (lock.errorMessage !== "" ? "Authentication failed." : "")
                       color: lock.authenticating ? Color.mPrimary : (lock.errorMessage !== "" ? Color.mError : Color.transparent)
                       font.family: "DejaVu Sans Mono"
@@ -618,13 +634,13 @@ NLoader {
                       Layout.alignment: Qt.AlignRight
                       Layout.bottomMargin: -12 * scaling
 
-                      Text {
+                      NText {
                         anchors.centerIn: parent
                         text: lock.authenticating ? "EXECUTING" : "EXECUTE"
                         color: executeButtonArea.containsMouse ? Color.mOnPrimary : Color.mPrimary
-                        font.family: "DejaVu Sans Mono"
+                        font.family: Settings.data.ui.fontFixed
                         font.pointSize: Style.fontSizeM * scaling
-                        font.weight: Font.Bold
+                        font.weight: Style.fontWeightBold
                       }
 
                       MouseArea {

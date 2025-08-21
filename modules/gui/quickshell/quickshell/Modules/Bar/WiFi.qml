@@ -34,27 +34,10 @@ NIconButton {
   }
   tooltipText: "WiFi Networks"
   onClicked: {
-    if (!wifiMenuLoader.active) {
-      wifiMenuLoader.isLoaded = true
-    }
-    if (wifiMenuLoader.item) {
-      if (wifiMenuLoader.item.visible) {
-        // Panel is visible, hide it with animation
-        if (wifiMenuLoader.item.hide) {
-          wifiMenuLoader.item.hide()
-        } else {
-          wifiMenuLoader.item.visible = false
-          NetworkService.onMenuClosed()
-        }
-      } else {
-        // Panel is hidden, show it
-        wifiMenuLoader.item.visible = true
-        NetworkService.onMenuOpened()
-      }
-    }
+    wifiPanel.toggle(screen)
   }
 
-  WiFiMenu {
-    id: wifiMenuLoader
+  WiFiPanel {
+    id: wifiPanel
   }
 }

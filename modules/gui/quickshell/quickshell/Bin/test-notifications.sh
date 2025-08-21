@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env -S bash
 
 echo "Sending 8 test notifications..."
 
@@ -8,4 +8,4 @@ for i in {1..8}; do
     sleep 1
 done
 
-echo "All notifications sent!" 
+echo "All notifications sent!"

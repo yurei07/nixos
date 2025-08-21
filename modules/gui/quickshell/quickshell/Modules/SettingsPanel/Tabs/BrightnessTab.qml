@@ -49,34 +49,17 @@ Item {
           spacing: Style.marginS * scaling
           Layout.fillWidth: true
 
-          NLabel {
+          NSpinBox {
+            Layout.fillWidth: true
             label: "Brightness Step Size"
             description: "Adjust the step size for brightness changes (scroll wheel, keyboard shortcuts)."
-          }
-
-          RowLayout {
-            Layout.fillWidth: true
-            spacing: Style.marginM * scaling
-
-            NSlider {
-              Layout.fillWidth: true
-              from: 1
-              to: 50
-              value: Settings.data.brightness.brightnessStep
-              stepSize: 1
-              onPressedChanged: {
-                if (!pressed) {
-                  Settings.data.brightness.brightnessStep = value
-                }
-              }
-            }
-
-            NText {
-              text: Settings.data.brightness.brightnessStep + "%"
-              Layout.alignment: Qt.AlignVCenter
-              color: Color.mOnSurface
-              font.pointSize: Style.fontSizeM * scaling
-              font.weight: Style.fontWeightBold
+            minimum: 1
+            maximum: 50
+            value: Settings.data.brightness.brightnessStep
+            stepSize: 1
+            suffix: "%"
+            onValueChanged: {
+              Settings.data.brightness.brightnessStep = value
             }
           }
         }

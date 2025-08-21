@@ -13,18 +13,19 @@ import Quickshell.Io
 import Quickshell.Services.Pipewire
 import Quickshell.Widgets
 import qs.Commons
-import qs.Modules.AppLauncher
+import qs.Modules.Launcher
 import qs.Modules.Background
 import qs.Modules.Bar
 import qs.Modules.Calendar
-import qs.Modules.DemoPanel
 import qs.Modules.Dock
 import qs.Modules.IPC
 import qs.Modules.LockScreen
 import qs.Modules.Notification
 import qs.Modules.SettingsPanel
+import qs.Modules.PowerPanel
 import qs.Modules.SidePanel
 import qs.Modules.Toast
+
 import qs.Services
 import qs.Widgets
 
@@ -37,12 +38,8 @@ ShellRoot {
   Bar {}
   Dock {}
 
-  AppLauncher {
+  Launcher {
     id: appLauncherPanel
-  }
-
-  DemoPanel {
-    id: demoPanel
   }
 
   SidePanel {
@@ -67,6 +64,10 @@ ShellRoot {
 
   LockScreen {
     id: lockScreen
+  }
+
+  PowerPanel {
+    id: powerPanel
   }
 
   ToastManager {}

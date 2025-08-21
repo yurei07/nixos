@@ -20,21 +20,6 @@ NIconButton {
   colorBorderHover: Color.transparent
 
   onClicked: {
-    if (!notificationHistoryPanel.active) {
-      notificationHistoryPanel.isLoaded = true
-    }
-    if (notificationHistoryPanel.item) {
-      if (notificationHistoryPanel.item.visible) {
-        // Panel is visible, hide it with animation
-        if (notificationHistoryPanel.item.hide) {
-          notificationHistoryPanel.item.hide()
-        } else {
-          notificationHistoryPanel.item.visible = false
-        }
-      } else {
-        // Panel is hidden, show it
-        notificationHistoryPanel.item.visible = true
-      }
-    }
+    notificationHistoryPanel.toggle(screen)
   }
 }
