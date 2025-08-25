@@ -48,7 +48,6 @@
     	mpv
       steam
     	mate.mate-polkit
-      xdg-desktop-portal-gnome
       matugen
       gpu-screen-recorder
       prismlauncher
@@ -64,8 +63,19 @@
     
     	# Dev
     	nodejs
-    	python3
     	python313Packages.pip
+      (pkgs.python3.withPackages (python-pkgs: with python-pkgs; [
+          # select Python packages here
+          lxml
+          requests
+          beautifulsoup4
+          rich
+          pytest-subprocess
+          pyqt5
+          empy
+          virtualenv
+          click
+      ]))
     	
     	# Utils
     	zip 
@@ -81,6 +91,7 @@
       qt6.full
       qt6Packages.qt5compat
       libsForQt5.qt5.qtgraphicaleffects 
+      lact
     	
     	# Just cool
     	peaclock
@@ -89,6 +100,7 @@
     	cbonsai
     	pipes
     	cava
+      tree
     	cmatrix
     	yazi
     
@@ -96,6 +108,7 @@
     	inputs.hyprland.packages.${system}.hyprland
     	inputs.zen-browser.packages.${system}.default
     	inputs.anicli-ru.packages.${system}.default
+
     ];
   };
 }

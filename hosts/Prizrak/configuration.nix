@@ -31,6 +31,8 @@
 
   security.polkit.enable = true;
 
+  services.flatpak.enable = true;
+
   environment = {
     variables = {
       GTK_THEME = "catppuccin-mocha-lavender-compact";

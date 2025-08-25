@@ -33,8 +33,8 @@ in
 
       bind = [
         "$mod, RETURN, exec, kitty" 
-	"$mod, Y, exec, ${../../../scripts/nvim.sh}"
-	  "$mod, E, exec, nautilus"
+	      "$mod, Y, exec, ${../../../scripts/nvim.sh}"
+	      "$mod, E, exec, nautilus"
         "$mod, B, exec, zen" 
         "$mod, D, exec, discord" 
         "$mod, O, exec, obsidian" 
@@ -44,7 +44,7 @@ in
 	      "$mod, SPACE, exec, rofi -show drun"
         
         ", Print, exec, hyprshot -m output"
-       "SHIFT, Print, exec, hyprshot -m region"
+        "SHIFT, Print, exec, hyprshot -m region"
 
 	      "$mod, 1, workspace, 1"
         "$mod, 2, workspace, 2"
@@ -100,7 +100,7 @@ in
       ];
 
       windowrule = [
-	"nomaxsize, class:^(polkit-mate-authentication-agent-1)$"
+	      "nomaxsize, class:^(polkit-mate-authentication-agent-1)$"
         "pin, class:^(polkit-mate-authentication-agent-1)$"
       ];
 
