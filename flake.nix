@@ -43,17 +43,17 @@
       specialArgs = { inherit inputs; };
       inherit system;
       modules = [
-	./hosts/Prizrak/configuration.nix
-	home-manager.nixosModules.home-manager
-	{ 
-	  home-manager = {
-	    extraSpecialArgs = {
-              inherit inputs;
-            };
-	    useGlobalPkgs = true;
-	    useUserPackages = true;
-	  };
-	}
+	      ./hosts/Prizrak/configuration.nix
+	      home-manager.nixosModules.home-manager
+	      { 
+	      home-manager = {
+	        extraSpecialArgs = {
+            inherit inputs;
+          };
+	        useGlobalPkgs = true;
+	        useUserPackages = true;
+	      };
+	    }
       ];
     }; 
   };

@@ -31,7 +31,7 @@
 
   security.polkit.enable = true;
 
-  services.flatpak.enable = true;
+#  services.flatpak.enable = true;
 
   environment = {
     variables = {

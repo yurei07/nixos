@@ -3,10 +3,10 @@
   ...
 }:
 {
-  qt = {
-      enable = true;
-      platformTheme.name = "gtk";
-  };
+#  qt = {
+#      enable = true;
+#      platformTheme.name = "gtk";
+#  };
   home.pointerCursor = {
     gtk.enable = true;
     package = pkgs.bibata-cursors;

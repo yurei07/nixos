@@ -87,10 +87,6 @@
     	dysk 
       networkmanager_dmenu
       pavucontrol
-    	xdg-desktop-portal
-      qt6.full
-      qt6Packages.qt5compat
-      libsForQt5.qt5.qtgraphicaleffects 
       lact
     	
     	# Just cool

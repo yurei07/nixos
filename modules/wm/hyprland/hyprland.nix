@@ -88,17 +88,16 @@ in
         "XDG_CURRENT_DESKTOP,Hyprland"
         "XDG_SESSION_TYPE,wayland"
         "XDG_SESSION_DESKTOP,Hyprland"
-        "GBM_BACKEND,nvidia-drm"
         "__GLX_VENDOR_LIBRARY_NAME,nvidia"
         "__GL_GSYNC_ALLOWED,0"
         "__GL_VRR_ALLOWED,0"
-        "QT_QPA_PLATFORM,wayland;xcb"
+        "QT_QPA_PLATFORM,wayland"  
         "QT_WAYLAND_DISABLE_WINDOWDECORATION,1"
         "QT_AUTO_SCREEN_SCALE_FACTOR,1"
         "XCURSOR_SIZE,24"
-        "NIXOS_OZONE_WL,1"  
+        "NIXOS_OZONE_WL,1"
+        "WLR_NO_HARDWARE_CURSORS,1" 
       ];
-
       windowrule = [
 	      "nomaxsize, class:^(polkit-mate-authentication-agent-1)$"
         "pin, class:^(polkit-mate-authentication-agent-1)$"
