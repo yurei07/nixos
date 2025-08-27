@@ -7,11 +7,9 @@
 }: let
   nvidiaDriverChannel = config.boot.kernelPackages.nvidiaPackages.beta;
 in {
-  #services.xserver.videoDrivers = ["nvidia"]; # Simplified - other modules are loaded automatically. DONT WORK 
+  services.xserver.videoDrivers = ["nvidia"]; # Simplified - other modules are loaded automatically. DONT WORK 
   boot.kernelParams = [
     "nvidia-drm.modeset=1" # Enable mode setting for Wayland
-    "nvidia.NVreg_PreserveVideoMemoryAllocations=1" # Improves resume after sleep
-    "nvidia.NVreg_RegistryDwords=PowerMizerEnable=0x1;PerfLevelSrc=0x2222;PowerMizerLevel=0x3;PowerMizerDefault=0x3;PowerMizerDefaultAC=0x3" # Performance/power optimizations
   ];
 
   # Blacklist nouveau to avoid conflicts
@@ -42,10 +40,6 @@ in {
     nvidia = {
       open = false; # Proprietary driver for better performance
       nvidiaSettings = true; # Nvidia settings utility
-      powerManagement = {
-        enable = true; # Power management
-        finegrained = true; # More precise power consumption control
-      };
       modesetting.enable = true; # Required for Wayland
       package = nvidiaDriverChannel;
       forceFullCompositionPipeline = true; # Prevents screen tearing

@@ -51,6 +51,7 @@
       matugen
       gpu-screen-recorder
       prismlauncher
+      calibre
     
     	#themes 
     	gnome-themes-extra
@@ -64,7 +65,7 @@
     	# Dev
     	nodejs
     	python313Packages.pip
-      (pkgs.python3.withPackages (python-pkgs: with python-pkgs; [
+      (python3.withPackages (python-pkgs: with python-pkgs; [
           # select Python packages here
           lxml
           requests
