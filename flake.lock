@@ -54,6 +54,27 @@
         "type": "github"
       }
     },
+    "copyparty": {
+      "inputs": {
+        "flake-utils": "flake-utils_2",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1756320983,
+        "narHash": "sha256-huaJ1CvBsylibf55pjiFEpiKxYU235iAzwMhJ+iDSjw=",
+        "owner": "9001",
+        "repo": "copyparty",
+        "rev": "f4f702c39dd2365f6ca43ed6b72a84c708fded8d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "9001",
+        "repo": "copyparty",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -121,6 +142,21 @@
       }
     },
     "flake-utils_2": {
+      "locked": {
+        "lastModified": 1678901627,
+        "narHash": "sha256-U02riOqrKKzwjsxc/400XnElV+UtPUQWpANPlyazjH0=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "93a2b84fc4b70d9e089d029deacc3583435c2ed6",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "flake-utils_3": {
       "inputs": {
         "systems": "systems_2"
       },
@@ -734,7 +770,8 @@
     "root": {
       "inputs": {
         "anicli-ru": "anicli-ru",
-        "flake-utils": "flake-utils_2",
+        "copyparty": "copyparty",
+        "flake-utils": "flake-utils_3",
         "home-manager": "home-manager",
         "hyprland": "hyprland",
         "hyprpolkitagent": "hyprpolkitagent",

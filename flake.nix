@@ -33,28 +33,53 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    copyparty = {
+      url = "github:9001/copyparty";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
   };
 
-  outputs = {nixpkgs, home-manager, ...} @inputs:
+  outputs = { ... } @inputs:
     let 
       system = "x86_64-linux";
     in { 
-    nixosConfigurations.nixos = nixpkgs.lib.nixosSystem {
-      specialArgs = { inherit inputs; };
-      inherit system;
-      modules = [
-	      ./hosts/Prizrak/configuration.nix
-	      home-manager.nixosModules.home-manager
-	      { 
-	      home-manager = {
-	        extraSpecialArgs = {
-            inherit inputs;
-          };
-	        useGlobalPkgs = true;
-	        useUserPackages = true;
-	      };
-	    }
-      ];
+    nixosConfigurations = {
+      nixos = inputs.nixpkgs.lib.nixosSystem {
+        specialArgs = { inherit inputs; };
+        inherit system;
+        modules = [
+	        ./hosts/Prizrak/configuration.nix
+	        inputs.home-manager.nixosModules.home-manager
+	        { 
+	          home-manager = {
+	            extraSpecialArgs = {
+                inherit inputs;
+              };
+	            useGlobalPkgs = true;
+	            useUserPackages = true;
+	          };
+	        }
+        ];
+      };
+      server = inputs.nixpkgs.lib.nixosSystem {
+        specialArgs = { inherit inputs; };
+        inherit system;
+        modules = [
+          ./hosts/server/configuration.nix
+          inputs.home-manager.nixosModules.home-manager
+          inputs.copyparty.nixosModules.default
+          { 
+	          home-manager = {
+	            extraSpecialArgs = {
+                inherit inputs;
+              };
+	            useGlobalPkgs = true;
+	            useUserPackages = true;
+	          };
+	        }
+        ];
+      };
     }; 
   };
 }
