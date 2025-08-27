@@ -37,15 +37,16 @@ def combo(combo):
                 
                 value = click.prompt('Enter commit name (enter to default)', type=str)
 
-#                if value != ' ':
-#                    os.system('git commit -m {value}')
-#                    os.system('git pull')
-#                    os.system('git push -u')
-#                elif value == ' ':
-#                    os.system('git commit -m basic')
-#                    os.system('git pull')
-#                    os.system('git push -u')
+                if value != ' ':
+                    os.system('git commit -m {value}')
+                    os.system('git pull')
+                    os.system('git push -u')
+                elif value == ' ':
+                    os.system('git commit -m basic')
+                    os.system('git pull')
+                    os.system('git push -u')
                     
+
 
 if __name__ == '__main__':
     cli_git()

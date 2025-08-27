@@ -88,6 +88,7 @@
     	dysk 
       networkmanager_dmenu
       pavucontrol
+      protontricks
       lact
     	
     	# Just cool
