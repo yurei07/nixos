@@ -35,14 +35,14 @@ def combo(combo):
                 os.system('cp -r /etc/nixos/* ./')
                 os.system('git add . --all')
                 
-                value = click.prompt('Enter commit name (enter to default)', type=str)
+                value = input('Enter commit name (enter to default)')
 
                 if value != ' ':
-                    os.system('git commit -m {value}')
+                    os.system(f'git commit -m "${value}"')
                     os.system('git pull')
                     os.system('git push -u')
                 elif value == ' ':
-                    os.system('git commit -m basic')
+                    os.system('git commit -m "basic"')
                     os.system('git pull')
                     os.system('git push -u')
                     
