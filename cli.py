@@ -37,11 +37,11 @@ def combo(combo):
                 
                 value = input('Enter commit name (enter to default)')
 
-                if value != ' ':
+                if value != '':
                     os.system(f'git commit -m "${value}"')
                     os.system('git pull')
                     os.system('git push -u')
-                elif value == ' ':
+                elif value == '':
                     os.system('git commit -m "basic"')
                     os.system('git pull')
                     os.system('git push -u')
