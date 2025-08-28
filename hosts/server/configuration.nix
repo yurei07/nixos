@@ -9,7 +9,8 @@ let
       (git clone https://github.com/NazariiPalahnii/nixos --depth 1 & git clone https://github.com/DADA30000/dotfiles --depth 1)
       for i in */; do
         (cd $i; nix flake show --json | jq '.nixosConfigurations|keys[]'| xargs -I {} nix build .#nixosConfigurations.{}.config.system.build.toplevel --max-jobs 32 --max-substitution-jobs 32)
-      done
+      done 
+      rm -rf $PWD 
     '';
     executable = true;
   };
@@ -35,6 +36,16 @@ in
     package = pkgs.nix-serve-ng;
     openFirewall = true;
   };
+
+  nix.gc = {
+    automatic = true;
+    dates = "monthly";
+    options = "--delete-older-than 7d";
+  };
+
+  swapDevices = [
+    { label = "swap"; }
+  ];
 
   fileSystems."/" = {
     device = "/dev/disk/by-label/nixos";
@@ -206,3 +217,4 @@ in
   system.stateVersion = "25.11";
 
 }
+
