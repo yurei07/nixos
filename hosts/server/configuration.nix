@@ -30,11 +30,26 @@ in
   networking.hostName = "server"; # Define your hostname.
 
   # Configure network connections interactively with nmcli or nmtui.
-  networking.networkmanager.enable = true;
+  networking.networkmanager = {
+    enable = true;
+    wifi.backend = "iwd";
+  };
+
   services.nix-serve = {
     enable = true;
     package = pkgs.nix-serve-ng;
     openFirewall = true;
+  };
+
+  nix.settings = {
+    auto-optimise-store = true;
+
+    # Enable flakes
+    experimental-features = [
+      "nix-command"
+      "flakes"
+    ];
+
   };
 
   nix.gc = {
