@@ -42,7 +42,7 @@ def combo(combo):
                     os.system('git pull')
                     os.system('git push -u')
                 elif value == '':
-                    os.system('git commit -m "basic"')
+                    os.system('git commit -m "update"')
                     os.system('git pull')
                     os.system('git push -u')
                     

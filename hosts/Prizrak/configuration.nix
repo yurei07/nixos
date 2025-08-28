@@ -29,6 +29,9 @@
   services.gnome.gnome-keyring.enable = true;
   programs.dconf.enable = true;
 
+  #boot.kernelModules = [ "v4l2loopback" ];
+  #boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
+
   security.polkit.enable = true;
 
   services.flatpak.enable = true;

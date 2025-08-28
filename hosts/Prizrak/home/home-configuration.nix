@@ -27,6 +27,24 @@
           StartLimitInterval = 0;
         };
       };
+    programs.obs-studio = {
+      enable = true;
+
+      package = (
+      pkgs.obs-studio.override {
+        cudaSupport = true;
+      }
+    );
+
+    plugins = with pkgs.obs-studio-plugins; [
+      wlrobs
+      obs-backgroundremoval
+      obs-pipewire-audio-capture
+      obs-vaapi #optional AMD hardware acceleration
+      obs-gstreamer
+      obs-vkcapture
+    ];
+    };
 
   home = {
     username = "Prizrak";
@@ -35,6 +53,7 @@
 
     file.".config/mpv".source = ../../../materials/mpv;
     file."Pictures/Wallpapers".source = ../../../materials/Wallpapers;
+
    
     packages = with pkgs; [
       # Apps
@@ -42,7 +61,6 @@
     	blanket
     	obsidian
     	telegram-desktop
-    	obs-studio
     	lutris
     	bottles
     	mpv
@@ -52,6 +70,7 @@
       gpu-screen-recorder
       prismlauncher
       calibre
+      rnnoise-plugin
     
     	#themes 
     	gnome-themes-extra
