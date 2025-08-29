@@ -1,10 +1,10 @@
 { config, lib, pkgs, ... }:
 let 
   base = (import ../../../materials/themes {}).base;
-  mantle = (import ../../../materials/themes {}).mantle;
-  crust = (import ../../../materials/themes {}).crust;
-  text = (import ../../../materials/themes {}).text;
-  subtext = (import ../../../materials/themes {}).subtext;
+  mantle = (import ../../../materials/themes {}).surface;
+  crust = (import ../../../materials/themes {}).background;
+  text = (import ../../../materials/themes {}).foreground;
+  subtext = (import ../../../materials/themes {}).foreground-secondary;
   mauve = (import ../../../materials/themes {}).mauve;
   blue = (import ../../../materials/themes {}).blue;
   teal = (import ../../../materials/themes {}).teal;
@@ -12,8 +12,8 @@ let
   yellow = (import ../../../materials/themes {}).yellow;
   green = (import ../../../materials/themes {}).green; 
   peach = (import ../../../materials/themes {}).peach;
-  overlay0 = (import ../../../materials/themes {}).overlay0;
-  surface2 = (import ../../../materials/themes {}).surface2;
+  overlay0 = (import ../../../materials/themes {}).selection;
+  surface2 = (import ../../../materials/themes {}).surface;
 in
 
 {

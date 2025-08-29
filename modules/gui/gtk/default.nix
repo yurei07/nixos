@@ -2,11 +2,14 @@
   pkgs,
   ...
 }:
+let 
+  Theme = import ./packages_theme.nix { inherit pkgs; };
+in
 {
-#  qt = {
-#      enable = true;
-#      platformTheme.name = "gtk";
-#  };
+  qt = {
+      enable = true;
+      platformTheme.name = "gtk";
+  };
   home.pointerCursor = {
     gtk.enable = true;
     package = pkgs.bibata-cursors;
@@ -16,17 +19,9 @@
   gtk = {
     enable = true;
     theme = {
-      name = "catppuccin-mocha-lavender-compact";
-      package = pkgs.catppuccin-gtk.override {
-        accents = [ "lavender" ];
-        variant = "mocha";
-        size = "compact";
-      };
+      name = "Goth_theme-2025-04-17-grey-Dark";
+      package = Theme;
     };
-  #  iconTheme = {
-  #    name = "Tela-circle-dark";
-  #    package = pkgs.tela-circle-icon-theme;
-  #  };
     cursorTheme = {
       package = pkgs.bibata-cursors;
       name = "Bibata-Modern-Classic";

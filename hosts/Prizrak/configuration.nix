@@ -1,4 +1,7 @@
 { config, lib, pkgs, nixpkgs, inputs, ... }:
+let 
+  Theme = import ../../modules/gui/gtk/packages_theme.nix { inherit pkgs; };
+in
 {
   imports =
     [
@@ -38,10 +41,10 @@
 
   environment = {
     variables = {
-      GTK_THEME = "catppuccin-mocha-lavender-compact";
+      GTK_THEME = "Goth_theme-2025-04-17-grey-Dark";
     };
     systemPackages = with pkgs; [
-      #...
+      Theme
     ];
   };
 
