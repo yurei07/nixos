@@ -1,20 +1,6 @@
-{pkgs ? import <nixpkgs> {} }:
-let 
-  base = (import ../../../materials/themes {}).base;
-  mantle = (import ../../../materials/themes {}).surface;
-  crust = (import ../../../materials/themes {}).background;
-  text = (import ../../../materials/themes {}).foreground;
-  subtext = (import ../../../materials/themes {}).foreground-secondary;
-  mauve = (import ../../../materials/themes {}).mauve;
-  blue = (import ../../../materials/themes {}).blue;
-  teal = (import ../../../materials/themes {}).teal;
-  red = (import ../../../materials/themes {}).red;
-  yellow = (import ../../../materials/themes {}).yellow;
-  green = (import ../../../materials/themes {}).green; 
-  peach = (import ../../../materials/themes {}).peach;
-  overlay0 = (import ../../../materials/themes {}).selection;
-  surface2 = (import ../../../materials/themes {}).surface;
-
+{ pkgs ? import <nixpkgs> {} }:
+let
+  colors = import ../../../materials/themes {};
 in
 with pkgs;
 stdenv.mkDerivation rec {
@@ -29,23 +15,20 @@ stdenv.mkDerivation rec {
   };
 
   nativeBuildInputs = with pkgs; [ sassc python3 glib bash ];
-
   buildInputs = [ pkgs.gnome-themes-extra ];
 
-#  postPatch = ''
-#    substituteInPlace ./src/gtk-3.0/sass/_colors.scss \
-#      --replace "#333333" "${colors.background}" \
-#      --replace "#3C3C3C" "${colors.surface}" \
-#      --replace "#2B2B2B" "${colors.base}" \
-#      --replace "#303030" "${colors.base-alt}" \
-#      --replace "#202020" "${colors.background}" \
-#      --replace "#2C2C2C" "${colors.surface}" \
-#      --replace "#1F1F1F" "${colors.background}" \
-#      --replace "#81C995" "${colors.success}" \
-#      --replace "#F28B82" "${colors.error}" \
-#      --replace "#FDD633" "${colors.warning}" \
-#      --replace "#3281EA" "${colors.primary}"
-#  '';
+  postPatch = ''
+    substituteInPlace ./src/_sass/_colors.scss \
+      --replace "$primary: theme(color);" "$primary: ${colors.base0D};" \
+      --replace "$drop_target_color: #FF7043;" "$drop_target_color: ${colors.base09};" \
+      --replace "if(\$variant == 'light', #F2F2F2, #333333)" "if(\$variant == 'light', #F2F2F2, ${colors.base00})" \
+      --replace "if(\$variant == 'light', #FFFFFF, #3C3C3C)" "if(\$variant == 'light', #FFFFFF, ${colors.base01})" \
+      --replace "if(\$variant == 'light', #FFFFFF, #2B2B2B)" "if(\$variant == 'light', #FFFFFF, ${colors.base02})" \
+      --replace "if(\$variant == 'light', #FAFAFA, #303030)" "if(\$variant == 'light', #FAFAFA, ${colors.base03})" \
+      --replace "rgba(#363636, 0.9)" "rgba(${colors.base03}, 0.9)" \
+      --replace "if(\$topbar == 'light', rgba(#F7F7F7, 0.8), rgba(#1F1F1F, 0.8))" "if(\$topbar == 'light', rgba(#F7F7F7, 0.8), rgba(${colors.base00}, 0.8))" \
+      --replace "if(\$topbar == 'light', #F7F7F7, #1F1F1F)" "if(\$topbar == 'light', #F7F7F7, ${colors.base00})"
+  '';
 
   installPhase = ''
     mkdir -p $out/share/themes

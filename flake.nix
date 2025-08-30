@@ -8,6 +8,7 @@
     flake-utils.url = "github:numtide/flake-utils";
     nixcord.url = "github:kaylorben/nixcord";
     stylix.url = "github:danth/stylix";
+    lazyvim.url = "github:pfassina/lazyvim-nix";
 
     spicetify-nix = {
       url = "github:Gerg-L/spicetify-nix";

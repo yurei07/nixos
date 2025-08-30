@@ -1,19 +1,21 @@
 { pkgs, config, ... }:
 let 
-  base = (import ../../../materials/themes {}).base;
-  mantle = (import ../../../materials/themes {}).surface;
-  crust = (import ../../../materials/themes {}).background;
-  text = (import ../../../materials/themes {}).foreground;
-  subtext = (import ../../../materials/themes {}).foreground-secondary;
-  mauve = (import ../../../materials/themes {}).mauve;
-  blue = (import ../../../materials/themes {}).blue;
-  teal = (import ../../../materials/themes {}).teal;
-  red = (import ../../../materials/themes {}).red;
-  yellow = (import ../../../materials/themes {}).yellow;
-  green = (import ../../../materials/themes {}).green; 
-  peach = (import ../../../materials/themes {}).peach;
-  overlay0 = (import ../../../materials/themes {}).selection;
-  surface2 = (import ../../../materials/themes {}).surface;
+  base00 = (import ../../../materials/themes {}).base00;
+  base01 = (import ../../../materials/themes {}).base01;
+  base02 = (import ../../../materials/themes {}).base02;
+  base03 = (import ../../../materials/themes {}).base03;
+  base04 = (import ../../../materials/themes {}).base04;
+  base05 = (import ../../../materials/themes {}).base05;
+  base06 = (import ../../../materials/themes {}).base06;
+  base07 = (import ../../../materials/themes {}).base07;
+  base08 = (import ../../../materials/themes {}).base08;
+  base09 = (import ../../../materials/themes {}).base09;
+  base0A = (import ../../../materials/themes {}).base0A;
+  base0B = (import ../../../materials/themes {}).base0B;
+  base0C = (import ../../../materials/themes {}).base0C;
+  base0D = (import ../../../materials/themes {}).base0D;
+  base0E = (import ../../../materials/themes {}).base0E;
+  base0F = (import ../../../materials/themes {}).base0F;
 in
 {
   programs.rofi = {
@@ -36,15 +38,15 @@ in
       inherit (config.lib.formats.rasi) mkLiteral;
     in {
       "*" = {
-        bg = mkLiteral base;
-        bg-alt = mkLiteral crust;
-        foreground = mkLiteral base;
-        selected = mkLiteral mauve;
-        active = mkLiteral blue;
-        urgent = mkLiteral red;
-        text-selected = mkLiteral base;
-        text-color = mkLiteral text;
-        border-color = mkLiteral overlay0;
+        bg = mkLiteral base00;
+        bg-alt = mkLiteral base01;
+        foreground = mkLiteral base05;
+        selected = mkLiteral base0D;
+        active = mkLiteral base0C;
+        urgent = mkLiteral base08;
+        text-selected = mkLiteral base00;
+        text-color = mkLiteral base05;
+        border-color = mkLiteral base04;
       };
 
             "window" = {
