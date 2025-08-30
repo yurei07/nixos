@@ -13,7 +13,6 @@ in
     hyprshot
     hyprpicker
     swappy
-    nautilus
     wf-recorder
     wlr-randr
     wl-clipboard
@@ -34,7 +33,7 @@ in
       bind = [
         "$mod, RETURN, exec, kitty" 
 	      "$mod, Y, exec, ${../../../scripts/nvim.sh}"
-	      "$mod, E, exec, nautilus"
+	      "$mod, E, exec, thunar"
         "$mod, B, exec, zen" 
         "$mod, D, exec, discord" 
         "$mod, O, exec, obsidian" 
@@ -116,7 +115,7 @@ in
       decoration = {
         active_opacity = 1;
 	      inactive_opacity = 0.75;
-        rounding = 12;
+       # rounding = 12;
         blur = {
           enabled = true;  
           size = 18;

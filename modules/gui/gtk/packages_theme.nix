@@ -17,30 +17,60 @@ stdenv.mkDerivation rec {
   nativeBuildInputs = with pkgs; [ sassc python3 glib bash ];
   buildInputs = [ pkgs.gnome-themes-extra ];
 
-  postPatch = ''
-    substituteInPlace ./src/_sass/_color-palette.scss \
-      --replace "$blue-600:    #1A73E8;" "$blue-600:    ${colors.base0D};" \
-      --replace "$red-600:     #D93025;" "$red-600:     ${colors.base08};" \
-      --replace "$green-500:   #0F9D58;" "$green-500:   ${colors.base0B};" \
-      --replace "$orange-700:  #FF7043;" "$orange-700:  ${colors.base09};" \
-      --replace "$yellow-700:  #F4B400;" "$yellow-700:  ${colors.base0A};" \
-      --replace "$purple-400:  #8751A6;" "$purple-400:  ${colors.base0E};" \
-      --replace "$pink-400:    #d11f7c;" "$pink-400:    ${colors.base0F};" \
-      --replace "$teal-500:    #00A78F;" "$teal-500:    ${colors.base0C};" \
-      --replace "$grey-700:    #363636;" "$grey-700:    ${colors.base03};"
+   postPatch = ''
+      substituteInPlace ./src/_sass/_color-palette.scss \
+        --replace "#1A73E8" "${colors.base0D}" \
+        --replace "#D93025" "${colors.base08}" \
+        --replace "#0F9D58" "${colors.base0B}" \
+        --replace "#FF7043" "${colors.base09}" \
+        --replace "#F4B400" "${colors.base0A}" \
+        --replace "#8751A6" "${colors.base0E}" \
+        --replace "#d11f7c" "${colors.base0F}" \
+        --replace "#00A78F" "${colors.base0C}" \
+        --replace "#363636" "${colors.base03}"
 
-    substituteInPlace ./src/_sass/_colors.scss \
-      --replace "$primary: theme(color);" "$primary: ${colors.base0D};" \
-      --replace "$drop_target_color: #FF7043;" "$drop_target_color: ${colors.base09};" \
-      --replace "if(\$variant == 'light', #F2F2F2, #333333)" "if(\$variant == 'light', #F2F2F2, ${colors.base00})" \
-      --replace "if(\$variant == 'light', #FFFFFF, #3C3C3C)" "if(\$variant == 'light', #FFFFFF, ${colors.base01})" \
-      --replace "if(\$variant == 'light', #FFFFFF, #2B2B2B)" "if(\$variant == 'light', #FFFFFF, ${colors.base02})" \
-      --replace "if(\$variant == 'light', #FAFAFA, #303030)" "if(\$variant == 'light', #FAFAFA, ${colors.base03})" \
-      --replace "rgba(#363636, 0.9)" "rgba(${colors.base03}, 0.9)" \
-      --replace "if(\$topbar == 'light', rgba(#F7F7F7, 0.8), rgba(#1F1F1F, 0.8))" "if(\$topbar == 'light', rgba(#F7F7F7, 0.8), rgba(${colors.base00}, 0.8))" \
-      --replace "if(\$topbar == 'light', #F7F7F7, #1F1F1F)" "if(\$topbar == 'light', #F7F7F7, ${colors.base00})" \
-      --replace "if(\$variant == 'light', \$purple-500, \$purple-200)" "if(\$variant == 'light', \$purple-500, ${colors.base0E})"
-  '';
+      substituteInPlace ./src/_sass/_colors.scss \
+        --replace "#1A73E8" "${colors.base0D}" \
+        --replace "#D93025" "${colors.base08}" \
+        --replace "#0F9D58" "${colors.base0B}" \
+        --replace "#FF7043" "${colors.base09}" \
+        --replace "#F4B400" "${colors.base0A}" \
+        --replace "#8751A6" "${colors.base0E}" \
+        --replace "#d11f7c" "${colors.base0F}" \
+        --replace "#00A78F" "${colors.base0C}" \
+        --replace "#363636" "${colors.base03}" \
+        --replace "#333333" "${colors.base00}" \
+        --replace "#3C3C3C" "${colors.base01}" \
+        --replace "#2B2B2B" "${colors.base00}" \
+        --replace "#303030" "${colors.base00}" \
+        --replace "#1F1F1F" "${colors.base00}" \
+        --replace "#202020" "${colors.base00}" \
+        --replace "#2C2C2C" "${colors.base01}" \
+        --replace "#3281EA" "${colors.base0D}" \
+        --replace "#F28B82" "${colors.base08}" \
+        --replace "#81C995" "${colors.base0B}" \
+        --replace "#FFB74D" "${colors.base09}" \
+        --replace "#FDD633" "${colors.base0A}" \
+        --replace "#BA68C8" "${colors.base0E}" \
+        --replace "#F06292" "${colors.base0F}" \
+        --replace "#26A69A" "${colors.base0C}" \
+        --replace "#616161" "${colors.base03}"
+
+      substituteInPlace ./src/_sass/_colors.scss \
+        --replace "#F2F2F2" "${colors.base06}" \
+        --replace "#FFFFFF" "${colors.base07}" \
+        --replace "#FAFAFA" "${colors.base07}" \
+        --replace "#F7F7F7" "${colors.base07}" \
+        --replace "#E53935" "${colors.base08}" \
+        --replace "#43A047" "${colors.base0B}" \
+        --replace "#FB8C00" "${colors.base09}" \
+        --replace "#FFD600" "${colors.base0A}" \
+        --replace "#7B1FA2" "${colors.base0E}" \
+        --replace "#E91E63" "${colors.base0F}" \
+        --replace "#00897B" "${colors.base0C}" \
+        --replace "#757575" "${colors.base04}"
+
+    '';
 
   installPhase = ''
     mkdir -p $out/share/themes

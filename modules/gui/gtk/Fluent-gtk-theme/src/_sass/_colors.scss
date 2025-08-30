@@ -147,39 +147,4 @@ $border-alt:                            rgba(black, 0.16); // darker border colo
 $border-bottom:                         if($variant == 'light', rgba(black, 0.18), rgba(white, 0.08)); // Buttons and Entries
 $titlebar-indicator:                    if($topbar == 'dark', currentColor, $primary);
 
-//
-// Overlay state colors
-//
 
-$overlay-normal:                        gtkalpha(currentColor, 0.05);
-$overlay-hover:                         gtkalpha(currentColor, 0.08);
-$overlay-focus:                         gtkalpha(currentColor, 0.08);
-$overlay-focus-hover:                   gtkalpha(currentColor, 0.16);
-$overlay-active:                        gtkalpha(currentColor, 0.16);
-$overlay-checked:                       gtkalpha(currentColor, 0.10);
-$overlay-selected:                      gtkalpha(currentColor, 0.06);
-
-//
-// Text and derivative colors
-//
-
-$text:                                  on($background);
-$text-secondary:                        on($background, secondary);
-$text-disabled:                         on($background, disabled);
-$text-secondary-disabled:               on($background, secondary-disabled);
-$track:                                 on($background, track);
-$track-disabled:                        on($background, track-disabled);
-$divider:                               on($background, divider);
-$fill:                                  on($background, fill);
-
-$titlebar-text:                         on($titlebar);
-$titlebar-text-secondary:               on($titlebar, secondary);
-$titlebar-text-disabled:                on($titlebar, disabled);
-$titlebar-text-secondary-disabled:      on($titlebar, secondary-disabled);
-$titlebar-track:                        on($titlebar, track);
-$titlebar-track-disabled:               on($titlebar, track-disabled);
-$titlebar-divider:                      on($titlebar, divider);
-$titlebar-fill:                         on($titlebar, fill);
-
-// workaround for GTK3 @placeholder_text_color which doesn't allow translucent colors
-$placeholder_text_color:                if($variant == 'light', mix(black, $base, percentage(0.6)), mix(white, $base, percentage(0.7)));
