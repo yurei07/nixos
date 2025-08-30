@@ -52,7 +52,7 @@
     stateVersion = "25.11";
 
     file.".config/mpv".source = ../../../materials/mpv;
- #   file."Pictures/Wallpapers".source = ../../../materials/Wallpapers;
+    file."Pictures/Wallpapers".source = ../../../materials/Wallpapers;
 
    
     packages = with pkgs; [

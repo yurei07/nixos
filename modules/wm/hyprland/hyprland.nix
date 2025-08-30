@@ -109,13 +109,13 @@ in
         gaps_out = 25;
 	      gaps_in = 10;
         layout = "dwindle";  
-        "col.active_border" = "rgb(4575da) rgb(6804b5)";
+       # "col.active_border" = "rgb(4575da) rgb(6804b5)";
         "col.inactive_border" = "rgb(595959)";
       };
 
       decoration = {
         active_opacity = 1;
-	      inactive_opacity = 0.9;
+	      inactive_opacity = 0.75;
         rounding = 12;
         blur = {
           enabled = true;  
