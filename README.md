@@ -8,8 +8,7 @@ I created my own dotfiles on nixos :)
   materials and wallpapers.
 
   - **`theme/`**: Custom theme.
-  - **`Wallpapers/`**: Collection of wallpapers.
-
+  
 - **`hosts/`** 🖥️  
   Host-specific configurations.
 
@@ -27,6 +26,7 @@ I created my own dotfiles on nixos :)
   Scripts for my system.
   - **`nvim.sh`**: The scripts is for edit my config in my nvim.
 
+- **`Wallpapers/`**: Collection of my wallpapers, [My Wallpapers](https://github.com/NazariiPalahnii/Wallpapers).
 ## Gallery 
 
 ![nixos](assets/nixos/2025-08-18-111814_hyprshot.png)
@@ -34,6 +34,7 @@ I created my own dotfiles on nixos :)
 ![nixos](assets/nixos/2025-08-18-111913_hyprshot.png)
 
 ![nixos](assets/nixos/2025-08-18-112044_hyprshot.png)
+
 
 
 
