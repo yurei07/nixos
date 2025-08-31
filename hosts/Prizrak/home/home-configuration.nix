@@ -124,7 +124,6 @@
     
     	# inputs
     	inputs.hyprland.packages.${system}.hyprland
-    	inputs.zen-browser.packages.${system}.default
     	inputs.anicli-ru.packages.${system}.default
 
     ];
