@@ -10,9 +10,8 @@
     config = {
         # Optional config
     };
-};
+  };
 
-  # This block installs Zen-Browser.
   programs.firefox = {
     enable = true;
   };

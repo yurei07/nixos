@@ -34,7 +34,7 @@ in
         "$mod, RETURN, exec, kitty" 
 	      "$mod, Y, exec, ${../../../scripts/nvim.sh}"
 	      "$mod, E, exec, thunar"
-        "$mod, B, exec, zen" 
+        "$mod, B, exec, firefox" 
         "$mod, D, exec, discord" 
         "$mod, O, exec, obsidian" 
         "$mod, Q, killactive"
@@ -114,7 +114,7 @@ in
 
       decoration = {
         active_opacity = 1;
-	      inactive_opacity = 0.75;
+	      inactive_opacity = 0.85;
        # rounding = 12;
         blur = {
           enabled = true;  

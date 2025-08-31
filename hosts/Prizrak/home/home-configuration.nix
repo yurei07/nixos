@@ -10,6 +10,7 @@
     ../../../modules/gui/quickshell
     ../../../modules/gui/rofi
     ../../../modules/gui/syncthing
+    ../../../modules/gui/firefox
     # tui
     ../../../modules/tui/neovim
     ../../../modules/tui/kitty
@@ -125,7 +126,6 @@
     	# inputs
     	inputs.hyprland.packages.${system}.hyprland
     	inputs.anicli-ru.packages.${system}.default
-
     ];
   };
 }
