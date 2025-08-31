@@ -63,6 +63,7 @@
     	lutris
     	bottles
       xfce.thunar
+      nautilus
     	mpv
       steam
     	mate.mate-polkit

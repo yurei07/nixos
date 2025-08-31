@@ -1,4 +1,7 @@
 {inputs, pkgs,  ...}:
+let 
+  color = import ../../../materials/themes {};
+in
 {
   imports = [inputs.nixcord.homeModules.nixcord];
 
