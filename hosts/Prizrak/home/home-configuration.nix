@@ -71,8 +71,7 @@
       matugen
       gpu-screen-recorder
       prismlauncher
-      calibre
-      rnnoise-plugin
+      foliate
     
     	#themes 
     	gnome-themes-extra
@@ -111,6 +110,7 @@
       pavucontrol
       protontricks
       lact
+      gh
     	
     	# Just cool
     	peaclock

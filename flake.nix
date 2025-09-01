@@ -16,13 +16,18 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    kanso-nvim = {
+      url = "github:pabloagn/kanso.nvim"; # NOTE: Personal fork
+      flake = false;
+    };
+
     quickshell = {
       url = "git+https://git.outfoxxed.me/outfoxxed/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
     home-manager = {
-      url = "github:nix-community/home-manager";    
+      url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -35,50 +40,53 @@
       url = "github:9001/copyparty";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-
   };
 
-  outputs = { ... } @inputs:
-    let 
+  outputs = { self, nixpkgs, ... }@inputs:
+    let
       system = "x86_64-linux";
-    in { 
-    nixosConfigurations = {
-      nixos = inputs.nixpkgs.lib.nixosSystem {
-        specialArgs = { inherit inputs; };
-        inherit system;
-        modules = [
-	        ./hosts/Prizrak/configuration.nix
-	        inputs.home-manager.nixosModules.home-manager
-	        { 
-	          home-manager = {
-	            extraSpecialArgs = {
-                inherit inputs;
+      pkgs = nixpkgs.legacyPackages.${system};
+      lib = nixpkgs.lib;
+      rhodiumLib = import ./lib { inherit lib pkgs; };
+    in {
+      nixosConfigurations = {
+        nixos = inputs.nixpkgs.lib.nixosSystem {
+          specialArgs = {
+            inherit inputs rhodiumLib;
+          };
+          inherit system;
+          modules = [
+            ./hosts/Prizrak/configuration.nix
+            inputs.home-manager.nixosModules.home-manager
+            {
+              home-manager = {
+                extraSpecialArgs = {
+                  inherit inputs rhodiumLib;
+                };
+                useGlobalPkgs = true;
+                useUserPackages = true;
               };
-	            useGlobalPkgs = true;
-	            useUserPackages = true;
-	          };
-	        }
-        ];
-      };
-      server = inputs.nixpkgs.lib.nixosSystem {
-        specialArgs = { inherit inputs; };
-        inherit system;
-        modules = [
-          ./hosts/server/configuration.nix
-          inputs.home-manager.nixosModules.home-manager
-          inputs.copyparty.nixosModules.default
-          { 
-	          home-manager = {
-	            extraSpecialArgs = {
-                inherit inputs;
+            }
+          ];
+        };
+        server = inputs.nixpkgs.lib.nixosSystem {
+          specialArgs = { inherit inputs; };
+          inherit system;
+          modules = [
+            ./hosts/server/configuration.nix
+            inputs.home-manager.nixosModules.home-manager
+            inputs.copyparty.nixosModules.default
+            {
+              home-manager = {
+                extraSpecialArgs = {
+                  inherit inputs;
+                };
+                useGlobalPkgs = true;
+                useUserPackages = true;
               };
-	            useGlobalPkgs = true;
-	            useUserPackages = true;
-	          };
-	        }
-        ];
+            }
+          ];
+        };
       };
-    }; 
-  };
+    };
 }
-
