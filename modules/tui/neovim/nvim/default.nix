@@ -1,7 +1,7 @@
 { ... }:
 {
   imports = [
-      ./modules
+    ./modules
   ];
 
   programs.neovim = {

@@ -16,14 +16,14 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    kanso-nvim = {
-      url = "github:pabloagn/kanso.nvim"; # NOTE: Personal fork
-      flake = false;
-    };
-
     quickshell = {
       url = "git+https://git.outfoxxed.me/outfoxxed/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+    kanso-nvim = {
+      url = "github:pabloagn/kanso.nvim"; 
+      flake = false;
     };
 
     home-manager = {

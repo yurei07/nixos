@@ -1,6 +1,7 @@
 {config, pkgs, inputs, ...}:
 {
   imports = [
+    ./development
     # windows manager
     ../../../modules/wm/hyprland
     # gui
@@ -81,23 +82,7 @@
     	# icons
     	papirus-icon-theme
       hicolor-icon-theme
-    
-    	# Dev
-    	nodejs
-    	python313Packages.pip
-      (python3.withPackages (python-pkgs: with python-pkgs; [
-          # select Python packages here
-          lxml
-          requests
-          beautifulsoup4
-          rich
-          pytest-subprocess
-          pyqt5
-          empy
-          virtualenv
-          click
-      ]))
-    	
+
     	# Utils
     	zip 
     	unzip
