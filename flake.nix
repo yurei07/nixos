@@ -10,6 +10,7 @@
     stylix.url = "github:danth/stylix";
     lazyvim.url = "github:pfassina/lazyvim-nix";
     textfox.url = "github:adriankarlen/textfox";
+    nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
     spicetify-nix = {
       url = "github:Gerg-L/spicetify-nix";
@@ -22,7 +23,7 @@
     };
 
     kanso-nvim = {
-      url = "github:pabloagn/kanso.nvim"; 
+      url = "github:pabloagn/kanso.nvim";
       flake = false;
     };
 
@@ -42,13 +43,15 @@
     };
   };
 
-  outputs = { self, nixpkgs, ... }@inputs:
+  outputs =
+    { self, nixpkgs, ... }@inputs:
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
       lib = nixpkgs.lib;
       rhodiumLib = import ./lib { inherit lib pkgs; };
-    in {
+    in
+    {
       nixosConfigurations = {
         nixos = inputs.nixpkgs.lib.nixosSystem {
           specialArgs = {
@@ -57,6 +60,7 @@
           inherit system;
           modules = [
             ./hosts/Prizrak/configuration.nix
+            #inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t480
             inputs.home-manager.nixosModules.home-manager
             {
               home-manager = {
@@ -65,6 +69,7 @@
                 };
                 useGlobalPkgs = true;
                 useUserPackages = true;
+
               };
             }
           ];

@@ -1,4 +1,9 @@
-{config, pkgs, inputs, ...}:
+{
+  config,
+  pkgs,
+  inputs,
+  ...
+}:
 {
   imports = [
     ./development
@@ -19,21 +24,21 @@
     ../../../modules/tui/nh
     ../../../modules/tui/neofetch
   ];
-  
-    systemd.user.services.polkit_mate = {
+
+  systemd.user.services.polkit_mate = {
     Install = {
       WantedBy = [ "hyprland-session.target" ];
     };
     Service = {
-          ExecStart = "${pkgs.mate.mate-polkit}/libexec/polkit-mate-authentication-agent-1";
-          Restart = "always";
-          StartLimitInterval = 0;
-        };
-      };
-    programs.obs-studio = {
-      enable = true;
+      ExecStart = "${pkgs.mate.mate-polkit}/libexec/polkit-mate-authentication-agent-1";
+      Restart = "always";
+      StartLimitInterval = 0;
+    };
+  };
+  programs.obs-studio = {
+    enable = true;
 
-      package = (
+    package = (
       pkgs.obs-studio.override {
         cudaSupport = true;
       }
@@ -43,11 +48,11 @@
       wlrobs
       obs-backgroundremoval
       obs-pipewire-audio-capture
-      obs-vaapi #optional AMD hardware acceleration
+      obs-vaapi # optional AMD hardware acceleration
       obs-gstreamer
       obs-vkcapture
     ];
-    };
+  };
 
   home = {
     username = "Prizrak";
@@ -56,61 +61,60 @@
 
     file.".config/mpv".source = ../../../materials/mpv;
 
-   
     packages = with pkgs; [
       # Apps
-    	pomodoro-gtk
-    	blanket
-    	obsidian
-    	telegram-desktop
-    	lutris
-    	bottles
+      pomodoro-gtk
+      blanket
+      obsidian
+      telegram-desktop
+      lutris
+      bottles
       xfce.thunar
       nautilus
-    	mpv
+      mpv
       steam
-    	mate.mate-polkit
+      mate.mate-polkit
       matugen
       gpu-screen-recorder
       prismlauncher
       foliate
-    
-    	#themes 
-    	gnome-themes-extra
+
+      #themes
+      gnome-themes-extra
       materia-theme
       arc-theme
-    	
-    	# icons
-    	papirus-icon-theme
+
+      # icons
+      papirus-icon-theme
       hicolor-icon-theme
 
-    	# Utils
-    	zip 
-    	unzip
-    	git
-    	btop
-    	gdu
-    	dysk 
+      # Utils
+      zip
+      unzip
+      git
+      btop
+      gdu
+      dysk
       networkmanager_dmenu
       pavucontrol
       protontricks
       lact
       gh
-    	
-    	# Just cool
-    	peaclock
+
+      # Just cool
+      peaclock
       mufetch
       neofetch
-    	cbonsai
-    	pipes
-    	cava
+      cbonsai
+      pipes
+      cava
       tree
-    	cmatrix
-    	yazi
-    
-    	# inputs
-    	inputs.hyprland.packages.${system}.hyprland
-    	inputs.anicli-ru.packages.${system}.default
+      cmatrix
+      yazi
+
+      # inputs
+      inputs.hyprland.packages.${system}.hyprland
+      inputs.anicli-ru.packages.${system}.default
     ];
   };
 }
