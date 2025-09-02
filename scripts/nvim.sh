@@ -1,4 +1,4 @@
-    #!/usr/bin/env bash
+#!/usr/bin/env bash
     terminal=$(command -v kitty)
     pkexec env \
       PATH="$PATH" \
@@ -7,4 +7,4 @@
       WAYLAND_DISPLAY="$WAYLAND_DISPLAY" \
       XDG_SESSION_TYPE="$XDG_SESSION_TYPE" \
       XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" \
-      "$terminal" -e nvim /etc/nixos
+      "$terminal" -e nvim /etc/nixos/flake.nix 
