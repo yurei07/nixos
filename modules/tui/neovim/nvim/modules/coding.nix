@@ -23,6 +23,7 @@
       cmp-nvim-lsp
       cmp-path # Path completion
 
+
       # Comments
       {
         plugin = comment-nvim;

@@ -95,7 +95,7 @@
       # }
       {
         plugin = orgmode; # Emacs orgmode in nvim
-        # config = sourceLuaFile "orgmode-nvim.lua";
+        config = sourceLuaFile "orgmode-nvim.lua";
       }
       {
         plugin = snacks-nvim; # Multiple goodies
@@ -115,7 +115,7 @@
       # }
       {
         plugin = zen-mode-nvim; # Zen mode
-        # config = sourceLuaFile "zen-mode-nvim.lua";
+        #config = sourceLuaFile "zen-mode-nvim.lua";
       }
     ];
   };
