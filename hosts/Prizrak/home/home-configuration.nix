@@ -17,9 +17,10 @@
     ../../../modules/tui/kitty
     ../../../modules/tui/zsh
     ../../../modules/tui/nh
+    ../../../modules/tui/neofetch
   ];
   
-  systemd.user.services.polkit_mate = {
+    systemd.user.services.polkit_mate = {
     Install = {
       WantedBy = [ "hyprland-session.target" ];
     };
@@ -88,7 +89,6 @@
     	unzip
     	git
     	btop
-    	neofetch
     	gdu
     	dysk 
       networkmanager_dmenu
