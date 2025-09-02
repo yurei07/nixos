@@ -25,12 +25,17 @@ RadioButton {
 
       radius: width * 0.5
       color: Qt.alpha(Color.mPrimary, root.checked ? 1 : 0)
+
+      Behavior on color {
+        ColorAnimation {
+          duration: Style.animationFast
+        }
+      }
     }
 
     Behavior on border.color {
       ColorAnimation {
-        duration: Style.animationNormal
-        easing.type: Easing.InQuad
+        duration: Style.animationFast
       }
     }
   }

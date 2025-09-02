@@ -10,164 +10,419 @@ Singleton {
   id: root
 
   Component.onCompleted: {
-    Logger.log("Wallpapers", "Service started")
-    listWallpapers()
+    Logger.log("Wallpaper", "Service started")
 
-    // Wallpaper is set when the settings are loaded.
-    // Don't start random wallpaper during initialization
-  }
-
-  property var wallpaperList: []
-  property string currentWallpaper: Settings.data.wallpaper.current
-  property bool scanning: false
-
-  // SWWW
-  property string transitionType: Settings.data.wallpaper.swww.transitionType
-  property var randomChoices: ["simple", "fade", "left", "right", "top", "bottom", "wipe", "wave", "grow", "center", "any", "outer"]
-
-  function listWallpapers() {
-    Logger.log("Wallpapers", "Listing wallpapers")
-    scanning = true
-    wallpaperList = []
-    // Unsetting, then setting the folder will re-trigger the parsing!
-    folderModel.folder = ""
-    folderModel.folder = "file://" + (Settings.data.wallpaper.directory !== undefined ? Settings.data.wallpaper.directory : "")
-  }
-
-  function changeWallpaper(path) {
-    Logger.log("Wallpapers", "Changing to:", path)
-    setCurrentWallpaper(path, false)
-  }
-
-  function setCurrentWallpaper(path, isInitial) {
-    // Only regenerate colors if the wallpaper actually changed
-    var wallpaperChanged = currentWallpaper !== path
-
-    currentWallpaper = path
-    if (!isInitial) {
-      Settings.data.wallpaper.current = path
-    }
-    if (Settings.data.wallpaper.swww.enabled) {
-      if (Settings.data.wallpaper.swww.transitionType === "random") {
-        transitionType = randomChoices[Math.floor(Math.random() * randomChoices.length)]
-      } else {
-        transitionType = Settings.data.wallpaper.swww.transitionType
+    // Initialize cache from Settings on startup
+    var monitors = Settings.data.wallpaper.monitors || []
+    for (var i = 0; i < monitors.length; i++) {
+      if (monitors[i].name && monitors[i].wallpaper) {
+        currentWallpapers[monitors[i].name] = monitors[i].wallpaper
       }
+    }
+  }
 
-      changeWallpaperProcess.running = true
-    } else {
+  // All available wallpaper transitions
+  readonly property ListModel transitionsModel: ListModel {
+    ListElement {
+      key: "none"
+      name: "None"
+    }
+    ListElement {
+      key: "random"
+      name: "Random"
+    }
+    ListElement {
+      key: "fade"
+      name: "Fade"
+    }
+    ListElement {
+      key: "disc"
+      name: "Disc"
+    }
+    ListElement {
+      key: "stripes"
+      name: "Stripes"
+    }
+    ListElement {
+      key: "wipe"
+      name: "Wipe"
+    }
+  }
 
-      // Fallback: update the settings directly for non-SWWW mode
-      //Logger.log("Wallpapers", "Not using Swww, setting wallpaper directly")
+  readonly property ListModel fillModeModel: ListModel {
+    // Centers image without resizing
+    // Pads with fillColor if image is smaller than screen
+    ListElement {
+      key: "center"
+      name: "Center"
+      uniform: 0.0
+    }
+    // Scales image to fill entire screen
+    // Crops portions that exceed screen bounds
+    // Maintains aspect ratio
+    ListElement {
+      key: "crop"
+      name: "Crop (Fill)"
+      uniform: 1.0
+    }
+    // Scales image to fit entirely within screen
+    // Maintains aspect ratio
+    // May show fillColor bars on sides
+    ListElement {
+      key: "fit"
+      name: "Fit (Contain)"
+      uniform: 2.0
+    }
+    // Stretches image to exact screen dimensions
+    // Does NOT maintain aspect ratio
+    // May distort the image
+    ListElement {
+      key: "stretch"
+      name: "Stretch"
+      uniform: 3.0
+    }
+  }
+
+  function getFillModeUniform() {
+    for (var i = 0; i < fillModeModel.count; i++) {
+      const mode = fillModeModel.get(i)
+      if (mode.key === Settings.data.wallpaper.fillMode) {
+        return mode.uniform
+      }
+    }
+    // Fallback to crop
+    return 1.0
+  }
+
+  // All transition keys but filter out "none" and "random" so we are left with the real transitions
+  readonly property var allTransitions: Array.from({
+                                                     "length": transitionsModel.count
+                                                   }, (_, i) => transitionsModel.get(i).key).filter(
+                                          key => key !== "random" && key != "none")
+
+  property var wallpaperLists: ({})
+  property int scanningCount: 0
+  readonly property bool scanning: (scanningCount > 0)
+
+  // Cache for current wallpapers - can be updated directly since we use signals for notifications
+  property var currentWallpapers: ({})
+
+  // Signals for reactive UI updates
+  signal wallpaperChanged(string screenName, string path)
+  // Emitted when a wallpaper changes
+  signal wallpaperDirectoryChanged(string screenName, string directory)
+  // Emitted when a monitor's directory changes
+  signal wallpaperListChanged(string screenName, int count)
+
+  // Emitted when available wallpapers list changes
+  Connections {
+    target: Settings.data.wallpaper
+    function onDirectoryChanged() {
+      root.refreshWallpapersList()
+      // Emit directory change signals for monitors using the default directory
+      if (!Settings.data.wallpaper.enableMultiMonitorDirectories) {
+        // All monitors use the main directory
+        for (var i = 0; i < Quickshell.screens.length; i++) {
+          root.wallpaperDirectoryChanged(Quickshell.screens[i].name, Settings.data.wallpaper.directory)
+        }
+      } else {
+        // Only monitors without custom directories are affected
+        for (var i = 0; i < Quickshell.screens.length; i++) {
+          var screenName = Quickshell.screens[i].name
+          var monitor = root.getMonitorConfig(screenName)
+          if (!monitor || !monitor.directory) {
+            root.wallpaperDirectoryChanged(screenName, Settings.data.wallpaper.directory)
+          }
+        }
+      }
+    }
+    function onEnableMultiMonitorDirectoriesChanged() {
+      root.refreshWallpapersList()
+      // Notify all monitors about potential directory changes
+      for (var i = 0; i < Quickshell.screens.length; i++) {
+        var screenName = Quickshell.screens[i].name
+        root.wallpaperDirectoryChanged(screenName, root.getMonitorDirectory(screenName))
+      }
+    }
+    function onRandomEnabledChanged() {
+      root.toggleRandomWallpaper()
+    }
+    function onRandomIntervalSecChanged() {
+      root.restartRandomWallpaperTimer()
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // Get specific monitor wallpaper data
+  function getMonitorConfig(screenName) {
+    var monitors = Settings.data.wallpaper.monitors
+    if (monitors !== undefined) {
+      for (var i = 0; i < monitors.length; i++) {
+        if (monitors[i].name !== undefined && monitors[i].name === screenName) {
+          return monitors[i]
+        }
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------
+  // Get specific monitor directory
+  function getMonitorDirectory(screenName) {
+    if (!Settings.data.wallpaper.enableMultiMonitorDirectories) {
+      return Settings.data.wallpaper.directory
     }
 
+    var monitor = getMonitorConfig(screenName)
+    if (monitor !== undefined && monitor.directory !== undefined) {
+      return monitor.directory
+    }
+
+    // Fall back to the main/single directory
+    return Settings.data.wallpaper.directory
+  }
+
+  // -------------------------------------------------------------------
+  // Set specific monitor directory
+  function setMonitorDirectory(screenName, directory) {
+    var monitors = Settings.data.wallpaper.monitors || []
+    var found = false
+
+    // Create a new array with updated values
+    var newMonitors = monitors.map(function (monitor) {
+      if (monitor.name === screenName) {
+        found = true
+        return {
+          "name": screenName,
+          "directory": directory,
+          "wallpaper": monitor.wallpaper || ""
+        }
+      }
+      return monitor
+    })
+
+    if (!found) {
+      newMonitors.push({
+                         "name": screenName,
+                         "directory": directory,
+                         "wallpaper": ""
+                       })
+    }
+
+    // Update Settings with new array to ensure proper persistence
+    Settings.data.wallpaper.monitors = newMonitors.slice()
+    root.wallpaperDirectoryChanged(screenName, directory)
+  }
+
+  // -------------------------------------------------------------------
+  // Get specific monitor wallpaper - now from cache
+  function getWallpaper(screenName) {
+    return currentWallpapers[screenName] || ""
+  }
+
+  // -------------------------------------------------------------------
+  function changeWallpaper(screenName, path) {
+    if (screenName !== undefined) {
+      _setWallpaper(screenName, path)
+    } else {
+      // If no screenName specified change for all screens
+      for (var i = 0; i < Quickshell.screens.length; i++) {
+        _setWallpaper(Quickshell.screens[i].name, path)
+      }
+    }
+  }
+
+  // -------------------------------------------------------------------
+  function _setWallpaper(screenName, path) {
+    if (path === "" || path === undefined) {
+      return
+    }
+
+    if (screenName === undefined) {
+      Logger.warn("Wallpaper", "setWallpaper", "no screen specified")
+      return
+    }
+
+    //Logger.log("Wallpaper", "setWallpaper on", screenName, ": ", path)
+
+    // Check if wallpaper actually changed
+    var oldPath = currentWallpapers[screenName] || ""
+    var wallpaperChanged = (oldPath !== path)
+
+    if (!wallpaperChanged) {
+      // No change needed
+      return
+    }
+
+    // Update cache directly
+    currentWallpapers[screenName] = path
+
+    // Update Settings - still need immutable update for Settings persistence
+    // The slice() ensures Settings detects the change and saves properly
+    var monitors = Settings.data.wallpaper.monitors || []
+    var found = false
+
+    var newMonitors = monitors.map(function (monitor) {
+      if (monitor.name === screenName) {
+        found = true
+        return {
+          "name": screenName,
+          "directory": monitor.directory || getMonitorDirectory(screenName),
+          "wallpaper": path
+        }
+      }
+      return monitor
+    })
+
+    if (!found) {
+      newMonitors.push({
+                         "name": screenName,
+                         "directory": getMonitorDirectory(screenName),
+                         "wallpaper": path
+                       })
+    }
+
+    Settings.data.wallpaper.monitors = newMonitors.slice()
+
+    // Emit signal for this specific wallpaper change
+    root.wallpaperChanged(screenName, path)
+
+    // Restart the random wallpaper timer
     if (randomWallpaperTimer.running) {
       randomWallpaperTimer.restart()
     }
-
-    // Only notify ColorScheme service if the wallpaper actually changed
-    if (wallpaperChanged) {
-      ColorSchemeService.changedWallpaper()
-    }
   }
 
+  // -------------------------------------------------------------------
   function setRandomWallpaper() {
-    var randomIndex = Math.floor(Math.random() * wallpaperList.length)
-    var randomPath = wallpaperList[randomIndex]
-    if (!randomPath) {
-      return
+    Logger.log("Wallpaper", "setRandomWallpaper")
+
+    if (Settings.data.wallpaper.enableMultiMonitorDirectories) {
+      // Pick a random wallpaper per screen
+      for (var i = 0; i < Quickshell.screens.length; i++) {
+        var screenName = Quickshell.screens[i].name
+        var wallpaperList = getWallpapersList(screenName)
+
+        if (wallpaperList.length > 0) {
+          var randomIndex = Math.floor(Math.random() * wallpaperList.length)
+          var randomPath = wallpaperList[randomIndex]
+          changeWallpaper(screenName, randomPath)
+        }
+      }
+    } else {
+      // Pick a random wallpaper common to all screens
+      // We can use any screenName here, so we just pick the primary one.
+      var wallpaperList = getWallpapersList(Screen.name)
+      if (wallpaperList.length > 0) {
+        var randomIndex = Math.floor(Math.random() * wallpaperList.length)
+        var randomPath = wallpaperList[randomIndex]
+        changeWallpaper(undefined, randomPath)
+      }
     }
-    setCurrentWallpaper(randomPath, false)
   }
 
+  // -------------------------------------------------------------------
   function toggleRandomWallpaper() {
-    if (Settings.data.wallpaper.isRandom && !randomWallpaperTimer.running) {
-      randomWallpaperTimer.start()
+    Logger.log("Wallpaper", "toggleRandomWallpaper")
+    if (Settings.data.wallpaper.randomEnabled) {
+      restartRandomWallpaperTimer()
       setRandomWallpaper()
-    } else if (!Settings.data.randomWallpaper && randomWallpaperTimer.running) {
-      randomWallpaperTimer.stop()
     }
   }
 
+  // -------------------------------------------------------------------
   function restartRandomWallpaperTimer() {
     if (Settings.data.wallpaper.isRandom) {
-      randomWallpaperTimer.stop()
-      randomWallpaperTimer.start()
+      randomWallpaperTimer.restart()
     }
   }
 
-  function startSWWWDaemon() {
-    if (Settings.data.wallpaper.swww.enabled) {
-      Logger.log("Swww", "Requesting swww-daemon")
-      startDaemonProcess.running = true
+  // -------------------------------------------------------------------
+  function getWallpapersList(screenName) {
+    if (screenName != undefined && wallpaperLists[screenName] != undefined) {
+      return wallpaperLists[screenName]
+    }
+    return []
+  }
+
+  // -------------------------------------------------------------------
+  function refreshWallpapersList() {
+    Logger.log("Wallpaper", "refreshWallpapersList")
+    scanningCount = 0
+
+    // Force refresh by toggling the folder property on each FolderListModel
+    for (var i = 0; i < wallpaperScanners.count; i++) {
+      var scanner = wallpaperScanners.objectAt(i)
+      if (scanner) {
+        var currentFolder = scanner.folder
+        scanner.folder = ""
+        scanner.folder = currentFolder
+      }
     }
   }
 
+  // -------------------------------------------------------------------
+  // -------------------------------------------------------------------
+  // -------------------------------------------------------------------
   Timer {
     id: randomWallpaperTimer
-    interval: Settings.data.wallpaper.randomInterval * 1000
-    running: false
+    interval: Settings.data.wallpaper.randomIntervalSec * 1000
+    running: Settings.data.wallpaper.randomEnabled
     repeat: true
     onTriggered: setRandomWallpaper()
     triggeredOnStart: false
   }
 
-  FolderListModel {
-    id: folderModel
-    // Swww supports many images format but Quickshell only support a subset of those.
-    nameFilters: ["*.jpg", "*.jpeg", "*.png", "*.gif", "*.pnm", "*.bmp"]
-    showDirs: false
-    sortField: FolderListModel.Name
-    onStatusChanged: {
-      if (status === FolderListModel.Ready) {
-        var files = []
-        for (var i = 0; i < count; i++) {
-          var directory = (Settings.data.wallpaper.directory !== undefined ? Settings.data.wallpaper.directory : "")
-          var filepath = directory + "/" + get(i, "fileName")
-          files.push(filepath)
+  // Instantiator (not Repeater) to create FolderListModel for each monitor
+  Instantiator {
+    id: wallpaperScanners
+    model: Quickshell.screens
+    delegate: FolderListModel {
+      property string screenName: modelData.name
+      property string currentDirectory: root.getMonitorDirectory(screenName)
+
+      folder: "file://" + currentDirectory
+      nameFilters: ["*.jpg", "*.jpeg", "*.png", "*.gif", "*.pnm", "*.bmp"]
+      showDirs: false
+      sortField: FolderListModel.Name
+
+      // Watch for directory changes via property binding
+      onCurrentDirectoryChanged: {
+        folder = "file://" + currentDirectory
+      }
+
+      Component.onCompleted: {
+        // Connect to directory change signal
+        root.wallpaperDirectoryChanged.connect(function (screen, directory) {
+          if (screen === screenName) {
+            currentDirectory = directory
+          }
+        })
+      }
+
+      onStatusChanged: {
+        if (status === FolderListModel.Null) {
+          // Flush the list
+          root.wallpaperLists[screenName] = []
+          root.wallpaperListChanged(screenName, 0)
+        } else if (status === FolderListModel.Loading) {
+          // Flush the list
+          root.wallpaperLists[screenName] = []
+          scanningCount++
+        } else if (status === FolderListModel.Ready) {
+          var files = []
+          for (var i = 0; i < count; i++) {
+            var directory = root.getMonitorDirectory(screenName)
+            var filepath = directory + "/" + get(i, "fileName")
+            files.push(filepath)
+          }
+
+          // Update the list
+          root.wallpaperLists[screenName] = files
+
+          scanningCount--
+          Logger.log("Wallpaper", "List refreshed for", screenName, "count:", files.length)
+          root.wallpaperListChanged(screenName, files.length)
         }
-        wallpaperList = files
-        scanning = false
-        Logger.log("Wallpapers", "List refreshed, count:", wallpaperList.length)
-      }
-    }
-  }
-
-  Process {
-    id: changeWallpaperProcess
-    command: ["swww", "img", "--resize", Settings.data.wallpaper.swww.resizeMethod, "--transition-fps", Settings.data.wallpaper.swww.transitionFps.toString(
-        ), "--transition-type", transitionType, "--transition-duration", Settings.data.wallpaper.swww.transitionDuration.toString(
-        ), currentWallpaper]
-    running: false
-
-    onStarted: {
-
-    }
-
-    onExited: function (exitCode, exitStatus) {
-      Logger.log("Swww", "Process finished with exit code:", exitCode, "status:", exitStatus)
-      if (exitCode !== 0) {
-        Logger.log("Swww", "Process failed. Make sure swww-daemon is running with: swww-daemon")
-        Logger.log("Swww", "You can start it with: swww-daemon --format xrgb")
-      }
-    }
-  }
-
-  Process {
-    id: startDaemonProcess
-    command: ["swww-daemon", "--format", "xrgb"]
-    running: false
-
-    onStarted: {
-      Logger.log("Swww", "Daemon start process initiated")
-    }
-
-    onExited: function (exitCode, exitStatus) {
-      Logger.log("Swww", "Daemon start process finished with exit code:", exitCode)
-      if (exitCode === 0) {
-        Logger.log("Swww", "Daemon started successfully")
-      } else {
-        Logger.log("Swww", "Failed to start daemon, may already be running")
       }
     }
   }

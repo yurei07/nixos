@@ -9,28 +9,32 @@ QtObject {
   function parseImageMeta(preview) {
     const re = /\[\[\s*binary data\s+([\d\.]+\s*(?:KiB|MiB|GiB|B))\s+(\w+)\s+(\d+)x(\d+)\s*\]\]/i
     const m = (preview || "").match(re)
-    if (!m) return null
-    return { size: m[1], fmt: (m[2] || "").toUpperCase(), w: Number(m[3]), h: Number(m[4]) }
+    if (!m)
+      return null
+    return {
+      "size": m[1],
+      "fmt": (m[2] || "").toUpperCase(),
+      "w": Number(m[3]),
+      "h": Number(m[4])
+    }
   }
 
   function formatTextPreview(preview) {
     const normalized = (preview || "").replace(/\s+/g, ' ').trim()
     const lines = normalized.split(/\n+/)
     const title = (lines[0] || "Text").slice(0, 60)
-    let subtitle = ""
-    if (lines.length > 1) {
-      subtitle = lines[1].slice(0, 80)
-    } else {
-      subtitle = `${normalized.length} chars`
+    const subtitle = (lines.length > 1) ? lines[1].slice(0, 80) : ""
+    return {
+      "title": title,
+      "subtitle": subtitle
     }
-    return { title, subtitle }
   }
 
   function createClipboardEntry(item) {
     if (item.isImage) {
       const meta = parseImageMeta(item.preview)
       const title = meta ? `Image ${meta.w}×${meta.h}` : "Image"
-      const subtitle = meta ? `${meta.size} · ${meta.fmt}` : (item.preview || "")
+      const subtitle = ""
       return {
         "isClipboard": true,
         "name": title,
@@ -45,7 +49,7 @@ QtObject {
       return {
         "isClipboard": true,
         "name": parts.title,
-        "content": parts.subtitle,
+        "content": "",
         "icon": "content_paste",
         "type": 'text',
         "id": item.id

@@ -19,24 +19,9 @@ RowLayout {
 
   Layout.fillWidth: true
 
-  ColumnLayout {
-    spacing: Style.marginXXS * scaling
-    Layout.fillWidth: true
-
-    NText {
-      text: label
-      font.pointSize: Style.fontSizeM * scaling
-      font.weight: Style.fontWeightBold
-      color: Color.mOnSurface
-    }
-
-    NText {
-      text: description
-      font.pointSize: Style.fontSizeS * scaling
-      color: Color.mOnSurfaceVariant
-      wrapMode: Text.WordWrap
-      Layout.fillWidth: true
-    }
+  NLabel {
+    label: root.label
+    description: root.description
   }
 
   Rectangle {
@@ -48,6 +33,18 @@ RowLayout {
     color: root.checked ? Color.mPrimary : Color.mSurface
     border.color: root.checked ? Color.mPrimary : Color.mOutline
     border.width: Math.max(1, Style.borderM * scaling)
+
+    Behavior on color {
+      ColorAnimation {
+        duration: Style.animationFast
+      }
+    }
+
+    Behavior on border.color {
+      ColorAnimation {
+        duration: Style.animationFast
+      }
+    }
 
     Rectangle {
       implicitWidth: (root.baseSize - 5) * scaling

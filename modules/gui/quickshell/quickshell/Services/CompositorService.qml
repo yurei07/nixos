@@ -19,7 +19,7 @@ Singleton {
   property ListModel workspaces: ListModel {}
   property var windows: []
   property int focusedWindowIndex: -1
-  property string focusedWindowTitle: "(No active window)"
+  property string focusedWindowTitle: "n/a"
   property bool inOverview: false
 
   // Generic events
@@ -27,6 +27,7 @@ Singleton {
   signal activeWindowChanged
   signal overviewStateChanged
   signal windowListChanged
+  signal windowTitleChanged
 
   // Compositor detection
   Component.onCompleted: {
@@ -131,6 +132,7 @@ Singleton {
           }
         }
       } catch (e2) {
+
         // ignore occupancy errors; fall back to false
       }
       for (var i = 0; i < hlWorkspaces.length; i++) {
@@ -164,10 +166,35 @@ Singleton {
 
       for (var i = 0; i < hlToplevels.length; i++) {
         const toplevel = hlToplevels[i]
+
+        // Try to get appId from various sources
+        let appId = ""
+
+        // First try the direct properties
+        if (toplevel.class) {
+          appId = toplevel.class
+        } else if (toplevel.initialClass) {
+          appId = toplevel.initialClass
+        } else if (toplevel.appId) {
+          appId = toplevel.appId
+        }
+
+        // If still no appId, try to get it from the lastIpcObject
+        if (!appId && toplevel.lastIpcObject) {
+          try {
+            const ipcData = toplevel.lastIpcObject
+            // Try different possible property names for the application identifier
+            appId = ipcData.class || ipcData.initialClass || ipcData.appId || ipcData.wm_class || ""
+          } catch (e) {
+
+            // Ignore errors when accessing lastIpcObject
+          }
+        }
+
         windowsList.push({
                            "id": toplevel.address || "",
                            "title": toplevel.title || "",
-                           "appId": toplevel.class || toplevel.initialClass || "",
+                           "appId": appId,
                            "workspaceId": toplevel.workspace?.id || null,
                            "isFocused": toplevel.activated === true
                          })
@@ -284,10 +311,10 @@ Singleton {
           } else if (event.WindowOpenedOrChanged) {
             try {
               const windowData = event.WindowOpenedOrChanged.window
-              
+
               // Find if this window already exists
               const existingIndex = windows.findIndex(w => w.id === windowData.id)
-              
+
               const newWindow = {
                 "id": windowData.id,
                 "title": windowData.title || "",
@@ -295,7 +322,7 @@ Singleton {
                 "workspaceId": windowData.workspace_id || null,
                 "isFocused": windowData.is_focused === true
               }
-              
+
               if (existingIndex >= 0) {
                 // Update existing window
                 windows[existingIndex] = newWindow
@@ -304,14 +331,23 @@ Singleton {
                 windows.push(newWindow)
                 windows.sort((a, b) => a.id - b.id)
               }
-              
+
               // Update focused window index if this window is focused
               if (newWindow.isFocused) {
+                const oldFocusedIndex = focusedWindowIndex
                 focusedWindowIndex = windows.findIndex(w => w.id === windowData.id)
                 updateFocusedWindowTitle()
-                activeWindowChanged()
+
+                // Only emit activeWindowChanged if the focused window actually changed
+                if (oldFocusedIndex !== focusedWindowIndex) {
+                  activeWindowChanged()
+                }
+              } else if (existingIndex >= 0 && existingIndex === focusedWindowIndex) {
+                // If this is the currently focused window (but not newly focused),
+                // still update the title in case it changed, but don't emit activeWindowChanged
+                updateFocusedWindowTitle()
               }
-              
+
               windowListChanged()
             } catch (e) {
               Logger.error("Compositor", "Error parsing WindowOpenedOrChanged event:", e)
@@ -319,7 +355,7 @@ Singleton {
           } else if (event.WindowClosed) {
             try {
               const windowId = event.WindowClosed.id
-              
+
               // Remove the window from the list
               const windowIndex = windows.findIndex(w => w.id === windowId)
               if (windowIndex >= 0) {
@@ -329,15 +365,15 @@ Singleton {
                   updateFocusedWindowTitle()
                   activeWindowChanged()
                 }
-                
+
                 // Remove the window
                 windows.splice(windowIndex, 1)
-                
+
                 // Adjust focused window index if needed
                 if (focusedWindowIndex > windowIndex) {
                   focusedWindowIndex--
                 }
-                
+
                 windowListChanged()
               }
             } catch (e) {
@@ -448,10 +484,16 @@ Singleton {
   }
 
   function updateFocusedWindowTitle() {
+    const oldTitle = focusedWindowTitle
     if (focusedWindowIndex >= 0 && focusedWindowIndex < windows.length) {
       focusedWindowTitle = windows[focusedWindowIndex].title || "(Unnamed window)"
     } else {
       focusedWindowTitle = "(No active window)"
+    }
+
+    // Emit signal if title actually changed
+    if (oldTitle !== focusedWindowTitle) {
+      windowTitleChanged()
     }
   }
 

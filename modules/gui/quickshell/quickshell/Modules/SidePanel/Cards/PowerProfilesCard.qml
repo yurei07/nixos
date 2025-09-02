@@ -29,7 +29,7 @@ NBox {
     // Performance
     NIconButton {
       icon: "speed"
-      tooltipText: "Set Performance Power Profile"
+      tooltipText: "Set performance power profile"
       enabled: hasPP
       opacity: enabled ? Style.opacityFull : Style.opacityMedium
       colorBg: (enabled && powerProfiles.profile === PowerProfile.Performance) ? Color.mPrimary : Color.mSurfaceVariant
@@ -43,7 +43,7 @@ NBox {
     // Balanced
     NIconButton {
       icon: "balance"
-      tooltipText: "Set Balanced Power Profile"
+      tooltipText: "Set balanced power profile"
       enabled: hasPP
       opacity: enabled ? Style.opacityFull : Style.opacityMedium
       colorBg: (enabled && powerProfiles.profile === PowerProfile.Balanced) ? Color.mPrimary : Color.mSurfaceVariant
@@ -57,7 +57,7 @@ NBox {
     // Eco
     NIconButton {
       icon: "eco"
-      tooltipText: "Set Eco Power Profile"
+      tooltipText: "Set eco power profile"
       enabled: hasPP
       opacity: enabled ? Style.opacityFull : Style.opacityMedium
       colorBg: (enabled && powerProfiles.profile === PowerProfile.PowerSaver) ? Color.mPrimary : Color.mSurfaceVariant

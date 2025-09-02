@@ -10,15 +10,38 @@ Loader {
   active: false
   asynchronous: true
 
-  readonly property real scaling: ScalingService.scale(screen)
   property ShellScreen screen
+  property real scaling: ScalingService.getScreenScale(screen)
+
+  Connections {
+    target: ScalingService
+    function onScaleChanged(screenName, scale) {
+      if ((screen !== null) && (screenName === screen.name)) {
+        scaling = scale
+      }
+    }
+  }
 
   property Component panelContent: null
   property int panelWidth: 1500
   property int panelHeight: 400
-  property bool panelAnchorCentered: false
+  property color panelBackgroundColor: Color.mSurface
+
+  property bool panelAnchorHorizontalCenter: false
+  property bool panelAnchorVerticalCenter: false
+  property bool panelAnchorTop: false
+  property bool panelAnchorBottom: false
   property bool panelAnchorLeft: false
   property bool panelAnchorRight: false
+
+  // Properties to support positioning relative to the opener (button)
+  property bool useButtonPosition: false
+  property point buttonPosition: Qt.point(0, 0)
+  property int buttonWidth: 0
+  property int buttonHeight: 0
+
+  // Whether this panel should accept keyboard focus
+  property bool panelKeyboardFocus: false
 
   // Animation properties
   readonly property real originalScale: 0.7
@@ -27,23 +50,53 @@ Loader {
   property real opacityValue: originalOpacity
 
   property alias isClosing: hideTimer.running
+  readonly property real barHeight: Math.round(Style.barHeight * scaling)
+  readonly property bool barAtBottom: Settings.data.bar.position === "bottom"
 
   signal opened
   signal closed
 
+  Component.onCompleted: {
+    PanelService.registerPanel(root)
+  }
+
   // -----------------------------------------
-  function toggle(aScreen) {
+  function toggle(aScreen, buttonItem) {
+    // Don't toggle if screen is null or invalid
+    if (!aScreen || !aScreen.name) {
+      Logger.warn("NPanel", "Cannot toggle panel: invalid screen object")
+      return
+    }
+
     if (!active || isClosing) {
-      open(aScreen)
+      open(aScreen, buttonItem)
     } else {
       close()
     }
   }
 
   // -----------------------------------------
-  function open(aScreen) {
+  function open(aScreen, buttonItem) {
+    // Don't open if screen is null or invalid
+    if (!aScreen || !aScreen.name) {
+      Logger.warn("NPanel", "Cannot open panel: invalid screen object")
+      return
+    }
+
     if (aScreen !== null) {
       screen = aScreen
+    }
+
+    // Get t button position if provided
+    if (buttonItem !== undefined && buttonItem !== null) {
+      useButtonPosition = true
+
+      var itemPos = buttonItem.mapToItem(null, 0, 0)
+      buttonPosition = Qt.point(itemPos.x, itemPos.y)
+      buttonWidth = buttonItem.width
+      buttonHeight = buttonItem.height
+    } else {
+      useButtonPosition = false
     }
 
     // Special case if currently closing/animating
@@ -53,7 +106,7 @@ Loader {
       opacityValue = 1.0
     }
 
-    PanelService.registerOpen(root)
+    PanelService.willOpenPanel(root)
 
     active = true
     root.opened()
@@ -70,6 +123,7 @@ Loader {
   function closeCompleted() {
     root.closed()
     active = false
+    useButtonPosition = false // Reset button position usage
   }
 
   // -----------------------------------------
@@ -97,7 +151,7 @@ Loader {
 
       WlrLayershell.exclusionMode: ExclusionMode.Ignore
       WlrLayershell.namespace: "noctalia-panel"
-      WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+      WlrLayershell.keyboardFocus: root.panelKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
       Behavior on color {
         ColorAnimation {
@@ -109,8 +163,8 @@ Loader {
       anchors.left: true
       anchors.right: true
       anchors.bottom: true
-      margins.top: Settings.data.bar.position === "top" ? Style.barHeight * scaling : 0
-      margins.bottom: Settings.data.bar.position === "bottom" ? Style.barHeight * scaling : 0
+      margins.top: !barAtBottom ? barHeight : 0
+      margins.bottom: barAtBottom ? barHeight : 0
 
       // Close any panel with Esc without requiring focus
       Shortcut {
@@ -128,7 +182,7 @@ Loader {
 
       Rectangle {
         id: panelBackground
-        color: Color.mSurface
+        color: panelBackgroundColor
         radius: Style.radiusL * scaling
         border.color: Color.mOutline
         border.width: Math.max(1, Style.borderS * scaling)
@@ -136,23 +190,48 @@ Loader {
         width: panelWidth
         height: panelHeight
 
-        anchors {
-          centerIn: panelAnchorCentered ? parent : null
-          left: !panelAnchorCentered && panelAnchorLeft ? parent.left : parent.center
-          right: !panelAnchorCentered && panelAnchorRight ? parent.right : parent.center
-          top: !panelAnchorCentered && (Settings.data.bar.position === "top") ? parent.top : undefined
-          bottom: !panelAnchorCentered && (Settings.data.bar.position === "bottom") ? parent.bottom : undefined
-
-          // margins
-          topMargin: !panelAnchorCentered
-                     && (Settings.data.bar.position === "top") ? Style.marginS * scaling : undefined
-          bottomMargin: !panelAnchorCentered
-                        && (Settings.data.bar.position === "bottom") ? Style.marginS * scaling : undefined
-          rightMargin: !panelAnchorCentered && panelAnchorRight ? Style.marginS * scaling : undefined
-        }
-
         scale: root.scaleValue
         opacity: root.opacityValue
+
+        x: calculatedX
+        y: calculatedY
+
+        property int calculatedX: {
+          if (root.useButtonPosition) {
+            // Position panel relative to button
+            var targetX = root.buttonPosition.x + (root.buttonWidth / 2) - (panelWidth / 2)
+
+            // Keep panel within screen bounds
+            var maxX = panelWindow.width - panelWidth - (Style.marginS * scaling)
+            var minX = Style.marginS * scaling
+
+            return Math.max(minX, Math.min(targetX, maxX))
+          } else if (!panelAnchorHorizontalCenter && panelAnchorLeft) {
+            return Style.marginS * scaling
+          } else if (!panelAnchorHorizontalCenter && panelAnchorRight) {
+            return panelWindow.width - panelWidth - (Style.marginS * scaling)
+          } else {
+            return (panelWindow.width - panelWidth) / 2
+          }
+        }
+
+        property int calculatedY: {
+          if (panelAnchorVerticalCenter) {
+            return (panelWindow.height - panelHeight) / 2
+          } else if (panelAnchorBottom) {
+            return panelWindow.height - panelHeight - (Style.marginS * scaling)
+          } else if (panelAnchorTop) {
+            return (Style.marginS * scaling)
+          } else if (panelAnchorBottom) {
+            panelWindow.height - panelHeight - (Style.marginS * scaling)
+          } else if (!barAtBottom) {
+            // Below the top bar
+            return Style.marginS * scaling
+          } else {
+            // Above the bottom bar
+            return panelWindow.height - panelHeight - (Style.marginS * scaling)
+          }
+        }
 
         // Animate in when component is completed
         Component.onCompleted: {

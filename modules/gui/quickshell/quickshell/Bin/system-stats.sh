@@ -24,6 +24,11 @@ fi
 TEMP_SENSOR_PATH=""
 TEMP_SENSOR_TYPE=""
 
+# Network speed monitoring variables
+PREV_RX_BYTES=0
+PREV_TX_BYTES=0
+PREV_TIME=0
+
 # --- Data Collection Functions ---
 
 #
@@ -194,6 +199,8 @@ get_cpu_temp() {
   fi
 }
 
+
+
 # --- Main Loop ---
 # This loop runs indefinitely, gathering and printing stats.
 while true; do
@@ -205,14 +212,58 @@ while true; do
   disk_per=$(get_disk_usage)
   cpu_usage=$(get_cpu_usage)
   cpu_temp=$(get_cpu_temp)
+  
+  # Get network speeds
+  current_time=$(date +%s.%N)
+  total_rx=0
+  total_tx=0
+  
+  # Read total bytes from /proc/net/dev for all interfaces
+  while IFS=: read -r interface stats; do
+    # Skip only loopback interface, allow other interfaces
+    if [[ "$interface" =~ ^lo[[:space:]]*$ ]]; then
+      continue
+    fi
+    
+    # Extract rx and tx bytes (fields 1 and 9 in the stats part)
+    rx_bytes=$(echo "$stats" | awk '{print $1}')
+    tx_bytes=$(echo "$stats" | awk '{print $9}')
+    
+    # Add to totals if they are valid numbers
+    if [[ "$rx_bytes" =~ ^[0-9]+$ ]] && [[ "$tx_bytes" =~ ^[0-9]+$ ]]; then
+      total_rx=$((total_rx + rx_bytes))
+      total_tx=$((total_tx + tx_bytes))
+    fi
+  done < <(tail -n +3 /proc/net/dev)
+  
+  # Calculate speeds if we have previous data
+  rx_speed=0
+  tx_speed=0
+  
+  if [[ "$PREV_TIME" != "0" ]]; then
+    time_diff=$(awk -v current="$current_time" -v prev="$PREV_TIME" 'BEGIN { printf "%.3f", current - prev }')
+    rx_diff=$((total_rx - PREV_RX_BYTES))
+    tx_diff=$((total_tx - PREV_TX_BYTES))
+    
+    # Calculate speeds in bytes per second using awk
+    rx_speed=$(awk -v rx="$rx_diff" -v time="$time_diff" 'BEGIN { printf "%.0f", rx / time }')
+    tx_speed=$(awk -v tx="$tx_diff" -v time="$time_diff" 'BEGIN { printf "%.0f", tx / time }')
+  fi
+  
+  # Update previous values for next iteration
+  PREV_RX_BYTES=$total_rx
+  PREV_TX_BYTES=$total_tx
+  PREV_TIME=$current_time
 
   # Use printf to format the final JSON output string, adding the mem_mb key.
-  printf '{"cpu": "%s", "cputemp": "%s", "memgb":"%s", "memper": "%s", "diskper": "%s"}\n' \
+  printf '{"cpu": "%s", "cputemp": "%s", "memgb":"%s", "memper": "%s", "diskper": "%s", "rx_speed": "%s", "tx_speed": "%s"}\n' \
     "$cpu_usage" \
     "$cpu_temp" \
     "$mem_gb" \
     "$mem_per" \
-    "$disk_per"
+    "$disk_per" \
+    "$rx_speed" \
+    "$tx_speed"
 
   # Wait for the specified duration before the next update.
   sleep "$SLEEP_DURATION"

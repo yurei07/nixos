@@ -35,6 +35,13 @@ Singleton {
   readonly property alias muted: root._muted
   property bool _muted: !!sink?.audio?.muted
 
+  // Input volume [0..1] is readonly from outside
+  readonly property alias inputVolume: root._inputVolume
+  property real _inputVolume: source?.audio?.volume ?? 0
+
+  readonly property alias inputMuted: root._inputMuted
+  property bool _inputMuted: !!source?.audio?.muted
+
   readonly property real stepVolume: Settings.data.audio.volumeStep / 100.0
 
   PwObjectTracker {
@@ -55,6 +62,23 @@ Singleton {
     function onMutedChanged() {
       root._muted = (sink?.audio.muted ?? true)
       Logger.log("AudioService", "OnMuteChanged:", root._muted)
+    }
+  }
+
+  Connections {
+    target: source?.audio ? source?.audio : null
+
+    function onVolumeChanged() {
+      var vol = (source?.audio.volume ?? 0)
+      if (isNaN(vol)) {
+        vol = 0
+      }
+      root._inputVolume = vol
+    }
+
+    function onMutedChanged() {
+      root._inputMuted = (source?.audio.muted ?? true)
+      Logger.log("AudioService", "OnInputMuteChanged:", root._inputMuted)
     }
   }
 
@@ -82,6 +106,24 @@ Singleton {
       sink.audio.muted = muted
     } else {
       Logger.warn("AudioService", "No sink available")
+    }
+  }
+
+  function setInputVolume(newVolume: real) {
+    if (source?.ready && source?.audio) {
+      // Clamp it accordingly
+      source.audio.muted = false
+      source.audio.volume = Math.max(0, Math.min(1, newVolume))
+    } else {
+      Logger.warn("AudioService", "No source available")
+    }
+  }
+
+  function setInputMuted(muted: bool) {
+    if (source?.ready && source?.audio) {
+      source.audio.muted = muted
+    } else {
+      Logger.warn("AudioService", "No source available")
     }
   }
 

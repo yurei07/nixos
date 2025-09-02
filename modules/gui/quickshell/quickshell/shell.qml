@@ -16,6 +16,8 @@ import qs.Commons
 import qs.Modules.Launcher
 import qs.Modules.Background
 import qs.Modules.Bar
+import qs.Modules.Bar.Extras
+import qs.Modules.BluetoothPanel
 import qs.Modules.Calendar
 import qs.Modules.Dock
 import qs.Modules.IPC
@@ -25,7 +27,8 @@ import qs.Modules.SettingsPanel
 import qs.Modules.PowerPanel
 import qs.Modules.SidePanel
 import qs.Modules.Toast
-
+import qs.Modules.WiFiPanel
+import qs.Modules.ArchUpdaterPanel
 import qs.Services
 import qs.Widgets
 
@@ -38,47 +41,73 @@ ShellRoot {
   Bar {}
   Dock {}
 
-  Launcher {
-    id: appLauncherPanel
-  }
-
-  SidePanel {
-    id: sidePanel
-  }
-
-  Calendar {
-    id: calendarPanel
-  }
-
-  SettingsPanel {
-    id: settingsPanel
-  }
-
   Notification {
     id: notification
-  }
-
-  NotificationHistoryPanel {
-    id: notificationHistoryPanel
   }
 
   LockScreen {
     id: lockScreen
   }
 
-  PowerPanel {
-    id: powerPanel
-  }
-
-  ToastManager {}
+  ToastOverlay {}
 
   IPCManager {}
 
-  Component.onCompleted: {
-    // Save a ref. to our sidePanel so we can access it from services
-    PanelService.sidePanel = sidePanel
+  // ------------------------------
+  // All the NPanels
+  Launcher {
+    id: launcherPanel
+    objectName: "launcherPanel"
+  }
 
-    // Ensure our singleton is created as soon as possible so we start fetching weather asap
+  SidePanel {
+    id: sidePanel
+    objectName: "sidePanel"
+  }
+
+  Calendar {
+    id: calendarPanel
+    objectName: "calendarPanel"
+  }
+
+  SettingsPanel {
+    id: settingsPanel
+    objectName: "settingsPanel"
+  }
+
+  NotificationHistoryPanel {
+    id: notificationHistoryPanel
+    objectName: "notificationHistoryPanel"
+  }
+
+  PowerPanel {
+    id: powerPanel
+    objectName: "powerPanel"
+  }
+
+  WiFiPanel {
+    id: wifiPanel
+    objectName: "wifiPanel"
+  }
+
+  BluetoothPanel {
+    id: bluetoothPanel
+    objectName: "bluetoothPanel"
+  }
+
+  ArchUpdaterPanel {
+    id: archUpdaterPanel
+    objectName: "archUpdaterPanel"
+  }
+
+  Component.onCompleted: {
+    // Save a ref. to our lockScreen so we can access it  easily
+    PanelService.lockScreen = lockScreen
+
+    // Ensure our location singleton is created as soon as possible so we start fetching weather asap
     LocationService.init()
+
+    // Kickoff NightLight service
+    NightLightService.apply()
   }
 }

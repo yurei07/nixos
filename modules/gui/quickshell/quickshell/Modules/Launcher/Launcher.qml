@@ -18,16 +18,58 @@ NPanel {
   panelHeight: Math.min(550 * scaling, screen?.height * 0.8)
   // Positioning derives from Settings.data.bar.position for vertical (top/bottom)
   // and from Settings.data.appLauncher.position for horizontal vs center.
-  // Options: center, top_left, top_right, bottom_left, bottom_right
+  // Options: center, top_left, top_right, bottom_left, bottom_right, bottom_center, top_center
   readonly property string launcherPosition: Settings.data.appLauncher.position
-  panelAnchorCentered: launcherPosition === "center"
+
+  panelAnchorHorizontalCenter: launcherPosition === "center" || (launcherPosition.endsWith("_center"))
+  panelAnchorVerticalCenter: launcherPosition === "center"
   panelAnchorLeft: launcherPosition !== "center" && (launcherPosition.endsWith("_left"))
   panelAnchorRight: launcherPosition !== "center" && (launcherPosition.endsWith("_right"))
+  panelAnchorBottom: launcherPosition.startsWith("bottom_")
+  panelAnchorTop: launcherPosition.startsWith("top_")
+
+  // Enable keyboard focus for launcher (needed for search)
+  panelKeyboardFocus: true
+
+  // Background opacity following bar's approach
+  panelBackgroundColor: Qt.rgba(Color.mSurface.r, Color.mSurface.g, Color.mSurface.b,
+                                Settings.data.appLauncher.backgroundOpacity)
+
+  // Properties
+  property string searchText: ""
+  property bool shouldResetCursor: false
+
+  // Add function to set search text programmatically
+  function setSearchText(text) {
+    searchText = text
+    // The searchInput will automatically update via the text binding
+    // Focus and cursor position will be handled by the TextField's Component.onCompleted
+  }
 
   onOpened: {
     // Reset state when panel opens to avoid sticky modes
+    if (searchText === "") {
+      searchText = ""
+      selectedIndex = 0
+    }
+    // Focus search input on open and place cursor at end
+    Qt.callLater(() => {
+                   if (searchInputBox && searchInputBox.inputItem) {
+                     searchInputBox.inputItem.forceActiveFocus()
+                     if (searchText && searchText.length > 0) {
+                       searchInputBox.inputItem.cursorPosition = searchText.length
+                     } else {
+                       searchInputBox.inputItem.cursorPosition = 0
+                     }
+                   }
+                 })
+  }
+
+  onClosed: {
+    // Reset search bar when launcher is closed
     searchText = ""
     selectedIndex = 0
+    shouldResetCursor = true
   }
 
   // Import modular components
@@ -50,7 +92,6 @@ NPanel {
 
   // Properties
   property var desktopEntries: DesktopEntries.applications.values
-  property string searchText: ""
   property int selectedIndex: 0
 
   // Refresh clipboard when user starts typing clipboard commands
@@ -113,7 +154,8 @@ NPanel {
     }
 
     // Handle direct math expressions after ">"
-    if (query.startsWith(">") && query.length > 1 && (!Settings.data.appLauncher.enableClipboardHistory || !query.startsWith(">clip")) && !query.startsWith(">calc")) {
+    if (query.startsWith(">") && query.length > 1 && (!Settings.data.appLauncher.enableClipboardHistory
+                                                      || !query.startsWith(">clip")) && !query.startsWith(">calc")) {
       const mathResults = calculator.processQuery(query, "direct")
       if (mathResults.length > 0) {
         return mathResults
@@ -140,15 +182,11 @@ NPanel {
 
   // Command execution functions
   function executeCalcCommand() {
-    searchText = ">calc "
-    searchInput.text = searchText
-    searchInput.cursorPosition = searchText.length
+    setSearchText(">calc ")
   }
 
   function executeClipCommand() {
-    searchText = ">clip "
-    searchInput.text = searchText
-    searchInput.cursorPosition = searchText.length
+    setSearchText(">clip ")
   }
 
   // Navigation functions
@@ -210,78 +248,55 @@ NPanel {
 
   // Main content container
   panelContent: Rectangle {
-
-    // Subtle gradient background
-    gradient: Gradient {
-      GradientStop {
-        position: 0.0
-        color: Qt.lighter(Color.mSurface, 1.02)
-      }
-      GradientStop {
-        position: 1.0
-        color: Qt.darker(Color.mSurface, 1.1)
-      }
-    }
+    color: Color.transparent
 
     ColumnLayout {
       anchors.fill: parent
       anchors.margins: Style.marginL * scaling
       spacing: Style.marginM * scaling
 
-      // Search bar
-      Rectangle {
+      RowLayout {
         Layout.fillWidth: true
-        Layout.preferredHeight: Style.barHeight * scaling
+        Layout.preferredHeight: Math.round(Style.barHeight * scaling)
         Layout.bottomMargin: Style.marginM * scaling
-        radius: Style.radiusM * scaling
-        color: Color.mSurface
-        border.color: searchInput.activeFocus ? Color.mPrimary : Color.mOutline
-        border.width: Math.max(1, searchInput.activeFocus ? Style.borderM * scaling : Style.borderS * scaling)
 
+        // Wrapper ensures the input stretches to full width under RowLayout
         Item {
-          anchors.fill: parent
-          anchors.margins: Style.marginM * scaling
+          id: searchInputWrap
+          Layout.fillWidth: true
+          Layout.preferredHeight: Math.round(Style.barHeight * scaling)
 
-          NIcon {
-            id: searchIcon
-            text: "search"
-            font.pointSize: Style.fontSizeXL * scaling
-            color: searchInput.activeFocus ? Color.mPrimary : Color.mOnSurface
-            anchors.left: parent.left
-            anchors.verticalCenter: parent.verticalCenter
-          }
-
-          TextField {
-            id: searchInput
-            placeholderText: searchText === "" ? "Search applications... (use > to view commands)" : "Search applications..."
-            color: Color.mOnSurface
-            placeholderTextColor: Color.mOnSurfaceVariant
-            background: null
-            font.pointSize: Style.fontSizeL * scaling
-            anchors.left: searchIcon.right
-            anchors.leftMargin: Style.marginS * scaling
-            anchors.right: parent.right
-            anchors.verticalCenter: parent.verticalCenter
-            onTextChanged: {
-              searchText = text
-              // Defer selectedIndex reset to avoid binding loops
-              Qt.callLater(() => selectedIndex = 0)
-            }
-            selectedTextColor: Color.mOnSurface
-            selectionColor: Color.mPrimary
-            padding: 0
-            verticalAlignment: TextInput.AlignVCenter
-            leftPadding: 0
-            rightPadding: 0
-            topPadding: 0
-            bottomPadding: 0
+          NTextInput {
+            id: searchInputBox
+            anchors.fill: parent
+            placeholderText: "Search applications... (use > to view commands)"
+            text: searchText
+            inputMaxWidth: 100000
+            // Tune vertical centering on inner input
             Component.onCompleted: {
-              // Focus the search bar by default
+              searchInputBox.inputItem.font.pointSize = Style.fontSizeL * scaling
+              searchInputBox.inputItem.verticalAlignment = TextInput.AlignVCenter
+              // Ensure focus when launcher first appears
               Qt.callLater(() => {
-                             selectedIndex = 0
-                             searchInput.forceActiveFocus()
+                             searchInputBox.inputItem.forceActiveFocus()
+                             if (searchText && searchText.length > 0) {
+                               searchInputBox.inputItem.cursorPosition = searchText.length
+                             } else {
+                               searchInputBox.inputItem.cursorPosition = 0
+                             }
                            })
             }
+            onTextChanged: {
+              if (searchText !== text) {
+                searchText = text
+              }
+              Qt.callLater(() => selectedIndex = 0)
+              if (shouldResetCursor && text === "") {
+                searchInputBox.inputItem.cursorPosition = 0
+                shouldResetCursor = false
+              }
+            }
+            // Forward key navigation to behave like before
             Keys.onDownPressed: selectNext()
             Keys.onUpPressed: selectPrev()
             Keys.onEnterPressed: activateSelected()
@@ -325,16 +340,13 @@ NPanel {
           }
         }
 
-        Behavior on border.color {
-          ColorAnimation {
-            duration: Style.animationFast
-          }
-        }
-
-        Behavior on border.width {
-          NumberAnimation {
-            duration: Style.animationFast
-          }
+        // Clear-all action to the right of the input
+        NIconButton {
+          Layout.alignment: Qt.AlignVCenter
+          visible: searchText.startsWith(">clip")
+          icon: "delete_sweep"
+          tooltipText: "Clear clipboard history"
+          onClicked: CliphistService.wipeAll()
         }
       }
 
@@ -356,130 +368,165 @@ NPanel {
             positionViewAtIndex(currentIndex, ListView.Contain)
           }
         }
-        ScrollBar.vertical: ScrollBar { policy: ScrollBar.AsNeeded }
+        ScrollBar.vertical: ScrollBar {
+          policy: ScrollBar.AsNeeded
+        }
+
+        // Keep viewport anchored to the selected item when the clipboard model refreshes
+        Connections {
+          target: CliphistService
+          function onRevisionChanged() {
+            if (Settings.data.appLauncher.enableClipboardHistory && searchText.startsWith(">clip")) {
+              // Clamp selection in case the list shrank
+              if (selectedIndex >= filteredEntries.length) {
+                selectedIndex = Math.max(0, filteredEntries.length - 1)
+              }
+              Qt.callLater(() => {
+                             appsList.positionViewAtIndex(selectedIndex, ListView.Contain)
+                           })
+            }
+          }
+        }
 
         delegate: Rectangle {
-            width: appsList.width - Style.marginS * scaling
-            height: 65 * scaling
-            radius: Style.radiusM * scaling
-            property bool isSelected: index === selectedIndex
-            color: (appCardArea.containsMouse || isSelected) ? Qt.darker(Color.mPrimary, 1.1) : Color.mSurface
-            border.color: (appCardArea.containsMouse || isSelected) ? Color.mPrimary : Color.transparent
-            border.width: Math.max(1, (appCardArea.containsMouse || isSelected) ? Style.borderM * scaling : 0)
+          width: appsList.width - Style.marginS * scaling
+          height: 65 * scaling
+          radius: Style.radiusM * scaling
+          property bool isSelected: index === selectedIndex
+          color: (appCardArea.containsMouse || isSelected) ? Color.mSecondary : Color.mSurface
 
-            Behavior on color {
-              ColorAnimation {
-                duration: Style.animationFast
-              }
+          Behavior on color {
+            ColorAnimation {
+              duration: Style.animationFast
             }
+          }
 
-            Behavior on border.color {
-              ColorAnimation {
-                duration: Style.animationFast
-              }
+          Behavior on border.color {
+            ColorAnimation {
+              duration: Style.animationFast
             }
+          }
 
-            Behavior on border.width {
-              NumberAnimation {
-                duration: Style.animationFast
-              }
+          Behavior on border.width {
+            NumberAnimation {
+              duration: Style.animationFast
             }
+          }
 
-            RowLayout {
-              anchors.fill: parent
-              anchors.margins: Style.marginM * scaling
-              spacing: Style.marginM * scaling
+          RowLayout {
+            anchors.fill: parent
+            anchors.margins: Style.marginM * scaling
+            spacing: Style.marginM * scaling
 
-              // App/clipboard icon with background
+            // App/clipboard icon with background
+            Rectangle {
+              Layout.preferredWidth: Style.baseWidgetSize * 1.25 * scaling
+              Layout.preferredHeight: Style.baseWidgetSize * 1.25 * scaling
+              radius: Style.radiusS * scaling
+              color: appCardArea.containsMouse ? Qt.darker(Color.mPrimary, 1.1) : Color.mSurfaceVariant
+              property bool iconLoaded: (modelData.isCalculator || modelData.isClipboard || modelData.isCommand)
+                                        || (iconImg.status === Image.Ready && iconImg.source !== ""
+                                            && iconImg.status !== Image.Error && iconImg.source !== "")
+              visible: !searchText.startsWith(">calc")
+
+              // Decode image thumbnails on demand
+              Component.onCompleted: {
+                if (modelData && modelData.type === 'image' && !CliphistService.imageDataById[modelData.id]) {
+                  CliphistService.decodeToDataUrl(modelData.id, modelData.mime || "image/*", function () {})
+                }
+              }
+              onVisibleChanged: {
+                if (visible && modelData && modelData.type === 'image'
+                    && !CliphistService.imageDataById[modelData.id]) {
+                  CliphistService.decodeToDataUrl(modelData.id, modelData.mime || "image/*", function () {})
+                }
+              }
+
+              // Clipboard image display (pull from cache)
+              Image {
+                id: clipboardImage
+                anchors.fill: parent
+                anchors.margins: Style.marginXS * scaling
+                visible: modelData.type === 'image'
+                source: modelData.type === 'image' ? (CliphistService.imageDataById[modelData.id] || "") : ""
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+                cache: true
+              }
+
+              IconImage {
+                id: iconImg
+                anchors.fill: parent
+                anchors.margins: Style.marginXS * scaling
+                asynchronous: true
+                source: modelData.isCalculator ? "" : modelData.isClipboard ? "" : modelData.isCommand ? modelData.icon : Icons.iconFromName(
+                                                                                                           modelData.icon,
+                                                                                                           "application-x-executable")
+                visible: (modelData.isCalculator || modelData.isClipboard || modelData.isCommand || parent.iconLoaded)
+                         && modelData.type !== 'image'
+              }
+
               Rectangle {
-                Layout.preferredWidth: Style.baseWidgetSize * 1.25 * scaling
-                Layout.preferredHeight: Style.baseWidgetSize * 1.25 * scaling
-                radius: Style.radiusS * scaling
-                color: appCardArea.containsMouse ? Qt.darker(Color.mPrimary, 1.1) : Color.mSurfaceVariant
-                property bool iconLoaded: (modelData.isCalculator || modelData.isClipboard || modelData.isCommand)
-                                          || (iconImg.status === Image.Ready && iconImg.source !== ""
-                                              && iconImg.status !== Image.Error && iconImg.source !== "")
-                visible: !searchText.startsWith(">calc")
-
-                // Clipboard image display (pull from cache)
-                Image {
-                  id: clipboardImage
-                  anchors.fill: parent
-                  anchors.margins: Style.marginXS * scaling
-                  visible: modelData.type === 'image'
-                  source: modelData.type === 'image' ? (CliphistService.imageDataById[modelData.id] || "") : ""
-                  fillMode: Image.PreserveAspectCrop
-                  asynchronous: true
-                  cache: true
-                }
-
-                IconImage {
-                  id: iconImg
-                  anchors.fill: parent
-                  anchors.margins: Style.marginXS * scaling
-                  asynchronous: true
-                  source: modelData.isCalculator ? "" : modelData.isClipboard ? "" : modelData.isCommand ? modelData.icon : Icons.iconFromName(modelData.icon, "application-x-executable")
-                  visible: (modelData.isCalculator || modelData.isClipboard || modelData.isCommand || parent.iconLoaded)
-                           && modelData.type !== 'image'
-                }
-
-                Rectangle {
-                  anchors.fill: parent
-                  anchors.margins: Style.marginXS * scaling
-                  radius: Style.radiusXS * scaling
-                  color: Color.mPrimary
-                  opacity: Style.opacityMedium
-                  visible: !parent.iconLoaded
-                }
-
-                NText {
-                  anchors.centerIn: parent
-                  visible: !parent.iconLoaded && !(modelData.isCalculator || modelData.isClipboard || modelData.isCommand)
-                  text: modelData.name ? modelData.name.charAt(0).toUpperCase() : "?"
-                  font.pointSize: Style.fontSizeXXL * scaling
-                  font.weight: Style.fontWeightBold
-                  color: Color.mPrimary
-                }
-
-                Behavior on color { ColorAnimation { duration: Style.animationFast } }
+                anchors.fill: parent
+                anchors.margins: Style.marginXS * scaling
+                radius: Style.radiusXS * scaling
+                color: Color.mPrimary
+                opacity: Style.opacityMedium
+                visible: !parent.iconLoaded
               }
 
-              // App info
-              ColumnLayout {
+              NText {
+                anchors.centerIn: parent
+                visible: !parent.iconLoaded && !(modelData.isCalculator || modelData.isClipboard || modelData.isCommand)
+                text: modelData.name ? modelData.name.charAt(0).toUpperCase() : "?"
+                font.pointSize: Style.fontSizeXXL * scaling
+                font.weight: Style.fontWeightBold
+                color: Color.mPrimary
+              }
+
+              Behavior on color {
+                ColorAnimation {
+                  duration: Style.animationFast
+                }
+              }
+            }
+
+            // App info
+            ColumnLayout {
+              Layout.fillWidth: true
+              spacing: Style.marginXXS * scaling
+
+              NText {
+                text: modelData.name || "Unknown"
+                font.pointSize: Style.fontSizeL * scaling
+                font.weight: Style.fontWeightBold
+                color: (appCardArea.containsMouse || isSelected) ? Color.mOnPrimary : Color.mOnSurface
+                elide: Text.ElideRight
                 Layout.fillWidth: true
-                spacing: Style.marginXXS * scaling
+              }
 
-                NText {
-                  text: modelData.name || "Unknown"
-                  font.pointSize: Style.fontSizeL * scaling
-                  font.weight: Style.fontWeightBold
-                  color: (appCardArea.containsMouse || isSelected) ? Color.mOnPrimary : Color.mOnSurface
-                  elide: Text.ElideRight
-                  Layout.fillWidth: true
-                }
-
-                NText {
-                  text: modelData.isCalculator ? (modelData.expr + " = " + modelData.result) : modelData.isClipboard ? modelData.content : modelData.isCommand ? modelData.content : (modelData.genericName || modelData.comment || "")
-                  font.pointSize: Style.fontSizeM * scaling
-                  color: (appCardArea.containsMouse || isSelected) ? Color.mOnPrimary : Color.mOnSurface
-                  elide: Text.ElideRight
-                  Layout.fillWidth: true
-                  visible: text !== ""
-                }
+              NText {
+                text: modelData.isCalculator ? (modelData.expr + " = " + modelData.result) : modelData.isClipboard ? modelData.content : modelData.isCommand ? modelData.content : (modelData.genericName || modelData.comment || "")
+                font.pointSize: Style.fontSizeM * scaling
+                color: (appCardArea.containsMouse || isSelected) ? Color.mOnPrimary : Color.mOnSurface
+                elide: Text.ElideRight
+                Layout.fillWidth: true
+                visible: text !== ""
               }
             }
+          }
 
-            MouseArea {
-              id: appCardArea
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
+          MouseArea {
+            id: appCardArea
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
 
-              onClicked: {
-                selectedIndex = index
-                activateSelected()
-              }
+            onClicked: {
+              selectedIndex = index
+              activateSelected()
             }
+          }
         }
       }
 
@@ -495,7 +542,11 @@ NPanel {
 
       // Results count
       NText {
-        text: searchText.startsWith(">clip") ? (Settings.data.appLauncher.enableClipboardHistory ? `${filteredEntries.length} clipboard item${filteredEntries.length !== 1 ? 's' : ''}` : `Clipboard history is disabled`) : searchText.startsWith(">calc") ? `${filteredEntries.length} result${filteredEntries.length !== 1 ? 's' : ''}` : `${filteredEntries.length} application${filteredEntries.length !== 1 ? 's' : ''}`
+        text: searchText.startsWith(
+                ">clip") ? (Settings.data.appLauncher.enableClipboardHistory ? `${filteredEntries.length} clipboard item${filteredEntries.length !== 1 ? 's' : ''}` : `Clipboard history is disabled`) : searchText.startsWith(
+                             ">calc") ? `${filteredEntries.length} result${filteredEntries.length
+                                        !== 1 ? 's' : ''}` : `${filteredEntries.length} application${filteredEntries.length
+                                                !== 1 ? 's' : ''}`
         font.pointSize: Style.fontSizeXS * scaling
         color: Color.mOnSurface
         horizontalAlignment: Text.AlignHCenter

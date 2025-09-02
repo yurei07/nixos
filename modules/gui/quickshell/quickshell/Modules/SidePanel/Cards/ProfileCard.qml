@@ -28,7 +28,7 @@ NBox {
     anchors.margins: Style.marginM * scaling
     spacing: Style.marginM * scaling
 
-    NImageRounded {
+    NImageCircled {
       width: Style.baseWidgetSize * 1.25 * scaling
       height: Style.baseWidgetSize * 1.25 * scaling
       imagePath: Settings.data.general.avatarImage
@@ -43,9 +43,10 @@ NBox {
       NText {
         text: Quickshell.env("USER") || "user"
         font.weight: Style.fontWeightBold
+        font.capitalization: Font.Capitalize
       }
       NText {
-        text: `System Uptime: ${uptimeText}`
+        text: `System uptime: ${uptimeText}`
         color: Color.mOnSurface
       }
     }
@@ -58,7 +59,7 @@ NBox {
       }
       NIconButton {
         icon: "settings"
-        tooltipText: "Open Settings"
+        tooltipText: "Open settings"
         onClicked: {
           settingsPanel.requestedTab = SettingsPanel.Tab.General
           settingsPanel.open(screen)
@@ -68,7 +69,7 @@ NBox {
       NIconButton {
         id: powerButton
         icon: "power_settings_new"
-        tooltipText: "Power Menu"
+        tooltipText: "Power menu"
         onClicked: {
           powerPanel.open(screen)
           sidePanel.close()
@@ -78,7 +79,7 @@ NBox {
       NIconButton {
         id: closeButton
         icon: "close"
-        tooltipText: "Close Side Panel"
+        tooltipText: "Close side panel"
         onClicked: {
           sidePanel.close()
         }

@@ -5,21 +5,34 @@ import Qt.labs.folderlistmodel
 import Quickshell
 import Quickshell.Io
 import qs.Commons
+import qs.Services
 
 Singleton {
   id: root
-
-  Component.onCompleted: {
-    Logger.log("ColorScheme", "Service started")
-    loadColorSchemes()
-  }
 
   property var schemes: []
   property bool scanning: false
   property string schemesDirectory: Quickshell.shellDir + "/Assets/ColorScheme"
   property string colorsJsonFilePath: Settings.configDir + "colors.json"
-  // Internal: remember last path if needed
-  property string pendingApplyPath: ""
+
+  Connections {
+    target: Settings.data.colorSchemes
+    function onDarkModeChanged() {
+      Logger.log("ColorScheme", "Detected dark mode change")
+      if (!Settings.data.colorSchemes.useWallpaperColors && Settings.data.colorSchemes.predefinedScheme) {
+        // Re-apply current scheme to pick the right variant
+        applyScheme(Settings.data.colorSchemes.predefinedScheme)
+      }
+    }
+  }
+
+  // --------------------------------
+  function init() {
+    // does nothing but ensure the singleton is created
+    // do not remove
+    Logger.log("ColorScheme", "Service started")
+    loadColorSchemes()
+  }
 
   function loadColorSchemes() {
     Logger.log("ColorScheme", "Load ColorScheme")
@@ -31,20 +44,9 @@ Singleton {
   }
 
   function applyScheme(filePath) {
-    // Read the scheme JSON and write the effective variant to colors.json
-    pendingApplyPath = filePath
     // Force reload by bouncing the path
     schemeReader.path = ""
     schemeReader.path = filePath
-  }
-
-  function changedWallpaper() {
-    if (Settings.data.colorSchemes.useWallpaperColors) {
-      Logger.log("ColorScheme", "Starting color generation from wallpaper")
-      generateColorsProcess.running = true
-      // Invalidate potential predefined scheme
-      Settings.data.colorSchemes.predefinedScheme = ""
-    }
   }
 
   FolderListModel {
@@ -82,6 +84,7 @@ Singleton {
           }
         }
         writeColorsToDisk(variant)
+        Logger.log("ColorScheme", "Applying color scheme:", path)
       } catch (e) {
         Logger.error("ColorScheme", "Failed to parse scheme JSON:", e)
       }
@@ -92,6 +95,10 @@ Singleton {
   FileView {
     id: colorsWriter
     path: colorsJsonFilePath
+    onSaved: {
+
+      // Logger.log("ColorScheme", "Colors saved")
+    }
     JsonAdapter {
       id: out
       property color mPrimary: "#000000"
@@ -129,38 +136,10 @@ Singleton {
     out.mOnSurfaceVariant = pick(obj, "mOnSurfaceVariant", "onSurfaceVariant", out.mOnSurfaceVariant)
     out.mOutline = pick(obj, "mOutline", "outline", out.mOutline)
     out.mShadow = pick(obj, "mShadow", "shadow", out.mShadow)
-    colorsWriter.writeAdapter()
-  }
 
-  Process {
-    id: generateColorsProcess
-    command: {
-      // Choose config based on external theming toggles
-      var cfg = Quickshell.shellDir + "/Assets/Matugen/matugen.toml"
-      if (!Settings.data.colorSchemes.themeApps) {
-        cfg = Quickshell.shellDir + "/Assets/Matugen/matugen.base.toml"
-      }
-      var cmd = ["matugen", "image", WallpaperService.currentWallpaper, "--config", cfg]
-      if (!Settings.data.colorSchemes.darkMode) {
-        cmd.push("--mode", "light")
-      } else {
-        cmd.push("--mode", "dark")
-      }
-      return cmd
-    }
-    workingDirectory: Quickshell.shellDir
-    running: false
-    stdout: StdioCollector {
-      onStreamFinished: {
-        Logger.log("ColorScheme", "Completed colors generation")
-      }
-    }
-    stderr: StdioCollector {
-      onStreamFinished: {
-        if (this.text !== "") {
-          Logger.error(this.text)
-        }
-      }
-    }
+    // Force a rewrite by updating the path
+    colorsWriter.path = ""
+    colorsWriter.path = colorsJsonFilePath
+    colorsWriter.writeAdapter()
   }
 }

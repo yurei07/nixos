@@ -7,19 +7,12 @@ import qs.Commons
 import qs.Services
 import qs.Widgets
 
-// Media player area (placeholder until MediaPlayer service is wired)
 NBox {
   id: root
 
   Layout.fillWidth: true
   Layout.fillHeight: true
 
-  // Let content dictate the height (no hardcoded height here)
-  // Height can be overridden by parent layout (SidePanel binds it to stats card)
-  //implicitHeight: content.implicitHeight + Style.marginL * 2 * scaling
-  // Component.onCompleted: {
-  //   Logger.logMediaService.trackArtUrl)
-  // }
   ColumnLayout {
     anchors.fill: parent
     Layout.fillHeight: true
@@ -51,6 +44,7 @@ NBox {
 
       Item {
         Layout.fillWidth: true
+        Layout.fillHeight: true
       }
     }
 
@@ -76,7 +70,7 @@ NBox {
           // implicitWidth: 120 * scaling
           // implicitHeight: 30 * scaling
           color: Color.transparent
-          border.color: playerSelector.activeFocus ? Color.mTertiary : Color.mOutline
+          border.color: playerSelector.activeFocus ? Color.mSecondary : Color.mOutline
           border.width: Math.max(1, Style.borderS * scaling)
           radius: Style.radiusM * scaling
         }
@@ -138,7 +132,7 @@ NBox {
 
           background: Rectangle {
             width: popup.width - Style.marginS * scaling * 2
-            color: highlighted ? Color.mTertiary : Color.transparent
+            color: highlighted ? Color.mSecondary : Color.transparent
             radius: Style.radiusXS * scaling
           }
         }
@@ -160,21 +154,17 @@ NBox {
           height: 90 * scaling
           radius: width * 0.5
           color: trackArt.visible ? Color.mPrimary : Color.transparent
-          border.color: trackArt.visible ? Color.mOutline : Color.transparent
-          border.width: Math.max(1, Style.borderS * scaling)
           clip: true
 
-          NImageRounded {
+          NImageCircled {
             id: trackArt
             visible: MediaService.trackArtUrl.toString() !== ""
-
             anchors.fill: parent
             anchors.margins: Style.marginXS * scaling
             imagePath: MediaService.trackArtUrl
             fallbackIcon: "music_note"
             borderColor: Color.mOutline
             borderWidth: Math.max(1, Style.borderS * scaling)
-            imageRadius: width * 0.5
           }
 
           // Fallback icon when no album art available
@@ -225,77 +215,86 @@ NBox {
       }
 
       // -------------------------
-      // Progress bar
-      Rectangle {
-        id: progressBarBackground
+      // Progress slider (uses shared NSlider behavior like BarTab)
+      Item {
+        id: progressWrapper
         visible: (MediaService.currentPlayer && MediaService.trackLength > 0)
-        width: parent.width
-        height: 4 * scaling
-        radius: Style.radiusS * scaling
-        color: Color.mSurface
         Layout.fillWidth: true
+        height: Style.baseWidgetSize * 0.5 * scaling
 
+        // Local preview while dragging
+        property real localSeekRatio: -1
+        // Track the last ratio we actually sent to the backend to avoid redundant seeks
+        property real lastSentSeekRatio: -1
+        // Minimum change required to issue a new seek during drag
+        property real seekEpsilon: 0.01
         property real progressRatio: {
-          if (!MediaService.currentPlayer || !MediaService.isPlaying || MediaService.trackLength <= 0) {
+          if (!MediaService.currentPlayer || MediaService.trackLength <= 0)
             return 0
-          }
-          return Math.min(1, MediaService.currentPosition / MediaService.trackLength)
+          const r = MediaService.currentPosition / MediaService.trackLength
+          if (isNaN(r) || !isFinite(r))
+            return 0
+          return Math.max(0, Math.min(1, r))
         }
+        property real effectiveRatio: (MediaService.isSeeking
+                                       && localSeekRatio >= 0) ? Math.max(0, Math.min(1,
+                                                                                      localSeekRatio)) : progressRatio
 
-        Rectangle {
-          id: progressFill
-          width: progressBarBackground.progressRatio * parent.width
-          height: parent.height
-          radius: parent.radius
-          color: Color.mPrimary
-
-          Behavior on width {
-            NumberAnimation {
-              duration: Style.animationFast
+        // Debounced backend seek during drag
+        Timer {
+          id: seekDebounce
+          interval: 75
+          repeat: false
+          onTriggered: {
+            if (MediaService.isSeeking && progressWrapper.localSeekRatio >= 0) {
+              const next = Math.max(0, Math.min(1, progressWrapper.localSeekRatio))
+              if (progressWrapper.lastSentSeekRatio < 0 || Math.abs(
+                    next - progressWrapper.lastSentSeekRatio) >= progressWrapper.seekEpsilon) {
+                MediaService.seekByRatio(next)
+                progressWrapper.lastSentSeekRatio = next
+              }
             }
           }
         }
 
-        // Interactive progress handle
-        Rectangle {
-          id: progressHandle
-          visible: (MediaService.currentPlayer && MediaService.trackLength > 0)
-          width: 16 * scaling
-          height: 16 * scaling
-          radius: width * 0.5
-          color: Color.mPrimary
-          border.color: Color.mOutline
-          border.width: Math.max(1 * Style.borderM * scaling)
-          x: Math.max(0, Math.min(parent.width - width, progressFill.width - width / 2))
-          anchors.verticalCenter: parent.verticalCenter
-          scale: progressMouseArea.containsMouse || progressMouseArea.pressed ? 1.2 : 1.0
-
-          Behavior on scale {
-            NumberAnimation {
-              duration: Style.animationFast
-            }
-          }
-        }
-
-        // Mouse area for seeking
-        MouseArea {
-          id: progressMouseArea
+        NSlider {
+          id: progressSlider
           anchors.fill: parent
-          hoverEnabled: true
-          cursorShape: Qt.PointingHandCursor
+          from: 0
+          to: 1
+          stepSize: 0
+          snapAlways: false
           enabled: MediaService.trackLength > 0 && MediaService.canSeek
+          cutoutColor: Color.mSurface
+          heightRatio: 0.65
 
-          onClicked: function (mouse) {
-            let ratio = mouse.x / width
-            MediaService.seekByRatio(ratio)
+          onMoved: {
+            progressWrapper.localSeekRatio = value
+            seekDebounce.restart()
           }
-
-          onPositionChanged: function (mouse) {
+          onPressedChanged: {
             if (pressed) {
-              let ratio = Math.max(0, Math.min(1, mouse.x / width))
-              MediaService.seekByRatio(ratio)
+              MediaService.isSeeking = true
+              progressWrapper.localSeekRatio = value
+              MediaService.seekByRatio(value)
+              progressWrapper.lastSentSeekRatio = value
+            } else {
+              seekDebounce.stop()
+              MediaService.seekByRatio(value)
+              MediaService.isSeeking = false
+              progressWrapper.localSeekRatio = -1
+              progressWrapper.lastSentSeekRatio = -1
             }
           }
+        }
+
+        // While not dragging, bind slider to live progress
+        // during drag, let the slider manage its own value
+        Binding {
+          target: progressSlider
+          property: "value"
+          value: progressWrapper.progressRatio
+          when: !MediaService.isSeeking
         }
       }
 
@@ -325,7 +324,7 @@ NBox {
         // Next button
         NIconButton {
           icon: "skip_next"
-          tooltipText: "Next Media"
+          tooltipText: "Next media"
           visible: MediaService.canGoNext
           onClicked: MediaService.canGoNext ? MediaService.next() : {}
         }
@@ -333,7 +332,7 @@ NBox {
     }
 
     Loader {
-      active: Settings.data.audio.visualizerType == "linear"
+      active: Settings.data.audio.visualizerType == "linear" && MediaService.isPlaying
       Layout.alignment: Qt.AlignHCenter
 
       sourceComponent: LinearSpectrum {
@@ -346,7 +345,7 @@ NBox {
     }
 
     Loader {
-      active: Settings.data.audio.visualizerType == "mirrored"
+      active: Settings.data.audio.visualizerType == "mirrored" && MediaService.isPlaying
       Layout.alignment: Qt.AlignHCenter
 
       sourceComponent: MirroredSpectrum {
@@ -359,7 +358,7 @@ NBox {
     }
 
     Loader {
-      active: Settings.data.audio.visualizerType == "wave"
+      active: Settings.data.audio.visualizerType == "wave" && MediaService.isPlaying
       Layout.alignment: Qt.AlignHCenter
 
       sourceComponent: WaveSpectrum {

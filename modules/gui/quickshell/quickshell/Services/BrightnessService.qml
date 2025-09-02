@@ -69,19 +69,30 @@ Singleton {
   // Detect DDC monitors
   Process {
     id: ddcProc
-    command: ["ddcutil", "detect", "--brief"]
+    property list<var> ddcMonitors: []
+    command: ["ddcutil", "detect", "--sleep-multiplier=0.5"]
     stdout: StdioCollector {
       onStreamFinished: {
         // Do not filter out invalid displays. For some reason --brief returns some invalid which works fine
         var displays = text.trim().split("\n\n")
-        root.ddcMonitors = displays.map(d => {
-                                          var modelMatch = d.match(/Monitor:.*:(.*):.*/)
-                                          var busMatch = d.match(/I2C bus:[ ]*\/dev\/i2c-([0-9]+)/)
-                                          return {
-                                            "model": modelMatch ? modelMatch[1] : "",
-                                            "busNum": busMatch ? busMatch[1] : ""
-                                          }
-                                        })
+
+        ddcProc.ddcMonitors = displays.map(d => {
+
+                                             var ddcModelMatc = d.match(/This monitor does not support DDC\/CI/)
+                                             var modelMatch = d.match(/Model:\s*(.*)/)
+                                             var busMatch = d.match(/I2C bus:[ ]*\/dev\/i2c-([0-9]+)/)
+                                             var ddcModel = ddcModelMatc ? ddcModelMatc.length > 0 : false
+                                             var model = modelMatch ? modelMatch[1] : "Unknown"
+                                             var bus = busMatch ? busMatch[1] : "Unknown"
+                                             Logger.log("Detected DDC Monitor:", model, "on bus", bus, "is DDC:",
+                                                        !ddcModel)
+                                             return {
+                                               "model": model,
+                                               "busNum": bus,
+                                               "isDdc": !ddcModel
+                                             }
+                                           })
+        root.ddcMonitors = ddcProc.ddcMonitors.filter(m => m.isDdc)
       }
     }
   }

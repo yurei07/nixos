@@ -1,0 +1,572 @@
+/*
+* Vesktop Theme
+* Generated with Matugen
+* Base was taken from https://github.com/catppuccin/discord <3
+*/
+
+
+/* Dark Theme */
+.visual-refresh.theme-dark,
+.visual-refresh .theme-dark {
+  /* Brand Colors */
+  --brand-experiment: {{colors.primary.default.hex}};
+  --bg-brand: {{colors.primary.default.hex}};
+  --brand-500: {{colors.primary.default.hex}} !important;
+  --text-link: {{colors.primary.default.hex}} !important;
+  --text-brand: {{colors.primary.default.hex}};
+  --control-brand-foreground: {{colors.primary.default.hex}};
+  --control-brand-foreground-new: {{colors.primary.default.hex}};
+  --mention-foreground: {{colors.primary.default.hex}};
+  --mention-background: {{colors.primary.default.hex}}20;
+  --focus-primary: {{colors.primary.default.hex}};
+  --logo-primary: {{colors.on_surface.default.hex}};
+  --badge-brand-bg: {{colors.primary.default.hex}};
+  --badge-brand-text: {{colors.on_primary.default.hex}};
+
+  /* Text Colors */
+  --header-primary: {{colors.on_surface.default.hex}} !important;
+  --header-secondary: {{colors.on_surface_variant.default.hex}} !important;
+  --text-normal: {{colors.on_surface.default.hex}} !important;
+  --text-default: {{colors.on_surface.default.hex}};
+  --text-muted: {{colors.on_surface_variant.default.hex}} !important;
+  --text-primary: {{colors.on_surface.default.hex}};
+  --text-secondary: {{colors.on_surface_variant.default.hex}};
+  --text-tertiary: {{colors.on_surface_variant.default.hex}} !important;
+  --interactive-normal: {{colors.on_surface.default.hex}} !important;
+  --interactive-muted: {{colors.on_surface_variant.default.hex}};
+  --interactive-hover: {{colors.on_surface.default.hex}};
+  --interactive-active: {{colors.on_surface.default.hex}};
+
+  /* Main Background Colors - Bar color (mSurface) colors.surface.default.hex*/
+  --background-primary: {{colors.surface_variant.default.hex}} !important;
+  --background-floating: {{colors.surface_variant.default.hex}} !important;
+  --background-surface-high: {{colors.surface_variant.default.hex}} !important;
+  --modal-background: {{colors.surface_variant.default.hex}} !important;
+  --app-background-frame: {{colors.surface_variant.default.hex}} !important;
+  --home-background: {{colors.surface_variant.default.hex}} !important;
+  --chat-background: {{colors.surface_variant.default.hex}} !important;
+  --chat-background-default: {{colors.surface_variant.default.hex}} !important;
+  --chat-input-container-background: {{colors.surface_container.default.hex}} !important;
+  
+  /* Secondary Background Colors - Workspace color (mSurfaceVariant) */
+  --background-secondary: {{colors.surface.default.hex}} !important;
+  --background-secondary-alt: {{colors.surface.default.hex}} !important;
+  --background-surface-higher: {{colors.surface.default.hex}} !important;
+  --background-base-low: {{colors.surface.default.hex}} !important;
+  --background-base-lower: {{colors.surface.default.hex}} !important;
+  --channeltextarea-background: {{colors.surface_container.default.hex}} !important;
+  --modal-footer-background: {{colors.surface.default.hex}} !important;
+  
+  /* New Messages Banner */
+  --background-mentioned: {{colors.primary.default.hex}}15 !important;
+  --background-mentioned-hover: {{colors.primary.default.hex}}20 !important;
+  --text-mentioned: {{colors.on_surface.default.hex}} !important;
+  --text-mentioned-hover: {{colors.on_surface.default.hex}} !important;
+  --text-mentioned-link: {{colors.primary.default.hex}} !important;
+  
+  /* Additional Discord-specific variables for new messages banner */
+  --background-message-automod: {{colors.primary.default.hex}}15 !important;
+  --background-message-automod-hover: {{colors.primary.default.hex}}20 !important;
+  --background-message-highlight: {{colors.primary.default.hex}}15 !important;
+  --background-message-highlight-hover: {{colors.primary.default.hex}}20 !important;
+  
+  /* Discord unread messages banner specific variables */
+  --background-mentioned: {{colors.primary.default.hex}}15 !important;
+  --background-mentioned-hover: {{colors.primary.default.hex}}20 !important;
+  --text-mentioned: {{colors.on_surface.default.hex}} !important;
+  --text-mentioned-hover: {{colors.on_surface.default.hex}} !important;
+  --text-mentioned-link: {{colors.primary.default.hex}} !important;
+  
+  /* Additional Discord banner text variables */
+  --text-normal: {{colors.on_surface.default.hex}} !important;
+  --text-default: {{colors.on_surface.default.hex}} !important;
+  --text-primary: {{colors.on_surface.default.hex}} !important;
+  --text-secondary: {{colors.on_surface_variant.default.hex}} !important;
+  --text-tertiary: {{colors.on_surface_variant.default.hex}} !important;
+  --text-muted: {{colors.on_surface_variant.default.hex}} !important;
+  --interactive-normal: {{colors.on_surface.default.hex}} !important;
+  --interactive-muted: {{colors.on_surface_variant.default.hex}} !important;
+  
+  /* Additional Discord banner variables */
+  --background-message-automod: {{colors.primary.default.hex}}15 !important;
+  --background-message-automod-hover: {{colors.primary.default.hex}}20 !important;
+  --background-message-highlight: {{colors.primary.default.hex}}15 !important;
+  --background-message-highlight-hover: {{colors.primary.default.hex}}20 !important;
+  --background-message-hover: {{colors.surface_variant.default.hex}}50 !important;
+  --background-modifier-hover: {{colors.surface_variant.default.hex}}80 !important;
+  --background-modifier-selected: {{colors.primary.default.hex}}20 !important;
+  --background-modifier-accent: {{colors.primary.default.hex}}30 !important;
+  --background-modifier-active: {{colors.primary.default.hex}}25 !important;
+  
+  /* Chat Input Improvements */
+  --text-input-background: {{colors.surface_container.default.hex}} !important;
+  --text-input-border: {{colors.outline.default.hex}} !important;
+  --text-input-border-hover: {{colors.primary.default.hex}} !important;
+  
+  /* Additional Discord-specific input variables */
+  --deprecated-text-input-bg: {{colors.surface_container.default.hex}} !important;
+  --deprecated-text-input-border: {{colors.outline.default.hex}} !important;
+  --deprecated-text-input-border-hover: {{colors.primary.default.hex}} !important;
+  --input-background: {{colors.surface_container.default.hex}} !important;
+  --input-border: {{colors.outline.default.hex}} !important;
+  --input-placeholder-text: {{colors.on_surface_variant.default.hex}} !important;
+  
+  /* Elevated/Container Backgrounds */
+  --background-tertiary: {{colors.surface_container.default.hex}} !important;
+  --background-accent: {{colors.surface_container.default.hex}} !important;
+  --background-surface-highest: {{colors.surface_container_high.default.hex}} !important;
+  --background-base-lowest: {{colors.surface_container.default.hex}} !important;
+
+  /* Border Colors */
+  --border-faint: {{colors.outline_variant.default.hex}};
+  --border-strong: {{colors.surface_container.default.hex}};
+  --border-normal: {{colors.surface_container_high.default.hex}};
+  --border-subtle: {{colors.surface.default.hex}} !important;
+  --chat-border: {{colors.surface_container_high.default.hex}};
+
+  /* Status Colors */
+  --status-positive: {{colors.tertiary.default.hex}};
+  --status-positive-background: {{colors.tertiary.default.hex}};
+  --status-positive-text: {{colors.on_tertiary.default.hex}};
+  --text-positive: {{colors.tertiary.default.hex}};
+  --text-feedback-positive: {{colors.tertiary.default.hex}};
+  --background-feedback-positive: {{colors.tertiary.default.hex}}20;
+  --info-positive-background: {{colors.tertiary.default.hex}}20;
+  --info-positive-foreground: {{colors.tertiary.default.hex}};
+  --info-positive-text: {{colors.on_surface.default.hex}};
+
+  --status-warning: {{colors.secondary.default.hex}};
+  --status-warning-background: {{colors.secondary.default.hex}};
+  --status-warning-text: {{colors.on_secondary.default.hex}};
+  --text-warning: {{colors.secondary.default.hex}};
+  --text-feedback-warning: {{colors.secondary.default.hex}};
+  --background-feedback-warning: {{colors.secondary.default.hex}}20;
+  --info-warning-background: {{colors.secondary.default.hex}}20;
+  --info-warning-foreground: {{colors.secondary.default.hex}};
+  --info-warning-text: {{colors.on_surface.default.hex}};
+
+  --status-danger: {{colors.error.default.hex}};
+  --status-danger-background: {{colors.error.default.hex}};
+  --status-danger-text: {{colors.on_error.default.hex}};
+  --text-danger: {{colors.error.default.hex}};
+  --text-feedback-critical: {{colors.error.default.hex}};
+  --background-feedback-critical: {{colors.error.default.hex}}20;
+  --info-danger-background: {{colors.error.default.hex}}20;
+  --info-danger-foreground: {{colors.error.default.hex}};
+  --info-danger-text: {{colors.on_surface.default.hex}};
+
+  /* Button Colors */
+  --button-secondary-background: {{colors.surface_variant.default.hex}} !important;
+  --button-secondary-background-hover: {{colors.surface_container.default.hex}};
+  --button-secondary-background-active: {{colors.surface_container.default.hex}};
+  --button-secondary-background-disabled: {{colors.surface_variant.default.hex}};
+  --button-secondary-text: {{colors.on_surface.default.hex}} !important;
+
+  --button-filled-brand-text: {{colors.on_primary.default.hex}};
+  --button-filled-brand-background: {{colors.primary.default.hex}};
+  --button-filled-brand-background-hover: {{colors.primary.default.hex}};
+  --button-filled-brand-background-active: {{colors.primary.default.hex}};
+
+  /* Input Colors */
+  --input-background: {{colors.surface_container.default.hex}};
+  --input-border: {{colors.outline.default.hex}};
+  --input-placeholder-text: {{colors.on_surface_variant.default.hex}};
+
+  /* Scrollbar Colors */
+  --scrollbar-thin-thumb: {{colors.primary.default.hex}};
+  --scrollbar-thin-track: transparent;
+  --scrollbar-auto-thumb: {{colors.primary.default.hex}};
+  --scrollbar-auto-track: {{colors.surface_container_high.default.hex}};
+  --scrollbar-auto-scrollbar-color-thumb: {{colors.primary.default.hex}};
+  --scrollbar-auto-scrollbar-color-track: {{colors.surface_container_high.default.hex}};
+
+  /* Icon Colors */
+  --icon-muted: {{colors.on_surface_variant.default.hex}};
+  --icon-default: {{colors.on_surface.default.hex}};
+  --icon-primary: {{colors.on_surface.default.hex}};
+  --icon-secondary: {{colors.on_surface_variant.default.hex}};
+  --icon-tertiary: {{colors.on_surface_variant.default.hex}} !important;
+
+  /* Channel Colors */
+  --channels-default: {{colors.on_surface_variant.default.hex}} !important;
+  --channel-icon: {{colors.on_surface_variant.default.hex}} !important;
+  --channel-text-area-placeholder: {{colors.on_surface.default.hex}}80;
+
+  /* Selection and Hover States */
+  --background-modifier-hover: {{colors.surface_variant.default.hex}}80;
+  --background-modifier-selected: {{colors.primary.default.hex}}20 !important;
+  --background-modifier-accent: {{colors.primary.default.hex}}30;
+  --background-modifier-active: {{colors.primary.default.hex}}25 !important;
+  --background-message-hover: {{colors.surface_variant.default.hex}}50 !important;
+  --background-message-highlight: {{colors.primary.default.hex}}15;
+  --background-message-highlight-hover: {{colors.primary.default.hex}}20;
+
+  /* Code Block - Use workspace background */
+  --background-code: {{colors.surface_container.default.hex}};
+  --textbox-markdown-syntax: {{colors.on_surface_variant.default.hex}};
+
+  /* Spoiler */
+  --spoiler-revealed-background: {{colors.surface_container.default.hex}};
+  --spoiler-hidden-background: {{colors.surface_variant.default.hex}};
+
+  /* White/Black Overrides */
+  --white: {{colors.on_surface.default.hex}};
+  --white-400: {{colors.on_surface.default.hex}};
+  --white-500: {{colors.on_surface.default.hex}};
+  --white-600: {{colors.on_surface_variant.default.hex}};
+  --white-700: {{colors.on_surface_variant.default.hex}};
+  --black-500: {{colors.surface_container_high.default.hex}};
+  
+  /* Force styling for Discord unread messages banner */
+  --unread-bar-background: {{colors.primary.default.hex}}15 !important;
+  --unread-bar-text: {{colors.on_surface.default.hex}} !important;
+  --unread-bar-hover: {{colors.primary.default.hex}}20 !important;
+  
+  /* Additional Discord unread bar variables */
+  --background-mentioned: {{colors.primary.default.hex}}15 !important;
+  --background-mentioned-hover: {{colors.primary.default.hex}}20 !important;
+  --text-mentioned: {{colors.on_surface.default.hex}} !important;
+  --text-mentioned-hover: {{colors.on_surface.default.hex}} !important;
+  --text-mentioned-link: {{colors.primary.default.hex}} !important;
+  
+  /* Discord banner specific variables */
+  --background-message-automod: {{colors.primary.default.hex}}15 !important;
+  --background-message-automod-hover: {{colors.primary.default.hex}}20 !important;
+  --background-message-highlight: {{colors.primary.default.hex}}15 !important;
+  --background-message-highlight-hover: {{colors.primary.default.hex}}20 !important;
+  
+  /* Discord unread bar specific variables */
+  --background-mentioned: {{colors.primary.default.hex}}15 !important;
+  --background-mentioned-hover: {{colors.primary.default.hex}}20 !important;
+  --text-mentioned: {{colors.on_surface.default.hex}} !important;
+  --text-mentioned-hover: {{colors.on_surface.default.hex}} !important;
+  --text-mentioned-link: {{colors.primary.default.hex}} !important;
+  
+  /* Additional Discord text variables that might affect the banner */
+  --text-normal: {{colors.on_surface.default.hex}} !important;
+  --text-default: {{colors.on_surface.default.hex}} !important;
+  --text-primary: {{colors.on_surface.default.hex}} !important;
+  --text-secondary: {{colors.on_surface_variant.default.hex}} !important;
+  --text-tertiary: {{colors.on_surface_variant.default.hex}} !important;
+  --text-muted: {{colors.on_surface_variant.default.hex}} !important;
+  --interactive-normal: {{colors.on_surface.default.hex}} !important;
+  --interactive-muted: {{colors.on_surface_variant.default.hex}} !important;
+  
+  /* Force styling for Discord chat input */
+  --chat-input-background: {{colors.surface_container.default.hex}} !important;
+  --chat-input-placeholder: {{colors.on_surface_variant.default.hex}} !important;
+  
+  /* Discord unread messages banner specific variables */
+  --new-messages-bar-background: {{colors.surface_container.default.hex}} !important;
+  --new-messages-bar-text: {{colors.on_surface.default.hex}} !important;
+  --new-messages-bar-hover: {{colors.surface_container_high.default.hex}} !important;
+  --bar-button-background: {{colors.surface_container.default.hex}} !important;
+  --bar-button-text: {{colors.on_surface.default.hex}} !important;
+  --bar-button-hover: {{colors.surface_container_high.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark ::selection,
+.visual-refresh .theme-dark ::selection {
+  background-color: {{colors.primary.default.hex}};
+}
+
+/* Force Discord unread messages banner styling */
+.visual-refresh.theme-dark .newMessagesBar__0f481,
+.visual-refresh.theme-dark .barButtonMain__0f481,
+.visual-refresh.theme-dark .barButtonBase__0f481,
+.visual-refresh.theme-dark .span__0f481 {
+  background-color: {{colors.surface_container.default.hex}} !important;
+  color: {{colors.on_surface.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .newMessagesBar__0f481:hover,
+.visual-refresh.theme-dark .barButtonMain__0f481:hover,
+.visual-refresh.theme-dark .barButtonBase__0f481:hover {
+  background-color: {{colors.surface_container_high.default.hex}} !important;
+}
+
+/* Force Discord chat input styling */
+.visual-refresh.theme-dark .channelTextArea-rNsIhG,
+.visual-refresh.theme-dark .channelTextArea-rNsIhG *,
+.visual-refresh.theme-dark .scrollableContainer-2NUZem,
+.visual-refresh.theme-dark [data-slate-editor="true"] {
+  background-color: {{colors.surface_container.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark [data-slate-editor="true"]::placeholder,
+.visual-refresh.theme-dark .channelTextArea-rNsIhG [data-slate-editor="true"]::placeholder {
+  color: {{colors.on_surface_variant.default.hex}} !important;
+}
+
+/* Discord Emoji Picker Theming */
+.visual-refresh.theme-dark .contentWrapper__08434,
+.visual-refresh.theme-dark .emojiPicker_c0e32c,
+.visual-refresh.theme-dark .wrapper_c0e32c {
+  background-color: {{colors.surface.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .nav__08434,
+.visual-refresh.theme-dark .navList__08434 {
+  background-color: {{colors.surface.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .navButton__08434 {
+  background-color: {{colors.surface.default.hex}} !important;
+  color: {{colors.on_surface_variant.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .navButtonActive__08434 {
+  background-color: {{colors.surface.default.hex}} !important;
+  color: {{colors.on_surface.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .searchBar_c0e32c,
+.visual-refresh.theme-dark .input_a45028 {
+  background-color: {{colors.surface.default.hex}} !important;
+  color: {{colors.on_surface.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .input_a45028::placeholder {
+  color: {{colors.on_surface_variant.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .header_c656ac,
+.visual-refresh.theme-dark .header__14245,
+.visual-refresh.theme-dark .wrapper__14245 {
+  background-color: {{colors.surface_variant.default.hex}} !important;
+  color: {{colors.on_surface.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .headerLabel__14245 {
+  color: {{colors.on_surface.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .interactive__14245 {
+  color: {{colors.on_surface.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .header__14245 {
+  color: {{colors.on_surface.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .header__14245 * {
+  color: {{colors.on_surface.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .headerIcon__14245 svg,
+.visual-refresh.theme-dark .headerCollapseIcon__14245 svg {
+  color: {{colors.on_surface.default.hex}} !important;
+  fill: {{colors.on_surface.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .emojiItem_fc7141 {
+  background-color: transparent !important;
+}
+
+.visual-refresh.theme-dark .emojiItem_fc7141:hover {
+  background-color: {{colors.surface_container.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .emojiItemSelected_fc7141 {
+  background-color: {{colors.primary.default.hex}}20 !important;
+}
+
+.visual-refresh.theme-dark .inspector_aeaaeb {
+  background-color: {{colors.surface_container.default.hex}} !important;
+  color: {{colors.on_surface.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .categoryList_c0e32c {
+  background-color: {{colors.surface.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .categoryItem_b9ee0c {
+  background-color: transparent !important;
+}
+
+.visual-refresh.theme-dark .categoryItem_b9ee0c:hover {
+  background-color: {{colors.surface_variant.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .categoryItemDefaultCategorySelected_b9ee0c {
+  background-color: {{colors.surface_variant.default.hex}} !important;
+}
+
+/* Additional Discord emoji picker elements */
+.visual-refresh.theme-dark .navItem__08434 {
+  background-color: {{colors.surface_variant.default.hex}} !important;
+  color: {{colors.on_surface_variant.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .navItem__08434:hover {
+  background-color: {{colors.surface_container.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .stickersNavItem__08434 {
+  color: {{colors.on_surface_variant.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .wrapper__14245 {
+  background-color: {{colors.surface_variant.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .headerLabel__14245 {
+  color: {{colors.on_surface.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .headerIcon__14245 svg,
+.visual-refresh.theme-dark .headerCollapseIcon__14245 svg {
+  color: {{colors.on_surface_variant.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .interactive__14245:hover {
+  background-color: {{colors.surface_container.default.hex}} !important;
+}
+
+/* Chat input styling */
+.visual-refresh.theme-dark .scrollableContainer__74017,
+.visual-refresh.theme-dark .themedBackground__74017,
+.visual-refresh.theme-dark .inner__74017,
+.visual-refresh.theme-dark .textArea__74017,
+.visual-refresh.theme-dark .slateContainer_ec4baf,
+.visual-refresh.theme-dark .markup__75297,
+.visual-refresh.theme-dark .editor__1b31f,
+.visual-refresh.theme-dark .slateTextArea_ec4baf {
+  background-color: {{colors.surface_container.default.hex}} !important;
+  color: {{colors.on_surface.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .emptyText__1464f {
+  color: {{colors.on_surface_variant.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .placeholder__1b31f {
+  color: {{colors.on_surface_variant.default.hex}} !important;
+}
+
+/* Message content styling */
+.visual-refresh.theme-dark .messageContent_c19a55 {
+  color: {{colors.on_surface.default.hex}} !important;
+  background-color: {{colors.surface.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .messageContent_c19a55 .markup__75297 {
+  color: {{colors.on_surface.default.hex}} !important;
+  background-color: {{colors.surface.default.hex}} !important;
+}
+
+/* Message background styling */
+.visual-refresh.theme-dark .message__5126c,
+.visual-refresh.theme-dark .cozyMessage__5126c,
+.visual-refresh.theme-dark .wrapper_c19a55,
+.visual-refresh.theme-dark .contents_c19a55 {
+  background-color: {{colors.surface.default.hex}} !important;
+}
+
+/* Message hover effects */
+.visual-refresh.theme-dark .message__5126c:hover {
+  background-color: {{colors.surface_variant.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .message__5126c:hover * {
+  color: {{colors.on_surface.default.hex}} !important;
+}
+
+/* Remove Discord's native quote/reply bar */
+.visual-refresh.theme-dark .message__5126c::before {
+  display: none !important;
+}
+
+.visual-refresh.theme-dark .message__5126c.hasReply_c19a55::before {
+  display: none !important;
+}
+
+/* Channel styling - darker text for read channels */
+.visual-refresh.theme-dark .link__2ea32 .name__2ea32 {
+  color: {{colors.outline.default.hex}} !important;
+}
+
+/* Unread channels keep normal color */
+.visual-refresh.theme-dark .link__2ea32[aria-label*="unread"] .name__2ea32 {
+  color: {{colors.on_surface.default.hex}} !important;
+}
+
+/* Search input styling */
+.visual-refresh.theme-dark .inner_a45028 {
+  background-color: {{colors.surface_variant.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .input_a45028 {
+  background-color: transparent !important;
+}
+
+.visual-refresh.theme-dark .input_a45028::placeholder {
+  color: {{colors.on_surface_variant.default.hex}} !important;
+}
+
+/* Chat input placeholder styling */
+.visual-refresh.theme-dark .emptyText__1464f {
+  color: {{colors.on_surface_variant.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .slateTextArea_ec4baf > div:first-child .emptyText__1464f::before {
+  content: "Message #general" !important;
+  color: {{colors.on_surface_variant.default.hex}} !important;
+}
+
+/* Hide placeholder when input is focused */
+.visual-refresh.theme-dark .slateTextArea_ec4baf:focus .emptyText__1464f::before,
+.visual-refresh.theme-dark .markup__75297:focus .emptyText__1464f::before {
+  display: none !important;
+}
+
+
+
+.visual-refresh.theme-dark .message__5126c:hover .messageContent_c19a55,
+.visual-refresh.theme-dark .message__5126c:hover .markup__75297,
+.visual-refresh.theme-dark .message__5126c:hover .header_c19a55,
+.visual-refresh.theme-dark .message__5126c:hover .headerText_c19a55,
+.visual-refresh.theme-dark .message__5126c:hover .username_c19a55,
+.visual-refresh.theme-dark .message__5126c:hover .timestamp_c19a55 {
+  background-color: {{colors.surface_variant.default.hex}} !important;
+}
+
+
+
+.visual-refresh.theme-dark .categoryIcon_b9ee0c svg {
+  color: {{colors.on_surface_variant.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .unicodeShortcut_b9ee0c {
+  background-color: {{colors.surface_container.default.hex}} !important;
+  color: {{colors.on_surface.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .unicodeShortcut_b9ee0c:hover {
+  background-color: {{colors.surface_container_high.default.hex}} !important;
+}
+
+.visual-refresh.theme-dark .unicodeShortcut_b9ee0c svg {
+  color: {{colors.on_surface.default.hex}} !important;
+}
+
+/* Number badge styling */
+.visual-refresh.theme-dark .numberBadge__2b1f5 {
+  color: {{colors.surface.default.hex}} !important;
+  background-color: {{colors.primary.default.hex}} !important;
+}
+
+/* New badge styling */
+.visual-refresh.theme-dark .newBadge__4ed1a {
+  color: {{colors.surface.default.hex}} !important;
+  background-color: {{colors.primary.default.hex}} !important;
+}
+
+
+
+
+
+
+
+
+

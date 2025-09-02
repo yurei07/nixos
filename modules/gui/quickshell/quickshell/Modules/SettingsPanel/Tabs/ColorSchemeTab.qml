@@ -9,7 +9,12 @@ import qs.Widgets
 ColumnLayout {
   id: root
 
-  spacing: 0
+  // Cache for scheme JSON (can be flat or {dark, light})
+  property var schemeColorsCache: ({})
+
+  // Scale properties for card animations
+  property real cardScaleLow: 0.95
+  property real cardScaleHigh: 1.0
 
   // Helper function to get color from scheme file (supports dark/light variants)
   function getSchemeColor(schemePath, colorKey) {
@@ -31,13 +36,6 @@ ColumnLayout {
     return "#000000"
   }
 
-  // Cache for scheme JSON (can be flat or {dark, light})
-  property var schemeColorsCache: ({})
-
-  // Scale properties for card animations
-  property real cardScaleLow: 0.95
-  property real cardScaleHigh: 1.0
-
   // This function is called by the FileView Repeater when a scheme file is loaded
   function schemeLoaded(schemeName, jsonData) {
     var value = jsonData || {}
@@ -53,6 +51,28 @@ ColumnLayout {
     function onSchemesChanged() {
       schemeColorsCache = {}
     }
+  }
+
+  // Simple process to check if matugen exists
+  Process {
+    id: matugenCheck
+    command: ["which", "matugen"]
+    running: false
+
+    onExited: function (exitCode) {
+      if (exitCode === 0) {
+        // Matugen exists, enable it
+        Settings.data.colorSchemes.useWallpaperColors = true
+        MatugenService.generateFromWallpaper()
+        ToastService.showNotice("Matugen", "Enabled")
+      } else {
+        // Matugen not found
+        ToastService.showWarning("Matugen", "Not installed")
+      }
+    }
+
+    stdout: StdioCollector {}
+    stderr: StdioCollector {}
   }
 
   // A non-visual Item to host the Repeater that loads the color scheme files.
@@ -83,256 +103,224 @@ ColumnLayout {
     }
   }
 
-  // UI Code
-  ScrollView {
-    id: scrollView
+  ColumnLayout {
+    spacing: 0
 
-    Layout.fillWidth: true
-    Layout.fillHeight: true
-    padding: Style.marginM * scaling
-    clip: true
-    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-    ScrollBar.vertical.policy: ScrollBar.AsNeeded
+    Item {
+      Layout.fillWidth: true
+      Layout.preferredHeight: 0
+    }
 
     ColumnLayout {
-      width: scrollView.availableWidth
-      spacing: 0
+      spacing: Style.marginL * scaling
+      Layout.fillWidth: true
 
-      Item {
+      // Dark Mode Toggle (affects both Matugen and predefined schemes that provide variants)
+      NToggle {
+        label: "Dark Mode"
+        description: Settings.data.colorSchemes.useWallpaperColors ? "Generate dark theme colors when using Matugen." : "Use a dark variant if available."
+        checked: Settings.data.colorSchemes.darkMode
+        enabled: true
+        onToggled: checked => Settings.data.colorSchemes.darkMode = checked
+      }
+
+      // Use Matugen
+      NToggle {
+        label: "Enable Matugen"
+        description: "Automatically generate colors based on your active wallpaper."
+        checked: Settings.data.colorSchemes.useWallpaperColors
+        onToggled: checked => {
+                     if (checked) {
+                       // Check if matugen is installed
+                       matugenCheck.running = true
+                     } else {
+                       Settings.data.colorSchemes.useWallpaperColors = false
+                       ToastService.showNotice("Matugen", "Disabled")
+
+                       if (Settings.data.colorSchemes.predefinedScheme) {
+
+                         ColorSchemeService.applyScheme(Settings.data.colorSchemes.predefinedScheme)
+                       }
+                     }
+                   }
+      }
+
+      NDivider {
         Layout.fillWidth: true
-        Layout.preferredHeight: 0
+        Layout.topMargin: Style.marginXL * scaling
+        Layout.bottomMargin: Style.marginXL * scaling
       }
 
       ColumnLayout {
-        spacing: Style.marginL * scaling
+        spacing: Style.marginS * scaling
         Layout.fillWidth: true
 
-        // Dark Mode Toggle (affects both Matugen and predefined schemes that provide variants)
-        NToggle {
-          label: "Dark Mode"
-          description: Settings.data.colorSchemes.useWallpaperColors ? "Generate dark theme colors when using Matugen." : "Use a dark variant if available."
-          checked: Settings.data.colorSchemes.darkMode
-          enabled: true
-          onToggled: checked => {
-                       Settings.data.colorSchemes.darkMode = checked
-                       if (Settings.data.colorSchemes.useWallpaperColors) {
-                         ColorSchemeService.changedWallpaper()
-                       } else if (Settings.data.colorSchemes.predefinedScheme) {
-                         // Re-apply current scheme to pick the right variant
-                         ColorSchemeService.applyScheme(Settings.data.colorSchemes.predefinedScheme)
-                         // Force refresh of previews
-                         var tmp = schemeColorsCache
-                         schemeColorsCache = {}
-                         schemeColorsCache = tmp
-                       }
-                     }
+        NText {
+          text: "Predefined Color Schemes"
+          font.pointSize: Style.fontSizeXXL * scaling
+          font.weight: Style.fontWeightBold
+          color: Color.mSecondary
         }
 
-        // GTK/QT theming
-        NToggle {
-          label: "Theme external apps (GTK & Qt)"
-          description: "Writes GTK (gtk.css) and Qt (qt6ct) themes based on your colors."
-          checked: Settings.data.colorSchemes.themeApps
-          onToggled: checked => {
-                       Settings.data.colorSchemes.themeApps = checked
-                       if (Settings.data.colorSchemes.useWallpaperColors) {
-                         ColorSchemeService.changedWallpaper()
-                       }
-                     }
-        }
-
-        // Use Matugen
-        NToggle {
-          label: "Enable Matugen"
-          description: "Automatically generate colors based on your active wallpaper."
-          checked: Settings.data.colorSchemes.useWallpaperColors
-          onToggled: checked => {
-                       if (checked) {
-                         // Check if matugen is installed
-                         matugenCheck.running = true
-                       } else {
-                         Settings.data.colorSchemes.useWallpaperColors = false
-                         ToastService.showNotice("Matugen", "Disabled")
-                       }
-                     }
-        }
-
-        NDivider {
+        NText {
+          text: "These color schemes are only active when 'Use Matugen' is turned off. With Matugen enabled, colors will be automatically generated from your wallpaper. You can still switch between light and dark themes while using Matugen."
+          font.pointSize: Style.fontSizeM * scaling
+          color: Color.mOnSurfaceVariant
           Layout.fillWidth: true
-          Layout.topMargin: Style.marginL * scaling
-          Layout.bottomMargin: Style.marginL * scaling
+          wrapMode: Text.WordWrap
         }
+      }
 
-        ColumnLayout {
-          spacing: Style.marginXXS * scaling
-          Layout.fillWidth: true
+      // Color Schemes Grid
+      GridLayout {
+        columns: 3
+        rowSpacing: Style.marginM * scaling
+        columnSpacing: Style.marginM * scaling
+        Layout.fillWidth: true
 
-          NText {
-            text: "Predefined Color Schemes"
-            font.pointSize: Style.fontSizeL * scaling
-            font.weight: Style.fontWeightBold
-            color: Color.mOnSurface
+        Repeater {
+          model: ColorSchemeService.schemes
+
+          Rectangle {
+            id: schemeCard
+
+            property string schemePath: modelData
+
             Layout.fillWidth: true
-          }
+            Layout.preferredHeight: 120 * scaling
+            radius: Style.radiusM * scaling
+            color: getSchemeColor(modelData, "mSurface")
+            border.width: Math.max(1, Style.borderL * scaling)
+            border.color: (!Settings.data.colorSchemes.useWallpaperColors
+                           && (Settings.data.colorSchemes.predefinedScheme === modelData)) ? Color.mPrimary : Color.mOutline
+            scale: root.cardScaleLow
 
-          NText {
-            text: "These color schemes only apply when 'Use Matugen' is disabled. When enabled, Matugen will generate colors based on your wallpaper instead. You can toggle between light and dark themes when using Matugen."
-            font.pointSize: Style.fontSizeXS * scaling
-            color: Color.mOnSurface
-            Layout.fillWidth: true
-            wrapMode: Text.WordWrap
-          }
-        }
+            // Mouse area for selection
+            MouseArea {
+              anchors.fill: parent
+              onClicked: {
+                // Disable useWallpaperColors when picking a predefined color scheme
+                Settings.data.colorSchemes.useWallpaperColors = false
+                Logger.log("ColorSchemeTab", "Disabled matugen setting")
 
-        ColumnLayout {
-          spacing: Style.marginXS * scaling
-          Layout.fillWidth: true
-          Layout.topMargin: Style.marginL * scaling
+                Settings.data.colorSchemes.predefinedScheme = schemePath
+                ColorSchemeService.applyScheme(schemePath)
+              }
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
 
-          // Color Schemes Grid
-          GridLayout {
-            columns: 4
-            rowSpacing: Style.marginL * scaling
-            columnSpacing: Style.marginL * scaling
-            Layout.fillWidth: true
+              onEntered: {
+                schemeCard.scale = root.cardScaleHigh
+              }
 
-            Repeater {
-              model: ColorSchemeService.schemes
+              onExited: {
+                schemeCard.scale = root.cardScaleLow
+              }
+            }
 
-              Rectangle {
-                id: schemeCard
+            // Card content
+            ColumnLayout {
+              anchors.fill: parent
+              anchors.margins: Style.marginXL * scaling
+              spacing: Style.marginS * scaling
 
-                property string schemePath: modelData
-
+              // Scheme name
+              NText {
+                text: {
+                  // Remove json and the full path
+                  var chunks = schemePath.replace(".json", "").split("/")
+                  return chunks[chunks.length - 1]
+                }
+                font.pointSize: Style.fontSizeM * scaling
+                font.weight: Style.fontWeightBold
+                color: getSchemeColor(modelData, "mOnSurface")
                 Layout.fillWidth: true
-                Layout.preferredHeight: 120 * scaling
-                radius: Style.radiusM * scaling
-                color: getSchemeColor(modelData, "mSurface")
-                border.width: Math.max(1, Style.borderL * scaling)
-                border.color: Settings.data.colorSchemes.predefinedScheme === modelData ? Color.mPrimary : Color.mOutline
-                scale: root.cardScaleLow
+                elide: Text.ElideRight
+                horizontalAlignment: Text.AlignHCenter
+              }
 
-                // Mouse area for selection
-                MouseArea {
-                  anchors.fill: parent
-                  onClicked: {
-                    // Disable useWallpaperColors when picking a predefined color scheme
-                    Settings.data.colorSchemes.useWallpaperColors = false
-                    Settings.data.colorSchemes.predefinedScheme = schemePath
-                    ColorSchemeService.applyScheme(schemePath)
-                  }
-                  hoverEnabled: true
-                  cursorShape: Qt.PointingHandCursor
+              // Color swatches
+              RowLayout {
+                id: swatches
 
-                  onEntered: {
-                    schemeCard.scale = root.cardScaleHigh
-                  }
+                spacing: Style.marginS * scaling
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignHCenter
 
-                  onExited: {
-                    schemeCard.scale = root.cardScaleLow
-                  }
-                }
+                readonly property int swatchSize: 20 * scaling
 
-                // Card content
-                ColumnLayout {
-                  anchors.fill: parent
-                  anchors.margins: Style.marginXL * scaling
-                  spacing: Style.marginS * scaling
-
-                  // Scheme name
-                  NText {
-                    text: {
-                      // Remove json and the full path
-                      var chunks = schemePath.replace(".json", "").split("/")
-                      return chunks[chunks.length - 1]
-                    }
-                    font.pointSize: Style.fontSizeM * scaling
-                    font.weight: Style.fontWeightBold
-                    color: getSchemeColor(modelData, "mOnSurface")
-                    Layout.fillWidth: true
-                    elide: Text.ElideRight
-                    horizontalAlignment: Text.AlignHCenter
-                  }
-
-                  // Color swatches
-                  RowLayout {
-                    spacing: Style.marginS * scaling
-                    Layout.fillWidth: true
-                    Layout.alignment: Qt.AlignHCenter
-
-                    // Primary color swatch
-                    Rectangle {
-                      width: 28 * scaling
-                      height: 28 * scaling
-                      radius: width * 0.5
-                      color: getSchemeColor(modelData, "mPrimary")
-                    }
-
-                    // Secondary color swatch
-                    Rectangle {
-                      width: 28 * scaling
-                      height: 28 * scaling
-                      radius: width * 0.5
-                      color: getSchemeColor(modelData, "mSecondary")
-                    }
-
-                    // Tertiary color swatch
-                    Rectangle {
-                      width: 28 * scaling
-                      height: 28 * scaling
-                      radius: width * 0.5
-                      color: getSchemeColor(modelData, "mTertiary")
-                    }
-
-                    // Error color swatch
-                    Rectangle {
-                      width: 28 * scaling
-                      height: 28 * scaling
-                      radius: width * 0.5
-                      color: getSchemeColor(modelData, "mError")
-                    }
-                  }
-                }
-
-                // Selection indicator
+                // Primary color swatch
                 Rectangle {
-                  visible: Settings.data.colorSchemes.predefinedScheme === schemePath
-                  anchors.right: parent.right
-                  anchors.top: parent.top
-                  anchors.margins: Style.marginS * scaling
-                  width: 24 * scaling
-                  height: 24 * scaling
+                  width: swatches.swatchSize
+                  height: swatches.swatchSize
                   radius: width * 0.5
-                  color: Color.mPrimary
-
-                  NText {
-                    anchors.centerIn: parent
-                    text: "✓"
-                    font.pointSize: Style.fontSizeXS * scaling
-                    font.weight: Style.fontWeightBold
-                    color: Color.mOnPrimary
-                  }
+                  color: getSchemeColor(modelData, "mPrimary")
                 }
 
-                // Smooth animations
-                Behavior on scale {
-                  NumberAnimation {
-                    duration: Style.animationNormal
-                    easing.type: Easing.OutCubic
-                  }
+                // Secondary color swatch
+                Rectangle {
+                  width: swatches.swatchSize
+                  height: swatches.swatchSize
+                  radius: width * 0.5
+                  color: getSchemeColor(modelData, "mSecondary")
                 }
 
-                Behavior on border.color {
-                  ColorAnimation {
-                    duration: Style.animationNormal
-                  }
+                // Tertiary color swatch
+                Rectangle {
+                  width: swatches.swatchSize
+                  height: swatches.swatchSize
+                  radius: width * 0.5
+                  color: getSchemeColor(modelData, "mTertiary")
                 }
 
-                Behavior on border.width {
-                  NumberAnimation {
-                    duration: Style.animationFast
-                  }
+                // Error color swatch
+                Rectangle {
+                  width: swatches.swatchSize
+                  height: swatches.swatchSize
+                  radius: width * 0.5
+                  color: getSchemeColor(modelData, "mError")
                 }
+              }
+            }
+
+            // Selection indicator (Checkmark)
+            Rectangle {
+              visible: !Settings.data.colorSchemes.useWallpaperColors
+                       && (Settings.data.colorSchemes.predefinedScheme === schemePath)
+              anchors.right: parent.right
+              anchors.top: parent.top
+              anchors.margins: Style.marginS * scaling
+              width: 24 * scaling
+              height: 24 * scaling
+              radius: width * 0.5
+              color: Color.mPrimary
+
+              NText {
+                anchors.centerIn: parent
+                text: "✓"
+                font.pointSize: Style.fontSizeXS * scaling
+                font.weight: Style.fontWeightBold
+                color: Color.mOnPrimary
+              }
+            }
+
+            // Smooth animations
+            Behavior on scale {
+              NumberAnimation {
+                duration: Style.animationNormal
+                easing.type: Easing.OutCubic
+              }
+            }
+
+            Behavior on border.color {
+              ColorAnimation {
+                duration: Style.animationNormal
+              }
+            }
+
+            Behavior on border.width {
+              NumberAnimation {
+                duration: Style.animationFast
               }
             }
           }
@@ -341,25 +329,153 @@ ColumnLayout {
     }
   }
 
-  // Simple process to check if matugen exists
-  Process {
-    id: matugenCheck
-    command: ["which", "matugen"]
-    running: false
+  NDivider {
+    Layout.fillWidth: true
+    Layout.topMargin: Style.marginXL * scaling
+    Layout.bottomMargin: Style.marginXL * scaling
+    visible: Settings.data.colorSchemes.useWallpaperColors
+  }
 
-    onExited: function (exitCode) {
-      if (exitCode === 0) {
-        // Matugen exists, enable it
-        Settings.data.colorSchemes.useWallpaperColors = true
-        ColorSchemeService.changedWallpaper()
-        ToastService.showNotice("Matugen", "Enabled!")
-      } else {
-        // Matugen not found
-        ToastService.showWarning("Matugen", "Not installed!")
+  // Matugen template toggles (moved from MatugenTab)
+  ColumnLayout {
+    spacing: Style.marginL * scaling
+    Layout.fillWidth: true
+    visible: Settings.data.colorSchemes.useWallpaperColors
+
+    ColumnLayout {
+      spacing: Style.marginS * scaling
+      Layout.fillWidth: true
+
+      NText {
+        text: "Matugen Templates"
+        font.pointSize: Style.fontSizeXXL * scaling
+        font.weight: Style.fontWeightBold
+        color: Color.mSecondary
+      }
+
+      NText {
+        text: "Select which external components Matugen should apply theming to."
+        font.pointSize: Style.fontSizeM * scaling
+        color: Color.mOnSurfaceVariant
+        Layout.fillWidth: true
+        wrapMode: Text.WordWrap
       }
     }
 
-    stdout: StdioCollector {}
-    stderr: StdioCollector {}
+    NCheckbox {
+      label: "GTK 4 (libadwaita)"
+      description: "Write ~/.config/gtk-4.0/gtk.css"
+      checked: Settings.data.matugen.gtk4
+      onToggled: checked => {
+                   Settings.data.matugen.gtk4 = checked
+                   if (Settings.data.colorSchemes.useWallpaperColors)
+                   MatugenService.generateFromWallpaper()
+                 }
+    }
+
+    NCheckbox {
+      label: "GTK 3"
+      description: "Write ~/.config/gtk-3.0/gtk.css"
+      checked: Settings.data.matugen.gtk3
+      onToggled: checked => {
+                   Settings.data.matugen.gtk3 = checked
+                   if (Settings.data.colorSchemes.useWallpaperColors)
+                   MatugenService.generateFromWallpaper()
+                 }
+    }
+
+    NCheckbox {
+      label: "Qt6ct"
+      description: "Write ~/.config/qt6ct/colors/noctalia.conf"
+      checked: Settings.data.matugen.qt6
+      onToggled: checked => {
+                   Settings.data.matugen.qt6 = checked
+                   if (Settings.data.colorSchemes.useWallpaperColors)
+                   MatugenService.generateFromWallpaper()
+                 }
+    }
+
+    NCheckbox {
+      label: "Qt5ct"
+      description: "Write ~/.config/qt5ct/colors/noctalia.conf"
+      checked: Settings.data.matugen.qt5
+      onToggled: checked => {
+                   Settings.data.matugen.qt5 = checked
+                   if (Settings.data.colorSchemes.useWallpaperColors)
+                   MatugenService.generateFromWallpaper()
+                 }
+    }
+
+    NCheckbox {
+      label: "Kitty"
+      description: "Write ~/.config/kitty/themes/noctalia.conf and reload"
+      checked: Settings.data.matugen.kitty
+      onToggled: checked => {
+                   Settings.data.matugen.kitty = checked
+                   if (Settings.data.colorSchemes.useWallpaperColors)
+                   MatugenService.generateFromWallpaper()
+                 }
+    }
+
+    NCheckbox {
+      label: "Ghostty"
+      description: "Write ~/.config/ghostty/themes/noctalia and reload"
+      checked: Settings.data.matugen.ghostty
+      onToggled: checked => {
+                   Settings.data.matugen.ghostty = checked
+                   if (Settings.data.colorSchemes.useWallpaperColors)
+                   MatugenService.generateFromWallpaper()
+                 }
+    }
+
+    NCheckbox {
+      label: "Foot"
+      description: "Write ~/.config/foot/themes/noctalia and reload"
+      checked: Settings.data.matugen.foot
+      onToggled: checked => {
+                   Settings.data.matugen.foot = checked
+                   if (Settings.data.colorSchemes.useWallpaperColors)
+                   MatugenService.generateFromWallpaper()
+                 }
+    }
+
+    NCheckbox {
+      label: "Fuzzel"
+      description: "Write ~/.config/fuzzel/themes/noctalia and reload"
+      checked: Settings.data.matugen.fuzzel
+      onToggled: checked => {
+                   Settings.data.matugen.fuzzel = checked
+                   if (Settings.data.colorSchemes.useWallpaperColors)
+                   MatugenService.generateFromWallpaper()
+                 }
+    }
+
+    NCheckbox {
+      label: "Vesktop"
+      description: "Write ~/.config/vesktop/themes/noctalia.theme.css"
+      checked: Settings.data.matugen.vesktop
+      onToggled: checked => {
+                   Settings.data.matugen.vesktop = checked
+                   if (Settings.data.colorSchemes.useWallpaperColors)
+                   MatugenService.generateFromWallpaper()
+                 }
+    }
+
+    NDivider {
+      Layout.fillWidth: true
+      Layout.topMargin: Style.marginM * scaling
+      Layout.bottomMargin: Style.marginM * scaling
+    }
+
+    NCheckbox {
+      label: "User Templates"
+      description: "Enable user-defined Matugen config from ~/.config/matugen/config.toml"
+      checked: Settings.data.matugen.enableUserTemplates
+      onToggled: checked => {
+                   Settings.data.matugen.enableUserTemplates = checked
+                   if (Settings.data.colorSchemes.useWallpaperColors)
+                   MatugenService.generateFromWallpaper()
+                 }
+    }
   }
 }

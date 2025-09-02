@@ -14,18 +14,21 @@ Item {
   property color iconCircleColor: Color.mPrimary
   property color iconTextColor: Color.mSurface
   property color collapsedIconColor: Color.mOnSurface
-  property real sizeMultiplier: 0.8
+  property real sizeRatio: 0.8
   property bool autoHide: false
-  // When true, keep the pill expanded regardless of hover state
-  property bool forceShown: false
+  property bool forceOpen: false
+  property bool disableOpen: false
+  property bool rightOpen: false
+
   // Effective shown state (true if hovered/animated open or forced)
-  readonly property bool effectiveShown: forceShown || showPill
+  readonly property bool effectiveShown: forceOpen || showPill
 
   signal shown
   signal hidden
   signal entered
   signal exited
   signal clicked
+  signal rightClicked
   signal wheel(int delta)
 
   // Internal state
@@ -33,8 +36,8 @@ Item {
   property bool shouldAnimateHide: false
 
   // Exposed width logic
-  readonly property int pillHeight: Style.baseWidgetSize * sizeMultiplier * scaling
-  readonly property int iconSize: Style.baseWidgetSize * sizeMultiplier * scaling
+  readonly property int pillHeight: Style.baseWidgetSize * sizeRatio * scaling
+  readonly property int iconSize: Style.baseWidgetSize * sizeRatio * scaling
   readonly property int pillPaddingHorizontal: Style.marginM * scaling
   readonly property int pillOverlap: iconSize * 0.5
   readonly property int maxPillWidth: Math.max(1, textItem.implicitWidth + pillPaddingHorizontal * 2 + pillOverlap)
@@ -46,11 +49,17 @@ Item {
     id: pill
     width: effectiveShown ? maxPillWidth : 1
     height: pillHeight
-    x: (iconCircle.x + iconCircle.width / 2) - width
+
+    x: rightOpen ? (iconCircle.x + iconCircle.width / 2) : // Opens right
+                   (iconCircle.x + iconCircle.width / 2) - width // Opens left
+
     opacity: effectiveShown ? Style.opacityFull : Style.opacityNone
     color: pillColor
-    topLeftRadius: pillHeight * 0.5
-    bottomLeftRadius: pillHeight * 0.5
+
+    topLeftRadius: rightOpen ? 0 : pillHeight * 0.5
+    bottomLeftRadius: rightOpen ? 0 : pillHeight * 0.5
+    topRightRadius: rightOpen ? pillHeight * 0.5 : 0
+    bottomRightRadius: rightOpen ? pillHeight * 0.5 : 0
     anchors.verticalCenter: parent.verticalCenter
 
     NText {
@@ -85,9 +94,11 @@ Item {
     height: iconSize
     radius: width * 0.5
     // When forced shown, match pill background; otherwise use accent when hovered
-    color: forceShown ? pillColor : (showPill ? iconCircleColor : Color.mSurfaceVariant)
+    color: forceOpen ? pillColor : (showPill ? iconCircleColor : Color.mSurfaceVariant)
     anchors.verticalCenter: parent.verticalCenter
-    anchors.right: parent.right
+
+    anchors.left: rightOpen ? parent.left : undefined
+    anchors.right: rightOpen ? undefined : parent.right
 
     Behavior on color {
       ColorAnimation {
@@ -100,8 +111,11 @@ Item {
       text: root.icon
       font.pointSize: Style.fontSizeM * scaling
       // When forced shown, use pill text color; otherwise accent color when hovered
-      color: forceShown ? textColor : (showPill ? iconTextColor : Color.mOnSurface)
-      anchors.centerIn: parent
+      color: forceOpen ? textColor : (showPill ? iconTextColor : Color.mOnSurface)
+      // Center horizontally
+      x: (iconCircle.width - width) / 2
+      // Center vertically accounting for font metrics
+      y: (iconCircle.height - height) / 2 + (height - contentHeight) / 2
     }
   }
 
@@ -193,22 +207,30 @@ Item {
   MouseArea {
     anchors.fill: parent
     hoverEnabled: true
+    acceptedButtons: Qt.LeftButton | Qt.RightButton
     onEntered: {
-      if (!forceShown) {
+      root.entered()
+      tooltip.show()
+      if (disableOpen) {
+        return
+      }
+      if (!forceOpen) {
         showDelayed()
       }
-      tooltip.show()
-      root.entered()
     }
     onExited: {
-      if (!forceShown) {
+      root.exited()
+      if (!forceOpen) {
         hide()
       }
       tooltip.hide()
-      root.exited()
     }
-    onClicked: {
-      root.clicked()
+    onClicked: function (mouse) {
+      if (mouse.button === Qt.LeftButton) {
+        root.clicked()
+      } else if (mouse.button === Qt.RightButton) {
+        root.rightClicked()
+      }
     }
     onWheel: wheel => {
                root.wheel(wheel.angleDelta.y)
@@ -226,7 +248,7 @@ Item {
   }
 
   function hide() {
-    if (forceShown) {
+    if (forceOpen) {
       return
     }
     if (showPill) {
@@ -245,8 +267,8 @@ Item {
     }
   }
 
-  onForceShownChanged: {
-    if (forceShown) {
+  onForceOpenChanged: {
+    if (forceOpen) {
       // Immediately lock open without animations
       showAnim.stop()
       hideAnim.stop()

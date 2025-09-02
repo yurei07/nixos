@@ -9,7 +9,7 @@ Item {
   property color color: Color.mPrimary
   property int size: Style.baseWidgetSize * scaling
   property int strokeWidth: Style.borderL * scaling
-  property int duration: 1000
+  property int duration: Style.animationSlow * 2
 
   implicitWidth: size
   implicitHeight: size

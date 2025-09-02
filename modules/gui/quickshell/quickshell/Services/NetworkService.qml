@@ -16,6 +16,7 @@ Singleton {
   property string detectedInterface: ""
   property string lastConnectedNetwork: ""
   property bool isLoading: false
+  property bool ethernet: false
 
   Component.onCompleted: {
     Logger.log("Network", "Service started")
@@ -43,6 +44,7 @@ Singleton {
 
   function refreshNetworks() {
     isLoading = true
+    checkEthernet.running = true
     existingNetwork.running = true
   }
 
@@ -411,6 +413,24 @@ Singleton {
           root.connectError = "No Wi-Fi interface found."
           root.connectingSsid = ""
           root.pendingConnect = null
+        }
+      }
+    }
+  }
+
+  property Process checkEthernet: Process {
+    id: checkEthernet
+    running: false
+    command: ["nmcli", "-t", "-f", "DEVICE,TYPE,STATE", "device"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var lines = text.split("\n")
+        for (var i = 0; i < lines.length; ++i) {
+          var parts = lines[i].split(":")
+          if (parts[1] === "ethernet" && parts[2] === "connected") {
+            root.ethernet = true
+            break
+          }
         }
       }
     }

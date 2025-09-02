@@ -14,7 +14,8 @@ NPanel {
 
   panelWidth: 440 * scaling
   panelHeight: 380 * scaling
-  panelAnchorCentered: true
+  panelAnchorHorizontalCenter: true
+  panelAnchorVerticalCenter: true
 
   // Timer properties
   property int timerDuration: 9000 // 9 seconds
@@ -215,7 +216,7 @@ NPanel {
       if (pending)
         return Color.applyOpacity(Color.mPrimary, "20")
       if (mouseArea.containsMouse)
-        return Color.mTertiary
+        return Color.mSecondary
       return Color.transparent
     }
 
@@ -308,7 +309,8 @@ NPanel {
             return Color.mOnSurfaceVariant
           }
           opacity: Style.opacityHeavy
-          wrapMode: Text.WordWrap
+          wrapMode: Text.NoWrap
+          elide: Text.ElideRight
         }
       }
 

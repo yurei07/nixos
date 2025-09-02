@@ -16,23 +16,27 @@ Loader {
       id: root
 
       required property ShellScreen modelData
-      readonly property real scaling: ScalingService.scale(screen)
+      property real scaling: ScalingService.getScreenScale(screen)
       screen: modelData
 
-      // Visible color
-      property color ringColor: Qt.rgba(Color.mSurface.r, Color.mSurface.g, Color.mSurface.b,
-                                        Settings.data.bar.backgroundOpacity)
-      // The amount subtracted from full size for the inner cutout
-      // Inner size = full size - borderWidth (per axis)
-      property int borderWidth: Style.borderM
-      // Rounded radius for the inner cutout
-      property int innerRadius: 20
+      property color cornerColor: Qt.rgba(Color.mSurface.r, Color.mSurface.g, Color.mSurface.b,
+                                          Settings.data.bar.backgroundOpacity)
+      property real cornerRadius: 20 * scaling
+      property real cornerSize: 20 * scaling
+
+      Connections {
+        target: ScalingService
+        function onScaleChanged(screenName, scale) {
+          if (screenName === screen.name) {
+            scaling = scale
+          }
+        }
+      }
 
       color: Color.transparent
 
       WlrLayershell.exclusionMode: ExclusionMode.Ignore
       WlrLayershell.namespace: "quickshell-corner"
-      // Do not take keyboard focus and make the surface click-through
       WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
       anchors {
@@ -43,105 +47,202 @@ Loader {
       }
 
       margins {
-        top: ((modelData && Settings.data.bar.monitors.includes(modelData.name)) || (Settings.data.bar.monitors.length === 0))
-             && Settings.data.bar.position === "top" ? Math.floor(Style.barHeight * scaling) : 0
-        bottom: ((modelData && Settings.data.bar.monitors.includes(modelData.name)) || (Settings.data.bar.monitors.length === 0))
-                && Settings.data.bar.position === "bottom" ? Math.floor(Style.barHeight * scaling) : 0
+        top: ((modelData && Settings.data.bar.monitors.includes(modelData.name))
+              || (Settings.data.bar.monitors.length === 0)) && Settings.data.bar.position === "top"
+             && Settings.data.bar.backgroundOpacity > 0 ? Math.round(Style.barHeight * scaling) : 0
+        bottom: ((modelData && Settings.data.bar.monitors.includes(modelData.name))
+                 || (Settings.data.bar.monitors.length === 0)) && Settings.data.bar.position === "bottom"
+                && Settings.data.bar.backgroundOpacity > 0 ? Math.round(Style.barHeight * scaling) : 0
       }
 
-      // Source we want to show only as a ring
-      Rectangle {
-        id: overlaySource
-
-        anchors.fill: parent
-        color: root.ringColor
-      }
-
-      // Texture for overlaySource
-      ShaderEffectSource {
-        id: overlayTexture
-
-        anchors.fill: parent
-        sourceItem: overlaySource
-        hideSource: true
-        live: true
-        visible: false
-      }
-
-      // Mask via Canvas: paint opaque white, then punch rounded inner hole
+      // Top-left concave corner
       Canvas {
-        id: maskSource
-
-        anchors.fill: parent
+        id: topLeftCorner
+        anchors.top: parent.top
+        anchors.left: parent.left
+        width: cornerSize
+        height: cornerSize
         antialiasing: true
         renderTarget: Canvas.FramebufferObject
+        smooth: false
+
         onPaint: {
           const ctx = getContext("2d")
+          if (!ctx)
+            return
+
           ctx.reset()
           ctx.clearRect(0, 0, width, height)
-          // Solid white base (alpha=1)
-          ctx.globalCompositeOperation = "source-over"
-          ctx.fillStyle = "#ffffffff"
+
+          // Fill the entire area with the corner color
+          ctx.fillStyle = Qt.rgba(root.cornerColor.r, root.cornerColor.g, root.cornerColor.b, root.cornerColor.a)
           ctx.fillRect(0, 0, width, height)
-          // Punch hole using destination-out with rounded rect path
-          const x = Math.round(root.borderWidth / 2)
-          const y = Math.round(root.borderWidth / 2)
-          const w = Math.max(0, width - root.borderWidth)
-          const h = Math.max(0, height - root.borderWidth)
-          const r = Math.max(0, Math.min(root.innerRadius, Math.min(w, h) / 2))
+
+          // Cut out the rounded corner using destination-out
           ctx.globalCompositeOperation = "destination-out"
-          ctx.fillStyle = "#ffffffff"
+          ctx.fillStyle = "#ffffff"
           ctx.beginPath()
-          // rounded rectangle path using arcTo
-          ctx.moveTo(x + r, y)
-          ctx.lineTo(x + w - r, y)
-          ctx.arcTo(x + w, y, x + w, y + r, r)
-          ctx.lineTo(x + w, y + h - r)
-          ctx.arcTo(x + w, y + h, x + w - r, y + h, r)
-          ctx.lineTo(x + r, y + h)
-          ctx.arcTo(x, y + h, x, y + h - r, r)
-          ctx.lineTo(x, y + r)
-          ctx.arcTo(x, y, x + r, y, r)
-          ctx.closePath()
+          ctx.arc(width, height, root.cornerRadius, 0, 2 * Math.PI)
           ctx.fill()
         }
-        onWidthChanged: requestPaint()
-        onHeightChanged: requestPaint()
+
+        onWidthChanged: if (available)
+                          requestPaint()
+        onHeightChanged: if (available)
+                           requestPaint()
+
+        Connections {
+          target: root
+          function onCornerColorChanged() {
+            if (topLeftCorner.available)
+              topLeftCorner.requestPaint()
+          }
+          function onCornerRadiusChanged() {
+            if (topLeftCorner.available)
+              topLeftCorner.requestPaint()
+          }
+        }
       }
 
-      // Repaint mask when properties change
-      Connections {
-        function onBorderWidthChanged() {
-          maskSource.requestPaint()
+      // Top-right concave corner
+      Canvas {
+        id: topRightCorner
+        anchors.top: parent.top
+        anchors.right: parent.right
+        width: cornerSize
+        height: cornerSize
+        antialiasing: true
+        renderTarget: Canvas.FramebufferObject
+        smooth: true
+
+        onPaint: {
+          const ctx = getContext("2d")
+          if (!ctx)
+            return
+
+          ctx.reset()
+          ctx.clearRect(0, 0, width, height)
+
+          ctx.fillStyle = Qt.rgba(root.cornerColor.r, root.cornerColor.g, root.cornerColor.b, root.cornerColor.a)
+          ctx.fillRect(0, 0, width, height)
+
+          ctx.globalCompositeOperation = "destination-out"
+          ctx.fillStyle = "#ffffff"
+          ctx.beginPath()
+          ctx.arc(0, height, root.cornerRadius, 0, 2 * Math.PI)
+          ctx.fill()
         }
 
-        function onRingColorChanged() {}
+        onWidthChanged: if (available)
+                          requestPaint()
+        onHeightChanged: if (available)
+                           requestPaint()
 
-        function onInnerRadiusChanged() {
-          maskSource.requestPaint()
+        Connections {
+          target: root
+          function onCornerColorChanged() {
+            if (topRightCorner.available)
+              topRightCorner.requestPaint()
+          }
+          function onCornerRadiusChanged() {
+            if (topRightCorner.available)
+              topRightCorner.requestPaint()
+          }
+        }
+      }
+
+      // Bottom-left concave corner
+      Canvas {
+        id: bottomLeftCorner
+        anchors.bottom: parent.bottom
+        anchors.left: parent.left
+        width: cornerSize
+        height: cornerSize
+        antialiasing: true
+        renderTarget: Canvas.FramebufferObject
+        smooth: true
+
+        onPaint: {
+          const ctx = getContext("2d")
+          if (!ctx)
+            return
+
+          ctx.reset()
+          ctx.clearRect(0, 0, width, height)
+
+          ctx.fillStyle = Qt.rgba(root.cornerColor.r, root.cornerColor.g, root.cornerColor.b, root.cornerColor.a)
+          ctx.fillRect(0, 0, width, height)
+
+          ctx.globalCompositeOperation = "destination-out"
+          ctx.fillStyle = "#ffffff"
+          ctx.beginPath()
+          ctx.arc(width, 0, root.cornerRadius, 0, 2 * Math.PI)
+          ctx.fill()
         }
 
-        target: root
+        onWidthChanged: if (available)
+                          requestPaint()
+        onHeightChanged: if (available)
+                           requestPaint()
+
+        Connections {
+          target: root
+          function onCornerColorChanged() {
+            if (bottomLeftCorner.available)
+              bottomLeftCorner.requestPaint()
+          }
+          function onCornerRadiusChanged() {
+            if (bottomLeftCorner.available)
+              bottomLeftCorner.requestPaint()
+          }
+        }
       }
 
-      // Texture for maskSource; hides the original
-      ShaderEffectSource {
-        id: maskTexture
+      // Bottom-right concave corner
+      Canvas {
+        id: bottomRightCorner
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+        width: cornerSize
+        height: cornerSize
+        antialiasing: true
+        renderTarget: Canvas.FramebufferObject
+        smooth: true
 
-        anchors.fill: parent
-        sourceItem: maskSource
-        hideSource: true
-        live: true
-        visible: false
-      }
+        onPaint: {
+          const ctx = getContext("2d")
+          if (!ctx)
+            return
 
-      // Apply mask to show only the ring area
-      MultiEffect {
-        anchors.fill: parent
-        source: overlayTexture
-        maskEnabled: true
-        maskSource: maskTexture
-        maskInverted: false
+          ctx.reset()
+          ctx.clearRect(0, 0, width, height)
+
+          ctx.fillStyle = Qt.rgba(root.cornerColor.r, root.cornerColor.g, root.cornerColor.b, root.cornerColor.a)
+          ctx.fillRect(0, 0, width, height)
+
+          ctx.globalCompositeOperation = "destination-out"
+          ctx.fillStyle = "#ffffff"
+          ctx.beginPath()
+          ctx.arc(0, 0, root.cornerRadius, 0, 2 * Math.PI)
+          ctx.fill()
+        }
+
+        onWidthChanged: if (available)
+                          requestPaint()
+        onHeightChanged: if (available)
+                           requestPaint()
+
+        Connections {
+          target: root
+          function onCornerColorChanged() {
+            if (bottomRightCorner.available)
+              bottomRightCorner.requestPaint()
+          }
+          function onCornerRadiusChanged() {
+            if (bottomRightCorner.available)
+              bottomRightCorner.requestPaint()
+          }
+        }
       }
 
       mask: Region {}

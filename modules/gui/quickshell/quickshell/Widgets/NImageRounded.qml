@@ -20,6 +20,62 @@ Rectangle {
   radius: scaledRadius
   anchors.margins: Style.marginXXS * scaling
 
+  Rectangle {
+    color: Color.transparent
+    anchors.fill: parent
+
+    Image {
+      id: img
+      anchors.fill: parent
+      source: imagePath
+      visible: false // Hide since we're using it as shader source
+      mipmap: true
+      smooth: true
+      asynchronous: true
+      antialiasing: true
+      fillMode: Image.PreserveAspectCrop
+    }
+
+    ShaderEffect {
+      anchors.fill: parent
+
+      property var source: ShaderEffectSource {
+        sourceItem: img
+        hideSource: true
+        live: true
+        recursive: false
+        format: ShaderEffectSource.RGBA
+      }
+
+      // Use custom property names to avoid conflicts with final properties
+      property real itemWidth: root.width
+      property real itemHeight: root.height
+      property real cornerRadius: root.radius
+      property real imageOpacity: root.opacity
+      fragmentShader: Qt.resolvedUrl("../Shaders/qsb/rounded_image.frag.qsb")
+
+      // Qt6 specific properties - ensure proper blending
+      supportsAtlasTextures: false
+      blending: true
+      // Make sure the background is transparent
+      Rectangle {
+        id: background
+        anchors.fill: parent
+        color: "transparent"
+        z: -1
+      }
+    }
+
+    // Fallback icon
+    NIcon {
+      anchors.centerIn: parent
+      text: fallbackIcon
+      font.pointSize: Style.fontSizeXXL * scaling
+      visible: fallbackIcon !== undefined && fallbackIcon !== "" && (imagePath === undefined || imagePath === "")
+      z: 0
+    }
+  }
+
   // Border
   Rectangle {
     anchors.fill: parent
@@ -27,45 +83,7 @@ Rectangle {
     color: Color.transparent
     border.color: parent.borderColor
     border.width: parent.borderWidth
+    antialiasing: true
     z: 10
-  }
-
-  Image {
-    id: img
-    anchors.fill: parent
-    source: imagePath
-    visible: false
-    mipmap: true
-    smooth: true
-    asynchronous: true
-    fillMode: Image.PreserveAspectCrop
-  }
-
-  MultiEffect {
-    anchors.fill: parent
-    source: img
-    maskEnabled: true
-    maskSource: mask
-    visible: imagePath !== ""
-  }
-
-  Item {
-    id: mask
-    anchors.fill: parent
-    layer.enabled: true
-    visible: false
-    Rectangle {
-      anchors.fill: parent
-      radius: scaledRadius
-    }
-  }
-
-  // Fallback icon
-  NIcon {
-    anchors.centerIn: parent
-    text: fallbackIcon
-    font.pointSize: Style.fontSizeXXL * scaling
-    visible: fallbackIcon !== undefined && fallbackIcon !== "" && (imagePath === undefined || imagePath === "")
-    z: 0
   }
 }

@@ -33,7 +33,7 @@ QtObject {
         }
       } else {
         // Fallback to basic evaluation
-        console.log("AdvancedMath not available, using basic eval")
+        Logger.warn("Calculator", "AdvancedMath not available, using basic eval")
 
         // Basic preprocessing for common functions
         var processed = expression.trim(

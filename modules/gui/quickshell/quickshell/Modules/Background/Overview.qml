@@ -6,24 +6,34 @@ import qs.Commons
 import qs.Services
 import qs.Widgets
 
-Loader {
-  active: CompositorService.isNiri
+Variants {
+  model: Quickshell.screens
 
-  Component.onCompleted: {
-    if (CompositorService.isNiri) {
-      Logger.log("Overview", "Loading Overview component for Niri")
-    }
-  }
+  delegate: Loader {
+    required property ShellScreen modelData
 
-  sourceComponent: Variants {
-    model: Quickshell.screens
+    active: Settings.isLoaded && CompositorService.isNiri && modelData && Settings.data.wallpaper.enabled
 
-    delegate: PanelWindow {
-      required property ShellScreen modelData
-      property string wallpaperSource: WallpaperService.currentWallpaper !== ""
-                                       && !Settings.data.wallpaper.swww.enabled ? WallpaperService.currentWallpaper : ""
+    property string wallpaper: ""
 
-      visible: wallpaperSource !== "" && !Settings.data.wallpaper.swww.enabled
+    sourceComponent: PanelWindow {
+      Component.onCompleted: {
+        if (modelData) {
+          Logger.log("Overview", "Loading Overview component for Niri on", modelData.name)
+        }
+        wallpaper = modelData ? WallpaperService.getWallpaper(modelData.name) : ""
+      }
+
+      // External state management
+      Connections {
+        target: WallpaperService
+        function onWallpaperChanged(screenName, path) {
+          if (screenName === modelData.name) {
+            wallpaper = path
+          }
+        }
+      }
+
       color: Color.transparent
       screen: modelData
       WlrLayershell.layer: WlrLayer.Background
@@ -39,19 +49,15 @@ Loader {
 
       Image {
         id: bgImage
-
         anchors.fill: parent
         fillMode: Image.PreserveAspectCrop
-        source: wallpaperSource
-        cache: true
+        source: wallpaper
         smooth: true
         mipmap: false
-        visible: wallpaperSource !== ""
+        cache: false
       }
 
       MultiEffect {
-        id: overviewBgBlur
-
         anchors.fill: parent
         source: bgImage
         blurEnabled: true
@@ -59,9 +65,12 @@ Loader {
         blurMax: 128
       }
 
+      // Make the overview darker
       Rectangle {
         anchors.fill: parent
-        color: Qt.rgba(Color.mSurface.r, Color.mSurface.g, Color.mSurface.b, 0.5)
+        color: Settings.data.colorSchemes.darkMode ? Qt.rgba(Color.mSurface.r, Color.mSurface.g, Color.mSurface.b,
+                                                             0.5) : Qt.rgba(Color.mOnSurface.r, Color.mOnSurface.g,
+                                                                            Color.mOnSurface.b, 0.5)
       }
     }
   }

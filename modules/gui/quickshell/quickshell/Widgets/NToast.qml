@@ -2,8 +2,10 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtQuick.Effects
+import Quickshell
 import qs.Commons
 import qs.Widgets
+import qs.Services
 
 Item {
   id: root
@@ -14,7 +16,8 @@ Item {
   property int duration: 5000 // Auto-hide after 5 seconds, 0 = no auto-hide
   property bool persistent: false // If true, requires manual dismiss
 
-  property real scaling: 1.0 // Will be set by parent
+  required property ShellScreen screen
+  property real scaling: 1.0
 
   // Animation properties
   property real targetY: 0
@@ -31,6 +34,9 @@ Item {
   z: 1000 // High z-index to appear above everything
 
   function show() {
+    // NToast updates its scaling when showing.
+    scaling = ScalingService.getScreenScale(screen)
+
     visible = true
     showAnimation.start()
     if (duration > 0 && !persistent) {
@@ -150,7 +156,7 @@ Item {
           id: labelText
           text: root.label
           color: Color.mOnSurface
-          font.pointSize: Style.fontSize * scaling
+          font.pointSize: Style.fontSizeM * scaling
           font.weight: Style.fontWeightBold
           wrapMode: Text.WordWrap
           width: parent.width
@@ -161,7 +167,7 @@ Item {
           id: descriptionText
           text: root.description
           color: Color.mOnSurface
-          font.pointSize: Style.fontSize * scaling
+          font.pointSize: Style.fontSizeM * scaling
           wrapMode: Text.WordWrap
           width: parent.width
           visible: text.length > 0
@@ -176,8 +182,8 @@ Item {
 
         color: Color.mOnSurface
 
-        fontPointSize: Style.fontSize * scaling
-        sizeMultiplier: 0.8
+        fontPointSize: Style.fontSizeM * scaling
+        sizeRatio: 0.8
         Layout.alignment: Qt.AlignTop
 
         onClicked: hide()

@@ -47,6 +47,8 @@ Singleton {
   // -----------
   function applyOpacity(color, opacity) {
     // Convert color to string and apply opacity
+    if (!color)
+      return "transparent"
     return color.toString().replace("#", "#" + opacity)
   }
 

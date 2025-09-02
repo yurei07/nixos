@@ -29,7 +29,7 @@ NPanel {
 
       NIconButton {
         icon: "chevron_left"
-        tooltipText: "Previous Month"
+        tooltipText: "Previous month"
         onClicked: {
           let newDate = new Date(grid.year, grid.month - 1, 1)
           grid.year = newDate.getFullYear()
@@ -48,7 +48,7 @@ NPanel {
 
       NIconButton {
         icon: "chevron_right"
-        tooltipText: "Next Month"
+        tooltipText: "Next month"
         onClicked: {
           let newDate = new Date(grid.year, grid.month + 1, 1)
           grid.year = newDate.getFullYear()
@@ -103,17 +103,6 @@ NPanel {
       month: Time.date.getMonth()
       year: Time.date.getFullYear()
       locale: Qt.locale() // Use system locale
-
-      // Optionally, update when the panel becomes visible
-      Connections {
-        target: calendarPanel
-        function onVisibleChanged() {
-          if (calendarPanel.visible) {
-            grid.month = Time.date.getMonth()
-            grid.year = Time.date.getFullYear()
-          }
-        }
-      }
 
       delegate: Rectangle {
         width: (Style.baseWidgetSize * scaling)

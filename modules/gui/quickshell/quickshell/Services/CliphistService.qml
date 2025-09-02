@@ -12,8 +12,12 @@ Singleton {
   // Public API
   property var items: [] // [{id, preview, mime, isImage}]
   property bool loading: false
-  // Active only when feature is enabled and settings have finished initial load
-  property bool active: Settings.data.appLauncher.enableClipboardHistory && !Settings.isInitialLoad
+  // Active only when feature is enabled, settings have finished initial load, and cliphist is available
+  property bool active: Settings.data.appLauncher.enableClipboardHistory && Settings.isLoaded && cliphistAvailable
+
+  // Check if cliphist is available on the system
+  property bool cliphistAvailable: false
+  property bool dependencyChecked: false
 
   // Optional automatic watchers to feed cliphist DB
   property bool autoWatch: true
@@ -22,6 +26,9 @@ Singleton {
   // Expose decoded thumbnails by id and a revision to notify bindings
   property var imageDataById: ({})
   property int revision: 0
+
+  // Approximate first-seen timestamps for entries this session (seconds)
+  property var firstSeenById: ({})
 
   // Internal: store callback for decode
   property var _decodeCallback: null
@@ -32,12 +39,48 @@ Singleton {
   property string _b64CurrentMime: ""
   property string _b64CurrentId: ""
 
-  // Start/stop watchers when enabled changes
+  // Check if cliphist is available
   Component.onCompleted: {
-    if (root.active) startWatchers()
+    checkCliphistAvailability()
   }
+
+  // Check dependency availability
+  function checkCliphistAvailability() {
+    if (dependencyChecked)
+      return
+
+    dependencyCheckProcess.command = ["which", "cliphist"]
+    dependencyCheckProcess.running = true
+  }
+
+  // Process to check if cliphist is available
+  Process {
+    id: dependencyCheckProcess
+    stdout: StdioCollector {}
+    onExited: (exitCode, exitStatus) => {
+      root.dependencyChecked = true
+      if (exitCode === 0) {
+        root.cliphistAvailable = true
+        // Start watchers if feature is enabled
+        if (root.active) {
+          startWatchers()
+        }
+      } else {
+        root.cliphistAvailable = false
+        // Show toast notification if feature is enabled but cliphist is missing
+        if (Settings.data.appLauncher.enableClipboardHistory) {
+          ToastService.showWarning(
+            "Clipboard History Unavailable",
+            "The 'cliphist' application is not installed. Please install it to use clipboard history features.",
+            false, 6000)
+        }
+      }
+    }
+  }
+
+  // Start/stop watchers when enabled changes
   onActiveChanged: {
-    if (root.active) {
+    if (root.active && root.cliphistAvailable) {
       startWatchers()
     } else {
       stopWatchers()
@@ -51,7 +94,7 @@ Singleton {
   Timer {
     interval: 5000
     repeat: true
-    running: root.active
+    running: root.active && root.cliphistAvailable
     onTriggered: list()
   }
 
@@ -64,30 +107,44 @@ Singleton {
       const lines = out.split('\n').filter(l => l.length > 0)
       // cliphist list default format: "<id> <preview>" or "<id>\t<preview>"
       const parsed = lines.map(l => {
-        let id = ""
-        let preview = ""
-        const m = l.match(/^(\d+)\s+(.+)$/)
-        if (m) {
-          id = m[1]
-          preview = m[2]
-        } else {
-          const tab = l.indexOf('\t')
-          id = tab > -1 ? l.slice(0, tab) : l
-          preview = tab > -1 ? l.slice(tab + 1) : ""
-        }
-        const lower = preview.toLowerCase()
-        const isImage = lower.startsWith("[image]") || lower.includes(" binary data ")
-        // Best-effort mime guess from preview
-        var mime = "text/plain"
-        if (isImage) {
-          if (lower.includes(" png")) mime = "image/png"
-          else if (lower.includes(" jpg") || lower.includes(" jpeg")) mime = "image/jpeg"
-          else if (lower.includes(" webp")) mime = "image/webp"
-          else if (lower.includes(" gif")) mime = "image/gif"
-          else mime = "image/*"
-        }
-        return { id, preview, isImage, mime }
-      })
+                                 let id = ""
+                                 let preview = ""
+                                 const m = l.match(/^(\d+)\s+(.+)$/)
+                                 if (m) {
+                                   id = m[1]
+                                   preview = m[2]
+                                 } else {
+                                   const tab = l.indexOf('\t')
+                                   id = tab > -1 ? l.slice(0, tab) : l
+                                   preview = tab > -1 ? l.slice(tab + 1) : ""
+                                 }
+                                 const lower = preview.toLowerCase()
+                                 const isImage = lower.startsWith("[image]") || lower.includes(" binary data ")
+                                 // Best-effort mime guess from preview
+                                 var mime = "text/plain"
+                                 if (isImage) {
+                                   if (lower.includes(" png"))
+                                   mime = "image/png"
+                                   else if (lower.includes(" jpg") || lower.includes(" jpeg"))
+                                   mime = "image/jpeg"
+                                   else if (lower.includes(" webp"))
+                                   mime = "image/webp"
+                                   else if (lower.includes(" gif"))
+                                   mime = "image/gif"
+                                   else
+                                   mime = "image/*"
+                                 }
+                                 // Record first seen time for new ids (approximate copy time)
+                                 if (!root.firstSeenById[id]) {
+                                   root.firstSeenById[id] = Time.timestamp
+                                 }
+                                 return {
+                                   "id": id,
+                                   "preview": preview,
+                                   "isImage": isImage,
+                                   "mime": mime
+                                 }
+                               })
       items = parsed
       loading = false
     }
@@ -99,7 +156,11 @@ Singleton {
     onExited: (exitCode, exitStatus) => {
       const out = String(stdout.text)
       if (root._decodeCallback) {
-        try { root._decodeCallback(out) } finally { root._decodeCallback = null }
+        try {
+          root._decodeCallback(out)
+        } finally {
+          root._decodeCallback = null
+        }
       }
     }
   }
@@ -117,7 +178,11 @@ Singleton {
       const b64 = String(stdout.text).trim()
       if (root._b64CurrentCb) {
         const url = `data:${root._b64CurrentMime};base64,${b64}`
-        try { root._b64CurrentCb(url) } finally { /* noop */ }
+        try {
+          root._b64CurrentCb(url)
+        } finally {
+
+          /* noop */ }
       }
       if (root._b64CurrentId !== "") {
         root.imageDataById[root._b64CurrentId] = `data:${root._b64CurrentMime};base64,${b64}`
@@ -136,19 +201,26 @@ Singleton {
     stdout: StdioCollector {}
     onExited: (exitCode, exitStatus) => {
       // Auto-restart if watcher dies
-      if (root.autoWatch) Qt.callLater(() => { running = true })
+      if (root.autoWatch)
+      Qt.callLater(() => {
+                     running = true
+                   })
     }
   }
   Process {
     id: watchImage
     stdout: StdioCollector {}
     onExited: (exitCode, exitStatus) => {
-      if (root.autoWatch) Qt.callLater(() => { running = true })
+      if (root.autoWatch)
+      Qt.callLater(() => {
+                     running = true
+                   })
     }
   }
 
   function startWatchers() {
-    if (!root.active || !autoWatch || watchersStarted) return
+    if (!root.active || !autoWatch || watchersStarted || !root.cliphistAvailable)
+      return
     watchersStarted = true
     // Start text watcher
     watchText.command = ["wl-paste", "--type", "text", "--watch", "cliphist", "store"]
@@ -159,15 +231,19 @@ Singleton {
   }
 
   function stopWatchers() {
-    if (!watchersStarted) return
+    if (!watchersStarted)
+      return
     watchText.running = false
     watchImage.running = false
     watchersStarted = false
   }
 
   function list(maxPreviewWidth) {
-    if (!root.active) { return }
-    if (listProc.running) return
+    if (!root.active || !root.cliphistAvailable) {
+      return
+    }
+    if (listProc.running)
+      return
     loading = true
     const width = maxPreviewWidth || 100
     listProc.command = ["cliphist", "list", "-preview-width", String(width)]
@@ -175,26 +251,42 @@ Singleton {
   }
 
   function decode(id, cb) {
+    if (!root.cliphistAvailable) {
+      if (cb)
+        cb("")
+      return
+    }
     root._decodeCallback = cb
     decodeProc.command = ["cliphist", "decode", id]
     decodeProc.running = true
   }
 
   function decodeToDataUrl(id, mime, cb) {
+    if (!root.cliphistAvailable) {
+      if (cb)
+        cb("")
+      return
+    }
     // If cached, return immediately
     if (root.imageDataById[id]) {
-      if (cb) cb(root.imageDataById[id])
+      if (cb)
+        cb(root.imageDataById[id])
       return
     }
     // Queue request; ensures single process handles sequentially
-    root._b64Queue.push({ id, mime: mime || "image/*", cb })
+    root._b64Queue.push({
+                          "id": id,
+                          "mime": mime || "image/*",
+                          "cb": cb
+                        })
     if (!decodeB64Proc.running && root._b64CurrentCb === null) {
       _startNextB64()
     }
   }
 
   function _startNextB64() {
-    if (root._b64Queue.length === 0) return
+    if (root._b64Queue.length === 0 || !root.cliphistAvailable)
+      return
     const job = root._b64Queue.shift()
     root._b64CurrentCb = job.cb
     root._b64CurrentMime = job.mime
@@ -204,20 +296,27 @@ Singleton {
   }
 
   function copyToClipboard(id) {
+    if (!root.cliphistAvailable) {
+      return
+    }
     // decode and pipe to wl-copy; implement via shell to preserve binary
     copyProc.command = ["sh", "-lc", `cliphist decode ${id} | wl-copy`]
     copyProc.running = true
   }
 
   function deleteById(id) {
+    if (!root.cliphistAvailable) {
+      return
+    }
     Quickshell.execDetached(["cliphist", "delete", id])
     Qt.callLater(() => list())
   }
 
   function wipeAll() {
+    if (!root.cliphistAvailable) {
+      return
+    }
     Quickshell.execDetached(["cliphist", "wipe"])
     Qt.callLater(() => list())
   }
 }
-
-
