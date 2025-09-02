@@ -67,6 +67,10 @@ in
         "$mod SHIFT, 0, movetoworkspace, 10"
 	      "$mod, S, togglespecialworkspace, magic"
       	"$mod SHIFT, S, movetoworkspace, special:magic"
+
+        # Thinkpad 
+        ", XF86MonBrightnessUp, exec, brightnessctl set 5%+"
+        ", XF86MonBrightnessDown, exec, brightnessctl set 5%-"
       ];
 
       bindm = [

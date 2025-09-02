@@ -837,6 +837,22 @@
         "type": "github"
       }
     },
+    "nixos-hardware": {
+      "locked": {
+        "lastModified": 1756750488,
+        "narHash": "sha256-e4ZAu2sjOtGpvbdS5zo+Va5FUUkAnizl4wb0/JlIL2I=",
+        "owner": "NixOS",
+        "repo": "nixos-hardware",
+        "rev": "47eb4856cfd01eaeaa7bb5944a0f27db8fb9b94a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "master",
+        "repo": "nixos-hardware",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1756266583,
@@ -1043,6 +1059,7 @@
         "kanso-nvim": "kanso-nvim",
         "lazyvim": "lazyvim",
         "nixcord": "nixcord",
+        "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_5",
         "quickshell": "quickshell",
         "spicetify-nix": "spicetify-nix",

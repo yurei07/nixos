@@ -8,7 +8,8 @@ in
       ./hardware-configuration.nix
 
       # nixos modules
-      ./nix-modules/nvidia.nix
+      ./nix-modules/nvidia.nix # if you dont use nvidia then comment it 
+      #./nix-modules/intel.nix
       ./nix-modules/bluetooth.nix
       ./nix-modules/users.nix
       ./nix-modules/fonts.nix
