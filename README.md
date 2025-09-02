@@ -38,7 +38,6 @@ I created my own dotfiles on nixos :)
 
 ![nixos](assets/nixos/2025-08-18-111913_hyprshot.png)
 
-![nixos](assets/nixos/2025-08-18-112044_hyprshot.png)
 
 
 
