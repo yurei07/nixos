@@ -28,6 +28,7 @@ in
   boot.loader.efi.canTouchEfiVariables = true;
 
   networking.hostName = "server"; # Define your hostname.
+  systemd.services.copyparty.serviceConfig.AmbientCapabilities = "CAP_NET_BIND_SERVICE";
 
   # Configure network connections interactively with nmcli or nmtui.
   networking.networkmanager = {
@@ -39,17 +40,6 @@ in
     enable = true;
     package = pkgs.nix-serve-ng;
     openFirewall = true;
-  };
-
-  nix.settings = {
-    auto-optimise-store = true;
-
-    # Enable flakes
-    experimental-features = [
-      "nix-command"
-      "flakes"
-    ];
-
   };
 
   nix.gc = {
@@ -116,10 +106,11 @@ in
       dedup = true;
       magic = true;
       ftp = 21;
+      ah-salt = "SesqXgW+cpEYA0SMdYtTHYJr";
     };
     accounts = {
-      prizrak.passwordFile = "${pkgs.writeText "prizrak_pass" "+3Wu0D453mzpG7CTgB5mml4UBLYfaNKju"}";
-      sanic.passwordFile = "${pkgs.writeText "sanic_pass" "+EnF0Iny3Dz4oavfIrdmesBfoZd4mjgYc"}";
+      prizrak.passwordFile = "${pkgs.writeText "prizrak_pass" "+pmt271ds4v_hm-I8F45TwVCPThXGnm92"}";
+      sanic.passwordFile = "${pkgs.writeText "sanic_pass" "+5TcDaZpTJskKBXO27b1KqTR31AUxpewM"}";
     };
     volumes = {
       # create a volume at "/" (the webroot), which will
@@ -192,6 +183,10 @@ in
     auto-optimise-store = true;
     substituters = [ "https://hyprland.cachix.org" ];
     trusted-public-keys = [ "hyprland.cachix.org-1:a7pgxzMz7+chwVL3/pzj6jIBMioiJM7ypFP8PwtkuGc=" ];
+    # Enable flakes
+    experimental-features = [
+      "nix-command"
+      "flakes" ];
   };
 
   services.openssh.enable = true;
@@ -232,4 +227,5 @@ in
   system.stateVersion = "25.11";
 
 }
+
 

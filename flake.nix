@@ -11,6 +11,7 @@
     lazyvim.url = "github:pfassina/lazyvim-nix";
     textfox.url = "github:adriankarlen/textfox";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+    seanime.url = "github:rishabh5321/seanime-flake";
 
     spicetify-nix = {
       url = "github:Gerg-L/spicetify-nix";
