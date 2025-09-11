@@ -1,20 +1,26 @@
-{ config, lib, pkgs, nixpkgs, inputs, ... }:
-let 
+{
+  config,
+  lib,
+  pkgs,
+  nixpkgs,
+  inputs,
+  ...
+}:
+let
   Theme = import ../../modules/gui/gtk/packages_theme.nix { inherit pkgs; };
 in
 {
-  imports =
-    [
-      ./hardware-configuration.nix
+  imports = [
+    ./hardware-configuration.nix
 
-      # nixos modules
-      ./nix-modules/nvidia.nix
-      ./nix-modules/bluetooth.nix
-      ./nix-modules/users.nix
-      ./nix-modules/fonts.nix
-      ./nix-modules/audio.nix
-      ./nix-modules/lightdm.nix
-    ];
+    # nixos modules
+    ./nix-modules/intel.nix
+    ./nix-modules/bluetooth.nix
+    ./nix-modules/users.nix
+    ./nix-modules/fonts.nix
+    ./nix-modules/audio.nix
+    ./nix-modules/lightdm.nix
+  ];
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -24,9 +30,13 @@ in
   xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
   xdg.portal.config.common.default = "*";
 
+  services.upower.enable = true;
   nixpkgs.config.allowUnfree = true;
 
-  nix.settings.experimental-features = ["nix-command" "flakes"]; 
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 
   services.dbus.packages = with pkgs; [ dconf ];
   services.gnome.gnome-keyring.enable = true;
@@ -49,9 +59,8 @@ in
   };
 
   # home-manager
-  home-manager.users.Prizrak = import ./home/home-configuration.nix;
+  home-manager.users.laptop_Prizrak = import ./home/home-configuration.nix;
 
   system.stateVersion = "25.05"; # Did you read the comment?
 
 }
-

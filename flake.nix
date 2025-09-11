@@ -60,7 +60,8 @@
           inherit system;
           modules = [
             ./hosts/Prizrak/configuration.nix
-            #inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t480
+            #./hosts/laptop_Prizrak/configuration.nix # Laptop user
+            #inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t480 Laptop model
             inputs.home-manager.nixosModules.home-manager
             {
               home-manager = {
