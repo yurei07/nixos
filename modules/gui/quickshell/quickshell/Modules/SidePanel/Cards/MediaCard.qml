@@ -10,15 +10,11 @@ import qs.Widgets
 NBox {
   id: root
 
-  Layout.fillWidth: true
-  Layout.fillHeight: true
-
   ColumnLayout {
     anchors.fill: parent
-    Layout.fillHeight: true
     anchors.margins: Style.marginL * scaling
 
-    // Fallback
+    // No media player detected
     ColumnLayout {
       id: fallback
 
@@ -31,8 +27,8 @@ NBox {
       }
 
       NIcon {
-        text: "album"
-        font.pointSize: Style.fontSizeXXXL * 2.5 * scaling
+        icon: "disc"
+        font.pointSize: Style.fontSizeXXXL * 3 * scaling
         color: Color.mPrimary
         Layout.alignment: Qt.AlignHCenter
       }
@@ -89,7 +85,7 @@ NBox {
         indicator: NIcon {
           x: playerSelector.width - width
           y: playerSelector.topPadding + (playerSelector.availableHeight - height) / 2
-          text: "arrow_drop_down"
+          icon: "caret-down"
           font.pointSize: Style.fontSizeXXL * scaling
           color: Color.mOnSurface
           horizontalAlignment: Text.AlignRight
@@ -156,22 +152,22 @@ NBox {
           color: trackArt.visible ? Color.mPrimary : Color.transparent
           clip: true
 
+          // Can't use fallback icon here, as we have a big disc behind
           NImageCircled {
             id: trackArt
-            visible: MediaService.trackArtUrl.toString() !== ""
+            visible: MediaService.trackArtUrl !== ""
             anchors.fill: parent
             anchors.margins: Style.marginXS * scaling
             imagePath: MediaService.trackArtUrl
-            fallbackIcon: "music_note"
             borderColor: Color.mOutline
             borderWidth: Math.max(1, Style.borderS * scaling)
           }
 
           // Fallback icon when no album art available
           NIcon {
-            text: "album"
+            icon: "disc"
             color: Color.mPrimary
-            font.pointSize: Style.fontSizeL * 12 * scaling
+            font.pointSize: Style.fontSizeXXXL * 3 * scaling
             visible: !trackArt.visible
             anchors.centerIn: parent
           }
@@ -307,7 +303,7 @@ NBox {
 
         // Previous button
         NIconButton {
-          icon: "skip_previous"
+          icon: "media-prev"
           tooltipText: "Previous Media"
           visible: MediaService.canGoPrevious
           onClicked: MediaService.canGoPrevious ? MediaService.previous() : {}
@@ -315,7 +311,7 @@ NBox {
 
         // Play/Pause button
         NIconButton {
-          icon: MediaService.isPlaying ? "pause" : "play_arrow"
+          icon: MediaService.isPlaying ? "media-pause" : "media-play"
           tooltipText: MediaService.isPlaying ? "Pause" : "Play"
           visible: (MediaService.canPlay || MediaService.canPause)
           onClicked: (MediaService.canPlay || MediaService.canPause) ? MediaService.playPause() : {}
@@ -323,7 +319,7 @@ NBox {
 
         // Next button
         NIconButton {
-          icon: "skip_next"
+          icon: "media-next"
           tooltipText: "Next media"
           visible: MediaService.canGoNext
           onClicked: MediaService.canGoNext ? MediaService.next() : {}

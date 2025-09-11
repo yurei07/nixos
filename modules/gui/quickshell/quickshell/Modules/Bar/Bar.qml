@@ -54,8 +54,7 @@ Variants {
           id: bar
 
           anchors.fill: parent
-          color: Qt.rgba(Color.mSurface.r, Color.mSurface.g, Color.mSurface.b, Settings.data.bar.backgroundOpacity)
-          layer.enabled: true
+          color: Qt.alpha(Color.mSurface, Settings.data.bar.backgroundOpacity)
         }
 
         // ------------------------------
@@ -73,10 +72,11 @@ Variants {
           Repeater {
             model: Settings.data.bar.widgets.left
             delegate: NWidgetLoader {
-              widgetName: modelData
+              widgetId: (modelData.id !== undefined ? modelData.id : "")
               widgetProps: {
                 "screen": root.modelData || null,
                 "scaling": ScalingService.getScreenScale(screen),
+                "widgetId": modelData.id,
                 "barSection": parent.objectName,
                 "sectionWidgetIndex": index,
                 "sectionWidgetsCount": Settings.data.bar.widgets.left.length
@@ -100,11 +100,11 @@ Variants {
           Repeater {
             model: Settings.data.bar.widgets.center
             delegate: NWidgetLoader {
-
-              widgetName: modelData
+              widgetId: (modelData.id !== undefined ? modelData.id : "")
               widgetProps: {
                 "screen": root.modelData || null,
                 "scaling": ScalingService.getScreenScale(screen),
+                "widgetId": modelData.id,
                 "barSection": parent.objectName,
                 "sectionWidgetIndex": index,
                 "sectionWidgetsCount": Settings.data.bar.widgets.center.length
@@ -129,10 +129,11 @@ Variants {
           Repeater {
             model: Settings.data.bar.widgets.right
             delegate: NWidgetLoader {
-              widgetName: modelData
+              widgetId: (modelData.id !== undefined ? modelData.id : "")
               widgetProps: {
                 "screen": root.modelData || null,
                 "scaling": ScalingService.getScreenScale(screen),
+                "widgetId": modelData.id,
                 "barSection": parent.objectName,
                 "sectionWidgetIndex": index,
                 "sectionWidgetsCount": Settings.data.bar.widgets.right.length

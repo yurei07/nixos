@@ -3,6 +3,8 @@ import Quickshell
 import Quickshell.Wayland
 import qs.Commons
 import qs.Services
+import qs.Modules.SettingsPanel
+import qs.Widgets
 
 Variants {
   id: backgroundVariants
@@ -104,8 +106,7 @@ Variants {
         mipmap: false
         visible: false
         cache: false
-        // currentWallpaper should not be asynchronous to avoid flickering when swapping next to current.
-        asynchronous: false
+        asynchronous: true
       }
 
       Image {
@@ -138,7 +139,7 @@ Variants {
         property real screenWidth: width
         property real screenHeight: height
 
-        fragmentShader: Qt.resolvedUrl("../../Shaders/qsb/wp_fade.frag.qsb")
+        fragmentShader: Qt.resolvedUrl(Quickshell.shellDir + "/Shaders/qsb/wp_fade.frag.qsb")
       }
 
       // Wipe transition shader
@@ -163,7 +164,7 @@ Variants {
         property real screenWidth: width
         property real screenHeight: height
 
-        fragmentShader: Qt.resolvedUrl("../../Shaders/qsb/wp_wipe.frag.qsb")
+        fragmentShader: Qt.resolvedUrl(Quickshell.shellDir + "/Shaders/qsb/wp_wipe.frag.qsb")
       }
 
       // Disc reveal transition shader
@@ -190,7 +191,7 @@ Variants {
         property real screenWidth: width
         property real screenHeight: height
 
-        fragmentShader: Qt.resolvedUrl("../../Shaders/qsb/wp_disc.frag.qsb")
+        fragmentShader: Qt.resolvedUrl(Quickshell.shellDir + "/Shaders/qsb/wp_disc.frag.qsb")
       }
 
       // Diagonal stripes transition shader
@@ -217,7 +218,7 @@ Variants {
         property real screenWidth: width
         property real screenHeight: height
 
-        fragmentShader: Qt.resolvedUrl("../../Shaders/qsb/wp_stripes.frag.qsb")
+        fragmentShader: Qt.resolvedUrl(Quickshell.shellDir + "/Shaders/qsb/wp_stripes.frag.qsb")
       }
 
       // Animation for the transition progress
@@ -236,12 +237,9 @@ Variants {
           currentWallpaper.source = nextWallpaper.source
           nextWallpaper.source = ""
           transitionProgress = 0.0
-        }
-      }
-
-      function startTransition() {
-        if (!transitioning && nextWallpaper.source != currentWallpaper.source) {
-          transitionAnimation.start()
+          Qt.callLater(() => {
+                         currentWallpaper.asynchronous = true
+                       })
         }
       }
 
@@ -253,19 +251,21 @@ Variants {
       }
 
       function setWallpaperWithTransition(source) {
-        if (source != currentWallpaper.source) {
-
-          if (transitioning) {
-            // We are interrupting a transition
-            transitionAnimation.stop()
-            transitionProgress = 0
-            currentWallpaper.source = nextWallpaper.source
-            nextWallpaper.source = ""
-          }
-
-          nextWallpaper.source = source
-          startTransition()
+        if (source === currentWallpaper.source) {
+          return
         }
+
+        if (transitioning) {
+          // We are interrupting a transition
+          transitionAnimation.stop()
+          transitionProgress = 0
+          currentWallpaper.source = nextWallpaper.source
+          nextWallpaper.source = ""
+        }
+
+        nextWallpaper.source = source
+        currentWallpaper.asynchronous = false
+        transitionAnimation.start()
       }
 
       // Main method that actually trigger the wallpaper change

@@ -181,7 +181,7 @@ ColumnLayout {
           visible: isSelected
 
           NIcon {
-            text: "check"
+            icon: "check"
             font.pointSize: Style.fontSizeM * scaling
             font.weight: Style.fontWeightBold
             color: Color.mOnSecondary
@@ -210,9 +210,9 @@ ColumnLayout {
           hoverEnabled: true
           onPressed: {
             if (Settings.data.wallpaper.setWallpaperOnAllMonitors) {
-              WallpaperService.changeWallpaper(undefined, wallpaperPath)
+              WallpaperService.changeWallpaper(wallpaperPath, undefined)
             } else if (screen) {
-              WallpaperService.changeWallpaper(screen.name, wallpaperPath)
+              WallpaperService.changeWallpaper(wallpaperPath, screen.name)
             }
           }
         }
@@ -246,8 +246,8 @@ ColumnLayout {
       }
 
       NIcon {
-        text: "folder_open"
-        font.pointSize: Style.fontSizeXL * scaling
+        icon: "folder-open"
+        font.pointSize: Style.fontSizeXXL * scaling
         color: Color.mOnSurface
         Layout.alignment: Qt.AlignHCenter
       }

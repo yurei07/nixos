@@ -24,10 +24,8 @@
     ../../../modules/tui/nh
     ../../../modules/tui/neofetch
 
-    inputs.seanime.nixosModules.seanime
   ];
 
-  modules.home.services.seanime.enable = true;
 
   systemd.user.services.polkit_mate = {
     Install = {

@@ -13,14 +13,13 @@ NIconButton {
   property ShellScreen screen
   property real scaling: 1.0
 
-  visible: Settings.data.network.bluetoothEnabled
   sizeRatio: 0.8
   colorBg: Color.mSurfaceVariant
   colorFg: Color.mOnSurface
   colorBorder: Color.transparent
   colorBorderHover: Color.transparent
 
-  icon: "bluetooth"
-  tooltipText: "Bluetooth devices"
-  onClicked: PanelService.getPanel("bluetoothPanel")?.toggle(screen, this)
+  icon: Settings.data.network.bluetoothEnabled ? "bluetooth" : "bluetooth-off"
+  tooltipText: "Bluetooth devices."
+  onClicked: PanelService.getPanel("bluetoothPanel")?.toggle(this)
 }

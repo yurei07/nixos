@@ -13,4 +13,5 @@ Text {
   font.kerning: true
   color: Color.mOnSurface
   renderType: Text.QtRendering
+  verticalAlignment: Text.AlignVCenter
 }

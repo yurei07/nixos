@@ -11,8 +11,28 @@ import qs.Services
 Item {
   id: root
 
-  property ShellScreen screen: null
+  property ShellScreen screen
   property real scaling: 1.0
+
+  // Widget properties passed from Bar.qml for per-instance settings
+  property string widgetId: ""
+  property string barSection: ""
+  property int sectionWidgetIndex: -1
+  property int sectionWidgetsCount: 0
+
+  property var widgetMetadata: BarWidgetRegistry.widgetMetadata[widgetId]
+  property var widgetSettings: {
+    var section = barSection.replace("Section", "").toLowerCase()
+    if (section && sectionWidgetIndex >= 0) {
+      var widgets = Settings.data.bar.widgets[section]
+      if (widgets && sectionWidgetIndex < widgets.length) {
+        return widgets[sectionWidgetIndex]
+      }
+    }
+    return {}
+  }
+
+  readonly property string labelMode: (widgetSettings.labelMode !== undefined) ? widgetSettings.labelMode : widgetMetadata.labelMode
 
   property bool isDestroying: false
   property bool hovered: false
@@ -22,8 +42,8 @@ Item {
   property bool effectsActive: false
   property color effectColor: Color.mPrimary
 
-  property int horizontalPadding: Math.round(16 * scaling)
-  property int spacingBetweenPills: Math.round(8 * scaling)
+  property int horizontalPadding: Math.round(Style.marginS * scaling)
+  property int spacingBetweenPills: Math.round(Style.marginXS * scaling)
 
   signal workspaceChanged(int workspaceId, color accentColor)
 
@@ -124,7 +144,7 @@ Item {
 
   Rectangle {
     id: workspaceBackground
-    width: parent.width - Style.marginS * scaling * 2
+    width: parent.width
 
     height: Math.round(Style.capsuleHeight * scaling)
     radius: Math.round(Style.radiusM * scaling)
@@ -132,13 +152,6 @@ Item {
 
     anchors.horizontalCenter: parent.horizontalCenter
     anchors.verticalCenter: parent.verticalCenter
-    layer.enabled: true
-    layer.effect: MultiEffect {
-      shadowColor: Color.mShadow
-      shadowVerticalOffset: 0
-      shadowHorizontalOffset: 0
-      shadowOpacity: 0.10
-    }
   }
 
   Row {
@@ -152,7 +165,7 @@ Item {
       model: localWorkspaces
       Item {
         id: workspacePillContainer
-        height: (Settings.data.bar.showWorkspaceLabel !== "none") ? Math.round(18 * scaling) : Math.round(14 * scaling)
+        height: (labelMode !== "none") ? Math.round(18 * scaling) : Math.round(14 * scaling)
         width: root.calculatedWsWidth(model)
 
         Rectangle {
@@ -160,15 +173,13 @@ Item {
           anchors.fill: parent
 
           Loader {
-            active: (Settings.data.bar.showWorkspaceLabel !== "none")
+            active: (labelMode !== "none")
             sourceComponent: Component {
               Text {
-                // Center horizontally
                 x: (pill.width - width) / 2
-                // Center vertically accounting for font metrics
                 y: (pill.height - height) / 2 + (height - contentHeight) / 2
                 text: {
-                  if (Settings.data.bar.showWorkspaceLabel === "name" && model.name && model.name.length > 0) {
+                  if (labelMode === "name" && model.name && model.name.length > 0) {
                     return model.name.substring(0, 2)
                   } else {
                     return model.idx.toString()

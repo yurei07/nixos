@@ -11,27 +11,22 @@ import qs.Widgets
 NPanel {
   id: root
 
-  panelWidth: {
-    var w = Math.round(Math.max(screen?.width * 0.4, 1000) * scaling)
-    w = Math.min(w, screen?.width - Style.marginL * 2)
-    return w
-  }
-  panelHeight: {
-    var h = Math.round(Math.max(screen?.height * 0.75, 800) * scaling)
-    h = Math.min(h, screen?.height - Style.barHeight * scaling - Style.marginL * 2)
-    return h
-  }
+  preferredWidth: 1000
+  preferredHeight: 1000
+  preferredWidthRatio: 0.4
+  preferredHeightRatio: 0.75
+
   panelAnchorHorizontalCenter: true
   panelAnchorVerticalCenter: true
 
-  // Enable keyboard focus for settings panel
   panelKeyboardFocus: true
 
   // Tabs enumeration, order is NOT relevant
   enum Tab {
     About,
-    AudioService,
+    Audio,
     Bar,
+    Hooks,
     Launcher,
     Brightness,
     ColorScheme,
@@ -39,7 +34,7 @@ NPanel {
     General,
     Network,
     ScreenRecorder,
-    TimeWeather,
+    Weather,
     Wallpaper,
     WallpaperSelector
   }
@@ -47,6 +42,7 @@ NPanel {
   property int requestedTab: SettingsPanel.Tab.General
   property int currentTabIndex: 0
   property var tabsModel: []
+  property var activeScrollView: null
 
   Connections {
     target: Settings.data.wallpaper
@@ -89,8 +85,8 @@ NPanel {
     Tabs.NetworkTab {}
   }
   Component {
-    id: timeWeatherTab
-    Tabs.TimeWeatherTab {}
+    id: weatherTab
+    Tabs.WeatherTab {}
   }
   Component {
     id: colorSchemeTab
@@ -112,58 +108,62 @@ NPanel {
     id: aboutTab
     Tabs.AboutTab {}
   }
+  Component {
+    id: hooksTab
+    Tabs.HooksTab {}
+  }
 
   // Order *DOES* matter
   function updateTabsModel() {
     let newTabs = [{
                      "id": SettingsPanel.Tab.General,
                      "label": "General",
-                     "icon": "tune",
+                     "icon": "settings-general",
                      "source": generalTab
                    }, {
                      "id": SettingsPanel.Tab.Bar,
                      "label": "Bar",
-                     "icon": "web_asset",
+                     "icon": "settings-bar",
                      "source": barTab
                    }, {
                      "id": SettingsPanel.Tab.Launcher,
                      "label": "Launcher",
-                     "icon": "apps",
+                     "icon": "settings-launcher",
                      "source": launcherTab
                    }, {
-                     "id": SettingsPanel.Tab.AudioService,
+                     "id": SettingsPanel.Tab.Audio,
                      "label": "Audio",
-                     "icon": "volume_up",
+                     "icon": "settings-audio",
                      "source": audioTab
                    }, {
                      "id": SettingsPanel.Tab.Display,
                      "label": "Display",
-                     "icon": "monitor",
+                     "icon": "settings-display",
                      "source": displayTab
                    }, {
                      "id": SettingsPanel.Tab.Network,
                      "label": "Network",
-                     "icon": "lan",
+                     "icon": "settings-network",
                      "source": networkTab
                    }, {
                      "id": SettingsPanel.Tab.Brightness,
                      "label": "Brightness",
-                     "icon": "brightness_6",
+                     "icon": "settings-brightness",
                      "source": brightnessTab
                    }, {
-                     "id": SettingsPanel.Tab.TimeWeather,
-                     "label": "Time & Weather",
-                     "icon": "schedule",
-                     "source": timeWeatherTab
+                     "id": SettingsPanel.Tab.Weather,
+                     "label": "Weather",
+                     "icon": "settings-weather",
+                     "source": weatherTab
                    }, {
                      "id": SettingsPanel.Tab.ColorScheme,
                      "label": "Color Scheme",
-                     "icon": "palette",
+                     "icon": "settings-color-scheme",
                      "source": colorSchemeTab
                    }, {
                      "id": SettingsPanel.Tab.Wallpaper,
                      "label": "Wallpaper",
-                     "icon": "image",
+                     "icon": "settings-wallpaper",
                      "source": wallpaperTab
                    }]
 
@@ -172,7 +172,7 @@ NPanel {
       newTabs.push({
                      "id": SettingsPanel.Tab.WallpaperSelector,
                      "label": "Wallpaper Selector",
-                     "icon": "wallpaper_slideshow",
+                     "icon": "settings-wallpaper-selector",
                      "source": wallpaperSelectorTab
                    })
     }
@@ -180,12 +180,17 @@ NPanel {
     newTabs.push({
                    "id": SettingsPanel.Tab.ScreenRecorder,
                    "label": "Screen Recorder",
-                   "icon": "videocam",
+                   "icon": "settings-screen-recorder",
                    "source": screenRecorderTab
+                 }, {
+                   "id": SettingsPanel.Tab.Hooks,
+                   "label": "Hooks",
+                   "icon": "settings-hooks",
+                   "source": hooksTab
                  }, {
                    "id": SettingsPanel.Tab.About,
                    "label": "About",
-                   "icon": "info",
+                   "icon": "settings-about",
                    "source": aboutTab
                  })
 
@@ -208,153 +213,327 @@ NPanel {
     root.currentTabIndex = initialIndex
   }
 
+  // Add scroll functions
+  function scrollDown() {
+    if (activeScrollView && activeScrollView.ScrollBar.vertical) {
+      const scrollBar = activeScrollView.ScrollBar.vertical
+      const stepSize = activeScrollView.height * 0.1 // Scroll 10% of viewport
+      scrollBar.position = Math.min(scrollBar.position + stepSize / activeScrollView.contentHeight,
+                                    1.0 - scrollBar.size)
+    }
+  }
+
+  function scrollUp() {
+    if (activeScrollView && activeScrollView.ScrollBar.vertical) {
+      const scrollBar = activeScrollView.ScrollBar.vertical
+      const stepSize = activeScrollView.height * 0.1 // Scroll 10% of viewport
+      scrollBar.position = Math.max(scrollBar.position - stepSize / activeScrollView.contentHeight, 0)
+    }
+  }
+
+  function scrollPageDown() {
+    if (activeScrollView && activeScrollView.ScrollBar.vertical) {
+      const scrollBar = activeScrollView.ScrollBar.vertical
+      const pageSize = activeScrollView.height * 0.9 // Scroll 90% of viewport
+      scrollBar.position = Math.min(scrollBar.position + pageSize / activeScrollView.contentHeight,
+                                    1.0 - scrollBar.size)
+    }
+  }
+
+  function scrollPageUp() {
+    if (activeScrollView && activeScrollView.ScrollBar.vertical) {
+      const scrollBar = activeScrollView.ScrollBar.vertical
+      const pageSize = activeScrollView.height * 0.9 // Scroll 90% of viewport
+      scrollBar.position = Math.max(scrollBar.position - pageSize / activeScrollView.contentHeight, 0)
+    }
+  }
+
+  // Add navigation functions
+  function selectNextTab() {
+    if (tabsModel.length > 0) {
+      currentTabIndex = (currentTabIndex + 1) % tabsModel.length
+    }
+  }
+
+  function selectPreviousTab() {
+    if (tabsModel.length > 0) {
+      currentTabIndex = (currentTabIndex - 1 + tabsModel.length) % tabsModel.length
+    }
+  }
+
   panelContent: Rectangle {
-    anchors.fill: parent
-    anchors.margins: Style.marginL * scaling
     color: Color.transparent
 
-    RowLayout {
+    // Main layout container that fills the panel
+    ColumnLayout {
       anchors.fill: parent
-      spacing: Style.marginM * scaling
+      anchors.margins: Style.marginL * scaling
+      spacing: 0
 
-      Rectangle {
-        id: sidebar
-        Layout.preferredWidth: 220 * scaling
-        Layout.fillHeight: true
-        color: Color.mSurfaceVariant
-        border.color: Color.mOutline
-        border.width: Math.max(1, Style.borderS * scaling)
-        radius: Style.radiusM * scaling
+      // Keyboard shortcuts container
+      Item {
+        Layout.preferredWidth: 0
+        Layout.preferredHeight: 0
 
-        Column {
-          anchors.fill: parent
-          anchors.margins: Style.marginS * scaling
-          spacing: Style.marginXS * 1.5 * scaling
+        // Scrolling via keyboard
+        Shortcut {
+          sequence: "Down"
+          onActivated: root.scrollDown()
+          enabled: root.opened
+        }
 
-          Repeater {
-            id: sections
-            model: root.tabsModel
-            delegate: Rectangle {
-              id: tabItem
-              width: parent.width
-              height: 32 * scaling
-              radius: Style.radiusS * scaling
-              color: selected ? Color.mPrimary : (tabItem.hovering ? Color.mTertiary : Color.transparent)
-              readonly property bool selected: index === currentTabIndex
-              property bool hovering: false
-              property color tabTextColor: selected ? Color.mOnPrimary : (tabItem.hovering ? Color.mOnTertiary : Color.mOnSurface)
+        Shortcut {
+          sequence: "Up"
+          onActivated: root.scrollUp()
+          enabled: root.opened
+        }
 
-              Behavior on color {
-                ColorAnimation {
-                  duration: Style.animationFast
-                }
-              }
+        Shortcut {
+          sequence: "Ctrl+J"
+          onActivated: root.scrollDown()
+          enabled: root.opened
+        }
 
-              Behavior on tabTextColor {
-                ColorAnimation {
-                  duration: Style.animationFast
-                }
-              }
+        Shortcut {
+          sequence: "Ctrl+K"
+          onActivated: root.scrollUp()
+          enabled: root.opened
+        }
 
-              RowLayout {
-                anchors.fill: parent
-                anchors.leftMargin: Style.marginS * scaling
-                anchors.rightMargin: Style.marginS * scaling
-                spacing: Style.marginS * scaling
-                // Tab icon on the left side
-                NIcon {
-                  text: modelData.icon
-                  color: tabTextColor
-                  font.pointSize: Style.fontSizeL * scaling
-                }
-                // Tab label on the left side
-                NText {
-                  text: modelData.label
-                  color: tabTextColor
-                  font.pointSize: Style.fontSizeM * scaling
-                  font.weight: Style.fontWeightBold
-                  Layout.fillWidth: true
-                }
-              }
-              MouseArea {
-                anchors.fill: parent
-                hoverEnabled: true
-                acceptedButtons: Qt.LeftButton
-                onEntered: tabItem.hovering = true
-                onExited: tabItem.hovering = false
-                onCanceled: tabItem.hovering = false
-                onClicked: currentTabIndex = index
-              }
-            }
-          }
+        Shortcut {
+          sequence: "PgDown"
+          onActivated: root.scrollPageDown()
+          enabled: root.opened
+        }
+
+        Shortcut {
+          sequence: "PgUp"
+          onActivated: root.scrollPageUp()
+          enabled: root.opened
+        }
+
+        // Changing tab via keyboard
+        Shortcut {
+          sequence: "Tab"
+          onActivated: root.selectNextTab()
+          enabled: root.opened
+        }
+
+        Shortcut {
+          sequence: "Shift+Tab"
+          onActivated: root.selectPreviousTab()
+          enabled: root.opened
         }
       }
 
-      // Content
-      Rectangle {
-        id: contentPane
+      // Main content area
+      RowLayout {
         Layout.fillWidth: true
         Layout.fillHeight: true
-        radius: Style.radiusM * scaling
-        color: Color.mSurfaceVariant
-        border.color: Color.mOutline
-        border.width: Math.max(1, Style.borderS * scaling)
-        clip: true
+        spacing: Style.marginM * scaling
 
-        ColumnLayout {
-          id: contentLayout
-          anchors.fill: parent
-          anchors.margins: Style.marginL * scaling
-          spacing: Style.marginS * scaling
+        // Sidebar
+        Rectangle {
+          id: sidebar
+          Layout.preferredWidth: 220 * scaling
+          Layout.fillHeight: true
+          Layout.alignment: Qt.AlignTop
+          color: Color.mSurfaceVariant
+          border.color: Color.mOutline
+          border.width: Math.max(1, Style.borderS * scaling)
+          radius: Style.radiusM * scaling
 
-          RowLayout {
-            id: headerRow
-            Layout.fillWidth: true
-            spacing: Style.marginS * scaling
-
-            // Tab label on the main right side
-            NText {
-              text: root.tabsModel[currentTabIndex].label
-              font.pointSize: Style.fontSizeXL * scaling
-              font.weight: Style.fontWeightBold
-              color: Color.mPrimary
-              Layout.fillWidth: true
-            }
-            NIconButton {
-              icon: "close"
-              tooltipText: "Close"
-              Layout.alignment: Qt.AlignVCenter
-              onClicked: root.close()
-            }
+          MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.NoButton // Don't interfere with clicks
+            property int wheelAccumulator: 0
+            onWheel: wheel => {
+                       wheelAccumulator += wheel.angleDelta.y
+                       if (wheelAccumulator >= 120) {
+                         root.selectPreviousTab()
+                         wheelAccumulator = 0
+                       } else if (wheelAccumulator <= -120) {
+                         root.selectNextTab()
+                         wheelAccumulator = 0
+                       }
+                       wheel.accepted = true
+                     }
           }
 
-          NDivider {
-            Layout.fillWidth: true
-          }
-
-          Item {
-            Layout.fillWidth: true
-            Layout.fillHeight: true
+          ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: Style.marginS * scaling
+            spacing: Style.marginXS * scaling
 
             Repeater {
+              id: sections
               model: root.tabsModel
-              delegate: Loader {
-                anchors.fill: parent
-                active: index === root.currentTabIndex
-                sourceComponent: ColumnLayout {
-                  ScrollView {
-                    id: scrollView
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-                    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-                    ScrollBar.vertical.policy: ScrollBar.AsNeeded
-                    padding: Style.marginL * scaling
-                    clip: true
+              delegate: Rectangle {
+                id: tabItem
+                Layout.fillWidth: true
+                Layout.preferredHeight: tabEntryRow.implicitHeight + Style.marginS * scaling * 2
+                radius: Style.radiusS * scaling
+                color: selected ? Color.mPrimary : (tabItem.hovering ? Color.mTertiary : Color.transparent)
+                readonly property bool selected: index === currentTabIndex
+                property bool hovering: false
+                property color tabTextColor: selected ? Color.mOnPrimary : (tabItem.hovering ? Color.mOnTertiary : Color.mOnSurface)
 
-                    Loader {
-                      active: true
-                      sourceComponent: root.tabsModel[index].source
-                      width: scrollView.availableWidth
+                Behavior on color {
+                  ColorAnimation {
+                    duration: Style.animationFast
+                  }
+                }
+
+                Behavior on tabTextColor {
+                  ColorAnimation {
+                    duration: Style.animationFast
+                  }
+                }
+
+                RowLayout {
+                  id: tabEntryRow
+                  anchors.fill: parent
+                  anchors.leftMargin: Style.marginS * scaling
+                  anchors.rightMargin: Style.marginS * scaling
+                  spacing: Style.marginM * scaling
+
+                  // Tab icon
+                  NIcon {
+                    icon: modelData.icon
+                    color: tabTextColor
+                    font.pointSize: Style.fontSizeXL * scaling
+                  }
+
+                  // Tab label
+                  NText {
+                    text: modelData.label
+                    color: tabTextColor
+                    font.pointSize: Style.fontSizeM * scaling
+                    font.weight: Style.fontWeightBold
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignVCenter
+                  }
+                }
+
+                MouseArea {
+                  anchors.fill: parent
+                  hoverEnabled: true
+                  acceptedButtons: Qt.LeftButton
+                  onEntered: tabItem.hovering = true
+                  onExited: tabItem.hovering = false
+                  onCanceled: tabItem.hovering = false
+                  onClicked: currentTabIndex = index
+                }
+              }
+            }
+
+            Item {
+              Layout.fillHeight: true
+            }
+          }
+        }
+
+        // Content pane
+        Rectangle {
+          id: contentPane
+          Layout.fillWidth: true
+          Layout.fillHeight: true
+          Layout.alignment: Qt.AlignTop
+          radius: Style.radiusM * scaling
+          color: Color.mSurfaceVariant
+          border.color: Color.mOutline
+          border.width: Math.max(1, Style.borderS * scaling)
+          clip: true
+
+          ColumnLayout {
+            id: contentLayout
+            anchors.fill: parent
+            anchors.margins: Style.marginL * scaling
+            spacing: Style.marginS * scaling
+
+            // Header row
+            RowLayout {
+              id: headerRow
+              Layout.fillWidth: true
+              spacing: Style.marginS * scaling
+
+              // Main icon
+              NIcon {
+                icon: root.tabsModel[currentTabIndex]?.icon
+                color: Color.mPrimary
+                font.pointSize: Style.fontSizeXL * scaling
+              }
+
+              // Main title
+              NText {
+                text: root.tabsModel[currentTabIndex]?.label || ""
+                font.pointSize: Style.fontSizeXL * scaling
+                font.weight: Style.fontWeightBold
+                color: Color.mPrimary
+                Layout.fillWidth: true
+                Layout.alignment: Qt.AlignVCenter
+              }
+
+              // Close button
+              NIconButton {
+                icon: "close"
+                tooltipText: "Close"
+                Layout.alignment: Qt.AlignVCenter
+                onClicked: root.close()
+              }
+            }
+
+            // Divider
+            NDivider {
+              Layout.fillWidth: true
+            }
+
+            // Tab content area
+            Rectangle {
+              Layout.fillWidth: true
+              Layout.fillHeight: true
+              color: Color.transparent
+
+              Repeater {
+                model: root.tabsModel
+                delegate: Loader {
+                  anchors.fill: parent
+                  active: index === root.currentTabIndex
+
+                  onStatusChanged: {
+                    if (status === Loader.Ready && item) {
+                      // Find and store reference to the ScrollView
+                      const scrollView = item.children[0]
+                      if (scrollView && scrollView.toString().includes("ScrollView")) {
+                        root.activeScrollView = scrollView
+                      }
+                    }
+                  }
+
+                  sourceComponent: Flickable {
+                    // Using a Flickable here with a pressDelay to fix conflict between
+                    // ScrollView and NTextInput. This fixes the weird text selection issue.
+                    id: flickable
+                    anchors.fill: parent
+                    pressDelay: 200
+
+                    ScrollView {
+                      id: scrollView
+                      anchors.fill: parent
+                      ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                      ScrollBar.vertical.policy: ScrollBar.AsNeeded
+                      padding: Style.marginL * scaling
+                      clip: true
+
+                      Component.onCompleted: {
+                        root.activeScrollView = scrollView
+                      }
+
+                      Loader {
+                        active: true
+                        sourceComponent: root.tabsModel[index]?.source
+                        width: scrollView.availableWidth
+                      }
                     }
                   }
                 }

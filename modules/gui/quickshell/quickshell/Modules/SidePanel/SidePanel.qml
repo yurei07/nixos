@@ -8,75 +8,67 @@ import qs.Services
 import qs.Widgets
 
 NPanel {
-  id: panel
+  id: root
 
-  panelWidth: 460 * scaling
-  panelHeight: 700 * scaling
-  panelAnchorRight: true
+  preferredWidth: 460
+  preferredHeight: 730
 
   panelContent: Item {
     id: content
 
     property real cardSpacing: Style.marginL * scaling
 
-    anchors.left: parent.left
-    anchors.right: parent.right
-    anchors.top: parent.top
-    anchors.margins: content.cardSpacing
-    implicitHeight: layout.implicitHeight
-
-    // Layout content (not vertically anchored so implicitHeight is valid)
+    // Layout content
     ColumnLayout {
       id: layout
-      // Use the same spacing value horizontally and vertically
-      anchors.left: parent.left
-      anchors.right: parent.right
-      anchors.top: parent.top
+      x: content.cardSpacing
+      y: content.cardSpacing
+      width: parent.width - (2 * content.cardSpacing)
       spacing: content.cardSpacing
 
       // Cards (consistent inter-card spacing via ColumnLayout spacing)
-      ProfileCard {// Layout.topMargin: 0
-        // Layout.bottomMargin: 0
+      ProfileCard {
+        Layout.fillWidth: true
       }
-      WeatherCard {// Layout.topMargin: 0
-        // Layout.bottomMargin: 0
+
+      WeatherCard {
+        Layout.fillWidth: true
       }
 
       // Middle section: media + stats column
       RowLayout {
         Layout.fillWidth: true
-        Layout.topMargin: 0
-        Layout.bottomMargin: 0
+        Layout.preferredHeight: Math.max(310 * scaling)
         spacing: content.cardSpacing
 
         // Media card
         MediaCard {
-          id: mediaCard
           Layout.fillWidth: true
-          implicitHeight: statsCard.implicitHeight
+          Layout.fillHeight: true
         }
 
         // System monitors combined in one card
         SystemMonitorCard {
-          id: statsCard
+          Layout.fillHeight: true
         }
       }
 
       // Bottom actions (two grouped rows of round buttons)
       RowLayout {
         Layout.fillWidth: true
-        Layout.topMargin: 0
-        Layout.bottomMargin: 0
+        Layout.preferredHeight: Math.max(60 * scaling)
         spacing: content.cardSpacing
 
         // Power Profiles switcher
         PowerProfilesCard {
           spacing: content.cardSpacing
+          Layout.fillWidth: true
         }
 
         // Utilities buttons
         UtilitiesCard {
           spacing: content.cardSpacing
+          Layout.fillWidth: true
         }
       }
     }

@@ -95,7 +95,7 @@ RowLayout {
 
       NIcon {
         anchors.centerIn: parent
-        text: "remove"
+        icon: "chevron-left"
         font.pointSize: Style.fontSizeS * scaling
         color: decreaseArea.containsMouse ? Color.mOnPrimary : Color.mPrimary
       }
@@ -130,7 +130,7 @@ RowLayout {
 
       NIcon {
         anchors.centerIn: parent
-        text: "add"
+        icon: "chevron-right"
         font.pointSize: Style.fontSizeS * scaling
         color: increaseArea.containsMouse ? Color.mOnPrimary : Color.mPrimary
       }

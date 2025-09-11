@@ -8,8 +8,8 @@ import qs.Widgets
 RowLayout {
   id: root
 
-  readonly property real preferredHeight: Style.baseWidgetSize * 1.1 * scaling
-  property real preferredWidth: 320 * scaling
+  property real minimumWidth: 280 * scaling
+  property real popupHeight: 180 * scaling
 
   property string label: ""
   property string description: ""
@@ -19,9 +19,11 @@ RowLayout {
   property string currentKey: ""
   property string placeholder: ""
 
+  readonly property real preferredHeight: Style.baseWidgetSize * 1.1 * scaling
+
   signal selected(string key)
 
-  spacing: Style.marginS * scaling
+  spacing: Style.marginL * scaling
   Layout.fillWidth: true
 
   function findIndexByKey(key) {
@@ -38,11 +40,15 @@ RowLayout {
     description: root.description
   }
 
+  Item {
+    Layout.fillWidth: true
+  }
+
   ComboBox {
     id: combo
 
-    Layout.preferredWidth: root.preferredWidth
-    Layout.preferredHeight: height
+    Layout.minimumWidth: root.minimumWidth
+    Layout.preferredHeight: root.preferredHeight
     model: model
     currentIndex: findIndexByKey(currentKey)
     onActivated: {
@@ -79,14 +85,14 @@ RowLayout {
     indicator: NIcon {
       x: combo.width - width - Style.marginM * scaling
       y: combo.topPadding + (combo.availableHeight - height) / 2
-      text: "arrow_drop_down"
-      font.pointSize: Style.fontSizeXXL * scaling
+      icon: "caret-down"
+      font.pointSize: Style.fontSizeL * scaling
     }
 
     popup: Popup {
       y: combo.height
       width: combo.width
-      implicitHeight: Math.min(160 * scaling, contentItem.implicitHeight + Style.marginM * scaling * 2)
+      implicitHeight: Math.min(root.popupHeight, contentItem.implicitHeight + Style.marginM * scaling * 2)
       padding: Style.marginM * scaling
 
       contentItem: ListView {

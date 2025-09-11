@@ -6,7 +6,7 @@ import qs.Commons
 Item {
   id: root
 
-  property string widgetName: ""
+  property string widgetId: ""
   property var widgetProps: ({})
   property bool enabled: true
 
@@ -27,12 +27,12 @@ Item {
     id: loader
 
     anchors.fill: parent
-    active: Settings.isLoaded && enabled && widgetName !== ""
+    active: Settings.isLoaded && enabled && widgetId !== ""
     sourceComponent: {
       if (!active) {
         return null
       }
-      return BarWidgetRegistry.getWidget(widgetName)
+      return BarWidgetRegistry.getWidget(widgetId)
     }
 
     onLoaded: {
@@ -49,14 +49,14 @@ Item {
         item.onLoaded()
       }
 
-      //Logger.log("NWidgetLoader", "Loaded", widgetName, "on screen", item.screen.name)
+      //Logger.log("NWidgetLoader", "Loaded", widgetId, "on screen", item.screen.name)
     }
   }
 
   // Error handling
-  onWidgetNameChanged: {
-    if (widgetName && !BarWidgetRegistry.hasWidget(widgetName)) {
-      Logger.warn("WidgetLoader", "Widget not found in registry:", widgetName)
+  onWidgetIdChanged: {
+    if (widgetId && !BarWidgetRegistry.hasWidget(widgetId)) {
+      Logger.warn("WidgetLoader", "Widget not found in registry:", widgetId)
     }
   }
 }

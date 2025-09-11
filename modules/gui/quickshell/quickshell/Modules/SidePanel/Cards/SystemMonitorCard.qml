@@ -9,9 +9,8 @@ NBox {
   id: root
 
   Layout.preferredWidth: Style.baseWidgetSize * 2.625 * scaling
-  implicitHeight: content.implicitHeight + Style.marginXS * 2 * scaling
 
-  Column {
+  ColumnLayout {
     id: content
     anchors.left: parent.left
     anchors.right: parent.right
@@ -22,14 +21,9 @@ NBox {
     anchors.bottomMargin: Style.marginM * scaling
     spacing: Style.marginS * scaling
 
-    // Slight top padding
-    Item {
-      height: Style.marginXS * scaling
-    }
-
     NCircleStat {
       value: SystemStatService.cpuUsage
-      icon: "speed"
+      icon: "cpu-usage"
       flat: true
       contentScale: 0.8
       width: 72 * scaling
@@ -38,14 +32,14 @@ NBox {
     NCircleStat {
       value: SystemStatService.cpuTemp
       suffix: "°C"
-      icon: "device_thermostat"
+      icon: "cpu-temperature"
       flat: true
       contentScale: 0.8
       width: 72 * scaling
       height: 68 * scaling
     }
     NCircleStat {
-      value: SystemStatService.memoryUsagePer
+      value: SystemStatService.memPercent
       icon: "memory"
       flat: true
       contentScale: 0.8
@@ -53,17 +47,12 @@ NBox {
       height: 68 * scaling
     }
     NCircleStat {
-      value: SystemStatService.diskUsage
-      icon: "hard_drive"
+      value: SystemStatService.diskPercent
+      icon: "storage"
       flat: true
       contentScale: 0.8
       width: 72 * scaling
       height: 68 * scaling
-    }
-
-    // Extra bottom padding to shift the perceived stack slightly upward
-    Item {
-      height: Style.marginM * scaling
     }
   }
 }

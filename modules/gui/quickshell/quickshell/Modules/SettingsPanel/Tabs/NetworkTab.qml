@@ -12,33 +12,17 @@ ColumnLayout {
   spacing: Style.marginL * scaling
 
   NToggle {
-    label: "WiFi Enabled"
-    description: "Enable WiFi connectivity."
+    label: "Enable Wi-Fi"
+    description: "Enable Wi-Fi connectivity."
     checked: Settings.data.network.wifiEnabled
-    onToggled: checked => {
-                 Settings.data.network.wifiEnabled = checked
-                 NetworkService.setWifiEnabled(checked)
-                 if (checked) {
-                   ToastService.showNotice("WiFi", "Enabled")
-                 } else {
-                   ToastService.showNotice("WiFi", "Disabled")
-                 }
-               }
+    onToggled: checked => NetworkService.setWifiEnabled(checked)
   }
 
   NToggle {
-    label: "Bluetooth Enabled"
+    label: "Enable Bluetooth"
     description: "Enable Bluetooth connectivity."
     checked: Settings.data.network.bluetoothEnabled
-    onToggled: checked => {
-                 Settings.data.network.bluetoothEnabled = checked
-                 BluetoothService.setBluetoothEnabled(checked)
-                 if (checked) {
-                   ToastService.showNotice("Bluetooth", "Enabled")
-                 } else {
-                   ToastService.showNotice("Bluetooth", "Disabled")
-                 }
-               }
+    onToggled: checked => BluetoothService.setBluetoothEnabled(checked)
   }
 
   NDivider {

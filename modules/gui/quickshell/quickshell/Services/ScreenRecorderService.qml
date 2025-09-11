@@ -13,6 +13,17 @@ Singleton {
   property bool isRecording: false
   property bool isPending: false
   property string outputPath: ""
+  property bool isAvailable: false
+
+  Component.onCompleted: {
+    checkAvailability()
+  }
+
+  function checkAvailability() {
+    // Detect native or Flatpak gpu-screen-recorder
+    availabilityCheckProcess.command = ["sh", "-c", "command -v gpu-screen-recorder >/dev/null 2>&1 || (command -v flatpak >/dev/null 2>&1 && flatpak list --app | grep -q 'com.dec05eba.gpu_screen_recorder')"]
+    availabilityCheckProcess.running = true
+  }
 
   // Start or Stop recording
   function toggleRecording() {
@@ -21,6 +32,9 @@ Singleton {
 
   // Start screen recording using Quickshell.execDetached
   function startRecording() {
+    if (!isAvailable) {
+      return
+    }
     if (isRecording || isPending) {
       return
     }
@@ -86,6 +100,18 @@ Singleton {
         monitorTimer.running = false
       }
     }
+  }
+
+  // Availability check process
+  Process {
+    id: availabilityCheckProcess
+    command: ["sh", "-c", "true"]
+    onExited: function (exitCode, exitStatus) {
+      // exitCode 0 means available, non-zero means unavailable
+      root.isAvailable = (exitCode === 0)
+    }
+    stdout: StdioCollector {}
+    stderr: StdioCollector {}
   }
 
   Timer {

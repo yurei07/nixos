@@ -1,142 +1,238 @@
 import QtQuick
+import QtQuick.Layouts
 import Quickshell
 import qs.Commons
 import qs.Services
 import qs.Widgets
 
-Row {
+RowLayout {
   id: root
 
   property ShellScreen screen
   property real scaling: 1.0
 
-  anchors.verticalCenter: parent.verticalCenter
+  // Widget properties passed from Bar.qml for per-instance settings
+  property string widgetId: ""
+  property string barSection: ""
+  property int sectionWidgetIndex: -1
+  property int sectionWidgetsCount: 0
+
+  property var widgetMetadata: BarWidgetRegistry.widgetMetadata[widgetId]
+  property var widgetSettings: {
+    var section = barSection.replace("Section", "").toLowerCase()
+    if (section && sectionWidgetIndex >= 0) {
+      var widgets = Settings.data.bar.widgets[section]
+      if (widgets && sectionWidgetIndex < widgets.length) {
+        return widgets[sectionWidgetIndex]
+      }
+    }
+    return {}
+  }
+
+  readonly property bool showCpuUsage: (widgetSettings.showCpuUsage
+                                        !== undefined) ? widgetSettings.showCpuUsage : widgetMetadata.showCpuUsage
+  readonly property bool showCpuTemp: (widgetSettings.showCpuTemp !== undefined) ? widgetSettings.showCpuTemp : widgetMetadata.showCpuTemp
+  readonly property bool showMemoryUsage: (widgetSettings.showMemoryUsage
+                                           !== undefined) ? widgetSettings.showMemoryUsage : widgetMetadata.showMemoryUsage
+  readonly property bool showMemoryAsPercent: (widgetSettings.showMemoryAsPercent
+                                               !== undefined) ? widgetSettings.showMemoryAsPercent : widgetMetadata.showMemoryAsPercent
+  readonly property bool showNetworkStats: (widgetSettings.showNetworkStats
+                                            !== undefined) ? widgetSettings.showNetworkStats : widgetMetadata.showNetworkStats
+  readonly property bool showDiskUsage: (widgetSettings.showDiskUsage
+                                         !== undefined) ? widgetSettings.showDiskUsage : widgetMetadata.showDiskUsage
+
+  Layout.alignment: Qt.AlignVCenter
   spacing: Style.marginS * scaling
 
   Rectangle {
-    // Let the Rectangle size itself based on its content (the Row)
-    width: row.width + Style.marginM * scaling * 2
+    Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
+    Layout.preferredWidth: mainLayout.implicitWidth + Style.marginM * scaling * 2
+    Layout.alignment: Qt.AlignVCenter
 
-    height: Math.round(Style.capsuleHeight * scaling)
     radius: Math.round(Style.radiusM * scaling)
     color: Color.mSurfaceVariant
 
-    anchors.verticalCenter: parent.verticalCenter
+    RowLayout {
+      id: mainLayout
+      anchors.centerIn: parent // Better centering than margins
+      width: parent.width - Style.marginM * scaling * 2
+      spacing: Style.marginS * scaling
 
-    Item {
-      id: mainContainer
-      anchors.fill: parent
-      anchors.leftMargin: Style.marginS * scaling
-      anchors.rightMargin: Style.marginS * scaling
+      // CPU Usage Component
+      Item {
+        Layout.preferredWidth: cpuUsageRow.implicitWidth
+        Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
+        Layout.alignment: Qt.AlignVCenter
+        visible: showCpuUsage
 
-      Row {
-        id: row
-        anchors.verticalCenter: parent.verticalCenter
-        spacing: Style.marginS * scaling
-        Row {
-          id: cpuUsageLayout
+        RowLayout {
+          id: cpuUsageRow
+          anchors.centerIn: parent
           spacing: Style.marginXS * scaling
 
           NIcon {
-            id: cpuUsageIcon
-            text: "speed"
-            anchors.verticalCenter: parent.verticalCenter
+            icon: "cpu-usage"
+            font.pointSize: Style.fontSizeM * scaling
+            Layout.alignment: Qt.AlignVCenter
           }
 
           NText {
-            id: cpuUsageText
             text: `${SystemStatService.cpuUsage}%`
             font.family: Settings.data.ui.fontFixed
-            font.pointSize: Style.fontSizeS * scaling
+            font.pointSize: Style.fontSizeXS * scaling
             font.weight: Style.fontWeightMedium
-            anchors.verticalCenter: parent.verticalCenter
+            Layout.alignment: Qt.AlignVCenter
             verticalAlignment: Text.AlignVCenter
             color: Color.mPrimary
           }
         }
+      }
 
-        // CPU Temperature Component
-        Row {
-          id: cpuTempLayout
-          // spacing is thin here to compensate for the vertical thermometer icon
-          spacing: Style.marginXXS * scaling
+      // CPU Temperature Component
+      Item {
+        Layout.preferredWidth: cpuTempRow.implicitWidth
+        Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
+        Layout.alignment: Qt.AlignVCenter
+        visible: showCpuTemp
+
+        RowLayout {
+          id: cpuTempRow
+          anchors.centerIn: parent
+          spacing: Style.marginXS * scaling
 
           NIcon {
-            text: "thermometer"
-            anchors.verticalCenter: parent.verticalCenter
+            icon: "cpu-temperature"
+            // Fire is so tall, we need to make it smaller
+            font.pointSize: Style.fontSizeS * scaling
+            Layout.alignment: Qt.AlignVCenter
           }
 
           NText {
             text: `${SystemStatService.cpuTemp}°C`
             font.family: Settings.data.ui.fontFixed
-            font.pointSize: Style.fontSizeS * scaling
+            font.pointSize: Style.fontSizeXS * scaling
             font.weight: Style.fontWeightMedium
-            anchors.verticalCenter: parent.verticalCenter
+            Layout.alignment: Qt.AlignVCenter
             verticalAlignment: Text.AlignVCenter
             color: Color.mPrimary
           }
         }
+      }
 
-        // Memory Usage Component
-        Row {
-          id: memoryUsageLayout
+      // Memory Usage Component
+      Item {
+        Layout.preferredWidth: memoryUsageRow.implicitWidth
+        Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
+        Layout.alignment: Qt.AlignVCenter
+        visible: showMemoryUsage
+
+        RowLayout {
+          id: memoryUsageRow
+          anchors.centerIn: parent
           spacing: Style.marginXS * scaling
 
           NIcon {
-            text: "memory"
-            anchors.verticalCenter: parent.verticalCenter
+            icon: "memory"
+            font.pointSize: Style.fontSizeM * scaling
+            Layout.alignment: Qt.AlignVCenter
           }
 
           NText {
-            text: `${SystemStatService.memoryUsageGb}G`
+            text: showMemoryAsPercent ? `${SystemStatService.memPercent}%` : `${SystemStatService.memGb}G`
             font.family: Settings.data.ui.fontFixed
-            font.pointSize: Style.fontSizeS * scaling
+            font.pointSize: Style.fontSizeXS * scaling
             font.weight: Style.fontWeightMedium
-            anchors.verticalCenter: parent.verticalCenter
+            Layout.alignment: Qt.AlignVCenter
             verticalAlignment: Text.AlignVCenter
             color: Color.mPrimary
           }
         }
+      }
 
-        // Network Download Speed Component
-        Row {
-          id: networkDownloadLayout
+      // Network Download Speed Component
+      Item {
+        Layout.preferredWidth: networkDownloadRow.implicitWidth
+        Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
+        Layout.alignment: Qt.AlignVCenter
+        visible: showNetworkStats
+
+        RowLayout {
+          id: networkDownloadRow
+          anchors.centerIn: parent
           spacing: Style.marginXS * scaling
-          visible: Settings.data.bar.showNetworkStats
 
           NIcon {
-            text: "download"
-            anchors.verticalCenter: parent.verticalCenter
+            icon: "download-speed"
+            font.pointSize: Style.fontSizeM * scaling
+            Layout.alignment: Qt.AlignVCenter
           }
 
           NText {
             text: SystemStatService.formatSpeed(SystemStatService.rxSpeed)
             font.family: Settings.data.ui.fontFixed
-            font.pointSize: Style.fontSizeS * scaling
+            font.pointSize: Style.fontSizeXS * scaling
             font.weight: Style.fontWeightMedium
-            anchors.verticalCenter: parent.verticalCenter
+            Layout.alignment: Qt.AlignVCenter
             verticalAlignment: Text.AlignVCenter
             color: Color.mPrimary
           }
         }
+      }
 
-        // Network Upload Speed Component
-        Row {
-          id: networkUploadLayout
+      // Network Upload Speed Component
+      Item {
+        Layout.preferredWidth: networkUploadRow.implicitWidth
+        Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
+        Layout.alignment: Qt.AlignVCenter
+        visible: showNetworkStats
+
+        RowLayout {
+          id: networkUploadRow
+          anchors.centerIn: parent
           spacing: Style.marginXS * scaling
-          visible: Settings.data.bar.showNetworkStats
 
           NIcon {
-            text: "upload"
-            anchors.verticalCenter: parent.verticalCenter
+            icon: "upload-speed"
+            font.pointSize: Style.fontSizeM * scaling
+            Layout.alignment: Qt.AlignVCenter
           }
 
           NText {
             text: SystemStatService.formatSpeed(SystemStatService.txSpeed)
             font.family: Settings.data.ui.fontFixed
-            font.pointSize: Style.fontSizeS * scaling
+            font.pointSize: Style.fontSizeXS * scaling
             font.weight: Style.fontWeightMedium
-            anchors.verticalCenter: parent.verticalCenter
+            Layout.alignment: Qt.AlignVCenter
+            verticalAlignment: Text.AlignVCenter
+            color: Color.mPrimary
+          }
+        }
+      }
+
+      // Disk Usage Component (primary drive)
+      Item {
+        Layout.preferredWidth: diskUsageRow.implicitWidth
+        Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
+        Layout.alignment: Qt.AlignVCenter
+        visible: showDiskUsage
+
+        RowLayout {
+          id: diskUsageRow
+          anchors.centerIn: parent
+          spacing: Style.marginXS * scaling
+
+          NIcon {
+            icon: "storage"
+            font.pointSize: Style.fontSizeM * scaling
+            Layout.alignment: Qt.AlignVCenter
+          }
+
+          NText {
+            text: `${SystemStatService.diskPercent}%`
+            font.family: Settings.data.ui.fontFixed
+            font.pointSize: Style.fontSizeXS * scaling
+            font.weight: Style.fontWeightMedium
+            Layout.alignment: Qt.AlignVCenter
             verticalAlignment: Text.AlignVCenter
             color: Color.mPrimary
           }

@@ -194,6 +194,7 @@ ColumnLayout {
                    wlsunsetCheck.running = true
                  } else {
                    Settings.data.nightLight.enabled = false
+                   Settings.data.nightLight.forced = false
                    NightLightService.apply()
                    ToastService.showNotice("Night Light", "Disabled")
                  }
@@ -276,6 +277,7 @@ ColumnLayout {
   ColumnLayout {
     spacing: Style.marginXS * scaling
     visible: Settings.data.nightLight.enabled && !Settings.data.nightLight.autoSchedule
+             && !Settings.data.nightLight.forced
 
     RowLayout {
       Layout.fillWidth: false
@@ -299,8 +301,7 @@ ColumnLayout {
         currentKey: Settings.data.nightLight.manualSunrise
         placeholder: "Select start time"
         onSelected: key => Settings.data.nightLight.manualSunrise = key
-
-        preferredWidth: 120 * scaling
+        minimumWidth: 120 * scaling
       }
 
       Item {// add a little more spacing
@@ -316,9 +317,25 @@ ColumnLayout {
         currentKey: Settings.data.nightLight.manualSunset
         placeholder: "Select stop time"
         onSelected: key => Settings.data.nightLight.manualSunset = key
-
-        preferredWidth: 120 * scaling
+        minimumWidth: 120 * scaling
       }
     }
+  }
+
+  // Force activation toggle
+  NToggle {
+    label: "Force activation"
+    description: "Immediately apply night temperature without scheduling or fade."
+    checked: Settings.data.nightLight.forced
+    onToggled: checked => {
+                 Settings.data.nightLight.forced = checked
+                 if (checked && !Settings.data.nightLight.enabled) {
+                   // Ensure enabled when forcing
+                   wlsunsetCheck.running = true
+                 } else {
+                   NightLightService.apply()
+                 }
+               }
+    visible: Settings.data.nightLight.enabled
   }
 }

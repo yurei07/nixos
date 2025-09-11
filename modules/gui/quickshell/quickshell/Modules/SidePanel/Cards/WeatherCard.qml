@@ -27,7 +27,8 @@ NBox {
     RowLayout {
       spacing: Style.marginS * scaling
       NIcon {
-        text: weatherReady ? LocationService.weatherSymbolFromCode(
+        Layout.alignment: Qt.AlignVCenter
+        icon: weatherReady ? LocationService.weatherSymbolFromCode(
                                LocationService.data.weather.current_weather.weathercode) : ""
         font.pointSize: Style.fontSizeXXXL * 1.75 * scaling
         color: Color.mPrimary
@@ -89,20 +90,23 @@ NBox {
         model: weatherReady ? LocationService.data.weather.daily.time : []
         delegate: ColumnLayout {
           Layout.alignment: Qt.AlignHCenter
-          spacing: Style.marginS * scaling
+          spacing: Style.marginL * scaling
           NText {
             text: {
               var weatherDate = new Date(LocationService.data.weather.daily.time[index].replace(/-/g, "/"))
               return Qt.formatDateTime(weatherDate, "ddd")
             }
             color: Color.mOnSurface
+            Layout.alignment: Qt.AlignHCenter
           }
           NIcon {
-            text: LocationService.weatherSymbolFromCode(LocationService.data.weather.daily.weathercode[index])
-            font.pointSize: Style.fontSizeXXL * scaling
+            Layout.alignment: Qt.AlignVCenter | Qt.AlignHCenter
+            icon: LocationService.weatherSymbolFromCode(LocationService.data.weather.daily.weathercode[index])
+            font.pointSize: Style.fontSizeXXL * 1.6 * scaling
             color: Color.mPrimary
           }
           NText {
+            Layout.alignment: Qt.AlignHCenter
             text: {
               var max = LocationService.data.weather.daily.temperature_2m_max[index]
               var min = LocationService.data.weather.daily.temperature_2m_min[index]

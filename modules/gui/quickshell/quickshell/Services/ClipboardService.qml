@@ -4,225 +4,333 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 import qs.Commons
-import qs.Services
 
+// Thin wrapper around the cliphist CLI
 Singleton {
   id: root
 
-  property var history: []
-  property bool initialized: false
-  property int maxHistory: 50 // Limit clipboard history entries
+  // Public API
+  property bool active: Settings.isLoaded && Settings.data.appLauncher.enableClipboardHistory && cliphistAvailable
+  property bool loading: false
+  property var items: [] // [{id, preview, mime, isImage}]
 
-  // Internal state
-  property bool _enabled: true
+  // Check if cliphist is available on the system
+  property bool cliphistAvailable: false
+  property bool dependencyChecked: false
 
-  // Cached history file path
-  property string historyFile: Quickshell.env("NOCTALIA_CLIPBOARD_HISTORY_FILE")
-                               || (Settings.cacheDir + "clipboard.json")
+  // Optional automatic watchers to feed cliphist DB
+  property bool autoWatch: true
+  property bool watchersStarted: false
 
-  // Persisted storage for clipboard history
-  property FileView historyFileView: FileView {
-    id: historyFileView
-    objectName: "clipboardHistoryFileView"
-    path: historyFile
-    watchChanges: false // We don't need to watch changes for clipboard
-    onAdapterUpdated: writeAdapter()
-    Component.onCompleted: reload()
-    onLoaded: loadFromHistory()
-    onLoadFailed: function (error) {
-      // Create file on first use
-      if (error.toString().includes("No such file") || error === 2) {
-        writeAdapter()
-      }
-    }
+  // Expose decoded thumbnails by id and a revision to notify bindings
+  property var imageDataById: ({})
+  property int revision: 0
 
-    JsonAdapter {
-      id: historyAdapter
-      property var history: []
-      property double timestamp: 0
-    }
+  // Approximate first-seen timestamps for entries this session (seconds)
+  property var firstSeenById: ({})
+
+  // Internal: store callback for decode
+  property var _decodeCallback: null
+
+  // Queue for base64 decodes
+  property var _b64Queue: []
+  property var _b64CurrentCb: null
+  property string _b64CurrentMime: ""
+  property string _b64CurrentId: ""
+
+  signal listCompleted
+
+  // Check if cliphist is available
+  Component.onCompleted: {
+    checkCliphistAvailability()
   }
 
-  Timer {
-    interval: 2000
-    repeat: true
-    running: root._enabled
-    onTriggered: root.refresh()
+  // Check dependency availability
+  function checkCliphistAvailability() {
+    if (dependencyChecked)
+      return
+
+    dependencyCheckProcess.command = ["which", "cliphist"]
+    dependencyCheckProcess.running = true
   }
 
-  // Detect current clipboard types (text/image)
+  // Process to check if cliphist is available
   Process {
-    id: typeProcess
-    property bool isLoading: false
-    property var currentTypes: []
-
+    id: dependencyCheckProcess
+    stdout: StdioCollector {}
     onExited: (exitCode, exitStatus) => {
+      root.dependencyChecked = true
       if (exitCode === 0) {
-        currentTypes = String(stdout.text).trim().split('\n').filter(t => t)
-
-        // Always check for text first
-        textProcess.command = ["wl-paste", "-n", "--type", "text/plain"]
-        textProcess.isLoading = true
-        textProcess.running = true
-
-        // Also check for images if available
-        const imageType = currentTypes.find(t => t.startsWith('image/'))
-        if (imageType) {
-          imageProcess.mimeType = imageType
-          imageProcess.command = ["sh", "-c", `wl-paste -n -t "${imageType}" | base64 -w 0`]
-          imageProcess.running = true
+        root.cliphistAvailable = true
+        // Start watchers if feature is enabled
+        if (root.active) {
+          startWatchers()
         }
       } else {
-        typeProcess.isLoading = false
-      }
-    }
-
-    stdout: StdioCollector {}
-  }
-
-  // Read image data
-  Process {
-    id: imageProcess
-    property string mimeType: ""
-
-    onExited: (exitCode, exitStatus) => {
-      if (exitCode === 0) {
-        const base64 = stdout.text.trim()
-        if (base64) {
-          const entry = {
-            "type": 'image',
-            "mimeType": mimeType,
-            "data": `data:${mimeType};base64,${base64}`,
-            "timestamp": new Date().getTime()
-          }
-
-          // Check if this exact image already exists
-          const exists = root.history.find(item => item.type === 'image' && item.data === entry.data)
-          if (!exists) {
-            // Normalize existing history and add the new image
-            const normalizedHistory = root.history.map(item => {
-                                                         if (typeof item === 'string') {
-                                                           return {
-                                                             "type": 'text',
-                                                             "content": item,
-                                                             "timestamp": new Date().getTime(
-                                                                            ) - 1000 // Make it slightly older
-                                                           }
-                                                         }
-                                                         return item
-                                                       })
-            root.history = [entry, ...normalizedHistory].slice(0, maxHistory)
-            saveHistory()
-          }
+        root.cliphistAvailable = false
+        // Show toast notification if feature is enabled but cliphist is missing
+        if (Settings.data.appLauncher.enableClipboardHistory) {
+          ToastService.showWarning(
+            "Clipboard History Unavailable",
+            "The 'cliphist' application is not installed. Please install it to use clipboard history features.",
+            false, 6000)
         }
       }
-
-      // Always mark as initialized when done
-      if (!textProcess.isLoading) {
-        root.initialized = true
-        typeProcess.isLoading = false
-      }
     }
-
-    stdout: StdioCollector {}
   }
 
-  // Read text data
+  // Start/stop watchers when enabled changes
+  onActiveChanged: {
+    if (root.active) {
+      startWatchers()
+    } else {
+      stopWatchers()
+      loading = false
+      // Optional: clear items to avoid stale UI
+      items = []
+    }
+  }
+
+  // Fallback: periodically refresh list so UI updates even if not in clip mode
+  Timer {
+    interval: 5000
+    repeat: true
+    running: root.active
+    onTriggered: list()
+  }
+
+  // Internal process objects
   Process {
-    id: textProcess
-    property bool isLoading: false
-
+    id: listProc
+    stdout: StdioCollector {}
     onExited: (exitCode, exitStatus) => {
-      textProcess.isLoading = false
+      const out = String(stdout.text)
+      const lines = out.split('\n').filter(l => l.length > 0)
+      // cliphist list default format: "<id> <preview>" or "<id>\t<preview>"
+      const parsed = lines.map(l => {
+                                 let id = ""
+                                 let preview = ""
+                                 const m = l.match(/^(\d+)\s+(.+)$/)
+                                 if (m) {
+                                   id = m[1]
+                                   preview = m[2]
+                                 } else {
+                                   const tab = l.indexOf('\t')
+                                   id = tab > -1 ? l.slice(0, tab) : l
+                                   preview = tab > -1 ? l.slice(tab + 1) : ""
+                                 }
+                                 const lower = preview.toLowerCase()
+                                 const isImage = lower.startsWith("[image]") || lower.includes(" binary data ")
+                                 // Best-effort mime guess from preview
+                                 var mime = "text/plain"
+                                 if (isImage) {
+                                   if (lower.includes(" png"))
+                                   mime = "image/png"
+                                   else if (lower.includes(" jpg") || lower.includes(" jpeg"))
+                                   mime = "image/jpeg"
+                                   else if (lower.includes(" webp"))
+                                   mime = "image/webp"
+                                   else if (lower.includes(" gif"))
+                                   mime = "image/gif"
+                                   else
+                                   mime = "image/*"
+                                 }
+                                 // Record first seen time for new ids (approximate copy time)
+                                 if (!root.firstSeenById[id]) {
+                                   root.firstSeenById[id] = Time.timestamp
+                                 }
+                                 return {
+                                   "id": id,
+                                   "preview": preview,
+                                   "isImage": isImage,
+                                   "mime": mime
+                                 }
+                               })
+      items = parsed
+      loading = false
 
-      if (exitCode === 0) {
-        const content = String(stdout.text).trim()
-        if (content && content.length > 0) {
-          const entry = {
-            "type": 'text',
-            "content": content,
-            "timestamp": new Date().getTime()
-          }
+      // Emit the signal for subscribers
+      root.listCompleted()
+    }
+  }
 
-          // Check if this exact text content already exists
-          const exists = root.history.find(item => {
-                                             if (item.type === 'text') {
-                                               return item.content === content
-                                             }
-                                             return item === content
-                                           })
-
-          if (!exists) {
-            // Normalize existing history entries
-            const normalizedHistory = root.history.map(item => {
-                                                         if (typeof item === 'string') {
-                                                           return {
-                                                             "type": 'text',
-                                                             "content": item,
-                                                             "timestamp": new Date().getTime(
-                                                                            ) - 1000 // Make it slightly older
-                                                           }
-                                                         }
-                                                         return item
-                                                       })
-
-            root.history = [entry, ...normalizedHistory].slice(0, maxHistory)
-            saveHistory()
-          }
+  Process {
+    id: decodeProc
+    stdout: StdioCollector {}
+    onExited: (exitCode, exitStatus) => {
+      const out = String(stdout.text)
+      if (root._decodeCallback) {
+        try {
+          root._decodeCallback(out)
+        } finally {
+          root._decodeCallback = null
         }
       }
-
-      // Mark as initialized and clean up loading states
-      root.initialized = true
-      if (!imageProcess.running) {
-        typeProcess.isLoading = false
-      }
     }
+  }
 
+  Process {
+    id: copyProc
     stdout: StdioCollector {}
   }
 
-  function refresh() {
-    if (!typeProcess.isLoading && !textProcess.isLoading && !imageProcess.running) {
-      typeProcess.isLoading = true
-      typeProcess.command = ["wl-paste", "-l"]
-      typeProcess.running = true
+  // Base64 decode pipeline (queued)
+  Process {
+    id: decodeB64Proc
+    stdout: StdioCollector {}
+    onExited: (exitCode, exitStatus) => {
+      const b64 = String(stdout.text).trim()
+      if (root._b64CurrentCb) {
+        const url = `data:${root._b64CurrentMime};base64,${b64}`
+        try {
+          root._b64CurrentCb(url)
+        } catch (e) {
+
+        }
+      }
+      if (root._b64CurrentId !== "") {
+        root.imageDataById[root._b64CurrentId] = `data:${root._b64CurrentMime};base64,${b64}`
+        root.revision += 1
+      }
+      root._b64CurrentCb = null
+      root._b64CurrentMime = ""
+      root._b64CurrentId = ""
+      Qt.callLater(root._startNextB64)
     }
   }
 
-  function loadFromHistory() {
-    // Populate in-memory history from cached file
-    try {
-      const items = historyAdapter.history || []
-      root.history = items.slice(0, maxHistory) // Apply limit when loading
-      Logger.log("Clipboard", "Loaded", root.history.length, "entries from cache")
-    } catch (e) {
-      Logger.error("Clipboard", "Failed to load history:", e)
-      root.history = []
+  // Long-running watchers to store new clipboard contents
+  Process {
+    id: watchText
+    stdout: StdioCollector {}
+    onExited: (exitCode, exitStatus) => {
+      // Auto-restart if watcher dies
+      if (root.autoWatch)
+      Qt.callLater(() => {
+                     running = true
+                   })
+    }
+  }
+  Process {
+    id: watchImage
+    stdout: StdioCollector {}
+    onExited: (exitCode, exitStatus) => {
+      if (root.autoWatch)
+      Qt.callLater(() => {
+                     running = true
+                   })
     }
   }
 
-  function saveHistory() {
-    try {
-      // Ensure we don't exceed the maximum history limit
-      const limitedHistory = root.history.slice(0, maxHistory)
+  function startWatchers() {
+    if (!root.active || !autoWatch || watchersStarted || !root.cliphistAvailable)
+      return
+    watchersStarted = true
+    // Start text watcher
+    watchText.command = ["wl-paste", "--type", "text", "--watch", "cliphist", "store"]
+    watchText.running = true
+    // Start image watcher
+    watchImage.command = ["wl-paste", "--type", "image", "--watch", "cliphist", "store"]
+    watchImage.running = true
+  }
 
-      historyAdapter.history = limitedHistory
-      historyAdapter.timestamp = Time.timestamp
+  function stopWatchers() {
+    if (!watchersStarted)
+      return
+    watchText.running = false
+    watchImage.running = false
+    watchersStarted = false
+  }
 
-      // Ensure cache directory exists
-      Quickshell.execDetached(["mkdir", "-p", Settings.cacheDir])
+  function list(maxPreviewWidth) {
+    if (!root.active || !root.cliphistAvailable) {
+      return
+    }
+    if (listProc.running)
+      return
+    loading = true
+    const width = maxPreviewWidth || 100
+    listProc.command = ["cliphist", "list", "-preview-width", String(width)]
+    listProc.running = true
+  }
 
-      Qt.callLater(function () {
-        historyFileView.writeAdapter()
-      })
-    } catch (e) {
-      Logger.error("Clipboard", "Failed to save history:", e)
+  function decode(id, cb) {
+    if (!root.cliphistAvailable) {
+      if (cb)
+        cb("")
+      return
+    }
+    root._decodeCallback = cb
+    decodeProc.command = ["cliphist", "decode", id]
+    decodeProc.running = true
+  }
+
+  function decodeToDataUrl(id, mime, cb) {
+    if (!root.cliphistAvailable) {
+      if (cb)
+        cb("")
+      return
+    }
+    // If cached, return immediately
+    if (root.imageDataById[id]) {
+      if (cb)
+        cb(root.imageDataById[id])
+      return
+    }
+    // Queue request; ensures single process handles sequentially
+    root._b64Queue.push({
+                          "id": id,
+                          "mime": mime || "image/*",
+                          "cb": cb
+                        })
+    if (!decodeB64Proc.running && root._b64CurrentCb === null) {
+      _startNextB64()
     }
   }
 
-  function clearHistory() {
-    root.history = []
-    saveHistory()
+  function getImageData(id) {
+    if (id === undefined) {
+      return null
+    }
+    return root.imageDataById[id]
+  }
+
+  function _startNextB64() {
+    if (root._b64Queue.length === 0 || !root.cliphistAvailable)
+      return
+    const job = root._b64Queue.shift()
+    root._b64CurrentCb = job.cb
+    root._b64CurrentMime = job.mime
+    root._b64CurrentId = job.id
+    decodeB64Proc.command = ["sh", "-lc", `cliphist decode ${job.id} | base64 -w 0`]
+    decodeB64Proc.running = true
+  }
+
+  function copyToClipboard(id) {
+    if (!root.cliphistAvailable) {
+      return
+    }
+    // decode and pipe to wl-copy; implement via shell to preserve binary
+    copyProc.command = ["sh", "-lc", `cliphist decode ${id} | wl-copy`]
+    copyProc.running = true
+  }
+
+  function deleteById(id) {
+    if (!root.cliphistAvailable) {
+      return
+    }
+    Quickshell.execDetached(["cliphist", "delete", id])
+    revision++
+    Qt.callLater(() => list())
+  }
+
+  function wipeAll() {
+    if (!root.cliphistAvailable) {
+      return
+    }
+
+    Quickshell.execDetached(["cliphist", "wipe"])
+    revision++
+    Qt.callLater(() => list())
   }
 }

@@ -9,12 +9,12 @@ NIconButton {
   property ShellScreen screen
   property real scaling: 1.0
 
-  icon: "contrast"
+  icon: "dark-mode"
   tooltipText: "Toggle light/dark mode"
   sizeRatio: 0.8
 
-  colorBg: Color.mSurfaceVariant
-  colorFg: Color.mOnSurface
+  colorBg: Settings.data.colorSchemes.darkMode ? Color.mSurfaceVariant : Color.mPrimary
+  colorFg: Settings.data.colorSchemes.darkMode ? Color.mOnSurface : Color.mOnPrimary
   colorBorder: Color.transparent
   colorBorderHover: Color.transparent
 

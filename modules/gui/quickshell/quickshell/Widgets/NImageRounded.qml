@@ -9,12 +9,15 @@ Rectangle {
   id: root
 
   property string imagePath: ""
-  property string fallbackIcon: ""
   property color borderColor: Color.transparent
   property real borderWidth: 0
   property real imageRadius: width * 0.5
+  property string fallbackIcon: ""
+  property real fallbackIconSize: Style.fontSizeXXL * scaling
 
   property real scaledRadius: imageRadius * Settings.data.general.radiusRatio
+
+  signal statusChanged(int status)
 
   color: Color.transparent
   radius: scaledRadius
@@ -34,6 +37,8 @@ Rectangle {
       asynchronous: true
       antialiasing: true
       fillMode: Image.PreserveAspectCrop
+
+      onStatusChanged: root.statusChanged(status)
     }
 
     ShaderEffect {
@@ -52,7 +57,7 @@ Rectangle {
       property real itemHeight: root.height
       property real cornerRadius: root.radius
       property real imageOpacity: root.opacity
-      fragmentShader: Qt.resolvedUrl("../Shaders/qsb/rounded_image.frag.qsb")
+      fragmentShader: Qt.resolvedUrl(Quickshell.shellDir + "/Shaders/qsb/rounded_image.frag.qsb")
 
       // Qt6 specific properties - ensure proper blending
       supportsAtlasTextures: false
@@ -67,12 +72,14 @@ Rectangle {
     }
 
     // Fallback icon
-    NIcon {
-      anchors.centerIn: parent
-      text: fallbackIcon
-      font.pointSize: Style.fontSizeXXL * scaling
-      visible: fallbackIcon !== undefined && fallbackIcon !== "" && (imagePath === undefined || imagePath === "")
-      z: 0
+    Loader {
+      active: fallbackIcon !== undefined && fallbackIcon !== "" && (imagePath === undefined || imagePath === "")
+      sourceComponent: NIcon {
+        anchors.centerIn: parent
+        icon: fallbackIcon
+        font.pointSize: fallbackIconSize
+        z: 0
+      }
     }
   }
 

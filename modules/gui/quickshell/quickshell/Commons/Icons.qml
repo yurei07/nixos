@@ -1,54 +1,49 @@
 pragma Singleton
 
 import QtQuick
+import QtQuick.Controls
 import Quickshell
-import qs.Services
+import qs.Commons
+import qs.Commons.IconsSets
 
 Singleton {
-  id: icons
+  id: root
 
-  function iconFromName(iconName, fallbackName) {
-    const fallback = fallbackName || "application-x-executable"
-    try {
-      if (iconName && typeof Quickshell !== 'undefined' && Quickshell.iconPath) {
-        const p = Quickshell.iconPath(iconName, fallback)
-        if (p && p !== "")
-          return p
+  // Expose the font family name for easy access
+  readonly property string fontFamily: fontLoader.name
+  readonly property string defaultIcon: TablerIcons.defaultIcon
+  readonly property var icons: TablerIcons.icons
+  readonly property var aliases: TablerIcons.aliases
+  readonly property string fontPath: "/Assets/Fonts/tabler/tabler-icons.woff2"
+
+  Component.onCompleted: {
+    Logger.log("Icons", "Service started")
+  }
+
+  function get(iconName) {
+    // Check in aliases first
+    if (aliases[iconName] !== undefined) {
+      iconName = aliases[iconName]
+    }
+
+    // Find the appropriate codepoint
+    return icons[iconName]
+  }
+
+  FontLoader {
+    id: fontLoader
+    source: Quickshell.shellDir + fontPath
+  }
+
+  // Monitor font loading status
+  Connections {
+    target: fontLoader
+    function onStatusChanged() {
+      if (fontLoader.status === FontLoader.Ready) {
+        Logger.log("Icons", "Font loaded successfully:", fontFamily)
+      } else if (fontLoader.status === FontLoader.Error) {
+        Logger.error("Icons", "Font failed to load")
       }
-    } catch (e) {
-
-      // ignore and fall back
-    }
-    try {
-      return Quickshell.iconPath ? (Quickshell.iconPath(fallback, true) || "") : ""
-    } catch (e2) {
-      return ""
-    }
-  }
-
-  // Resolve icon path for a DesktopEntries appId - safe on missing entries
-  function iconForAppId(appId, fallbackName) {
-    const fallback = fallbackName || "application-x-executable"
-    if (!appId)
-      return iconFromName(fallback, fallback)
-    try {
-      if (typeof DesktopEntries === 'undefined' || !DesktopEntries.byId)
-        return iconFromName(fallback, fallback)
-      const entry = (DesktopEntries.heuristicLookup) ? DesktopEntries.heuristicLookup(
-                                                         appId) : DesktopEntries.byId(appId)
-      const name = entry && entry.icon ? entry.icon : ""
-      return iconFromName(name || fallback, fallback)
-    } catch (e) {
-      return iconFromName(fallback, fallback)
-    }
-  }
-
-  // Distro logo helper (absolute path or empty string)
-  function distroLogoPath() {
-    try {
-      return (typeof OSInfo !== 'undefined' && OSInfo.distroIconPath) ? OSInfo.distroIconPath : ""
-    } catch (e) {
-      return ""
     }
   }
 }

@@ -37,9 +37,7 @@ Singleton {
   Process {
     id: process
     stdinEnabled: true
-    running: (Settings.data.audio.visualizerType !== "none")
-             && (PanelService.getPanel("sidePanel").active || Settings.data.audio.showMiniplayerCava
-                 || (PanelService.lockScreen && PanelService.lockScreen.active))
+    running: MediaService.isPlaying
     command: ["cava", "-p", "/dev/stdin"]
     onExited: {
       stdinEnabled = true

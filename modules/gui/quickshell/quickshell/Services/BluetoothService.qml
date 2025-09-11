@@ -30,6 +30,41 @@ Singleton {
                                          })
   }
 
+  function init() {
+    Logger.log("Bluetooth", "Service initialized")
+    delaySyncState.running = true
+  }
+
+  Timer {
+    id: delaySyncState
+    interval: 1000
+    repeat: false
+    onTriggered: {
+      Settings.data.network.bluetoothEnabled = adapter.enabled
+    }
+  }
+
+  Timer {
+    id: delayDiscovery
+    interval: 1000
+    repeat: false
+    onTriggered: adapter.discovering = true
+  }
+
+  Connections {
+    target: adapter
+    function onEnabledChanged() {
+      Settings.data.network.bluetoothEnabled = adapter.enabled
+      if (adapter.enabled) {
+        ToastService.showNotice("Bluetooth", "Enabled")
+        // Using a timer to give a little time so the adapter is really enabled
+        delayDiscovery.running = true
+      } else {
+        ToastService.showNotice("Bluetooth", "Disabled")
+      }
+    }
+  }
+
   function sortDevices(devices) {
     return devices.sort((a, b) => {
                           var aName = a.name || a.deviceName || ""
@@ -51,36 +86,36 @@ Singleton {
 
   function getDeviceIcon(device) {
     if (!device) {
-      return "bluetooth"
+      return "bt-device-generic"
     }
 
     var name = (device.name || device.deviceName || "").toLowerCase()
     var icon = (device.icon || "").toLowerCase()
     if (icon.includes("headset") || icon.includes("audio") || name.includes("headphone") || name.includes("airpod")
         || name.includes("headset") || name.includes("arctis")) {
-      return "headset"
+      return "bt-device-headphones"
     }
 
     if (icon.includes("mouse") || name.includes("mouse")) {
-      return "mouse"
+      return "bt-device-mouse"
     }
     if (icon.includes("keyboard") || name.includes("keyboard")) {
-      return "keyboard"
+      return "bt-device-keyboard"
     }
     if (icon.includes("phone") || name.includes("phone") || name.includes("iphone") || name.includes("android")
         || name.includes("samsung")) {
-      return "smartphone"
+      return "bt-device-phone"
     }
     if (icon.includes("watch") || name.includes("watch")) {
-      return "watch"
+      return "bt-device-watch"
     }
     if (icon.includes("speaker") || name.includes("speaker")) {
-      return "speaker"
+      return "bt-device-speaker"
     }
     if (icon.includes("display") || name.includes("tv")) {
-      return "tv"
+      return "bt-device-tv"
     }
-    return "bluetooth"
+    return "bt-device-generic"
   }
 
   function canConnect(device) {
@@ -107,13 +142,20 @@ Singleton {
     return device.connected && !device.pairing && !device.blocked
   }
 
-  function getSignalStrength(device) {
+  function getStatusString(device) {
+    if (device.state === BluetoothDeviceState.Connecting) {
+      return "Connecting..."
+    }
     if (device.pairing) {
       return "Pairing..."
     }
     if (device.blocked) {
       return "Blocked"
     }
+    return ""
+  }
+
+  function getSignalStrength(device) {
     if (!device || device.signalStrength === undefined || device.signalStrength <= 0) {
       return "Signal: Unknown"
     }

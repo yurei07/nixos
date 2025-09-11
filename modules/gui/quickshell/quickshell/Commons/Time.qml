@@ -9,52 +9,38 @@ Singleton {
   id: root
 
   property var date: new Date()
-  property string time: {
-    let timeFormat = Settings.data.location.use12HourClock ? "h:mm AP" : "HH:mm"
-    let timeString = Qt.formatDateTime(date, timeFormat)
 
-    if (Settings.data.location.showDateWithClock) {
-      let dayName = date.toLocaleDateString(Qt.locale(), "ddd")
-      dayName = dayName.charAt(0).toUpperCase() + dayName.slice(1)
-      let day = date.getDate()
-      let month = date.toLocaleDateString(Qt.locale(), "MMM")
-
-      return timeString + " - " + (Settings.data.location.reverseDayMonth ? `${dayName}, ${month} ${day}` : `${dayName}, ${day} ${month}`)
-    }
-
-    return timeString
+  // Returns a Unix Timestamp (in seconds)
+  readonly property int timestamp: {
+    return Math.floor(date / 1000)
   }
-  readonly property string dateString: {
+
+  function formatDate(reverseDayMonth = true) {
     let now = date
     let dayName = now.toLocaleDateString(Qt.locale(), "ddd")
     dayName = dayName.charAt(0).toUpperCase() + dayName.slice(1)
     let day = now.getDate()
     let suffix
     if (day > 3 && day < 21)
-    suffix = 'th'
+      suffix = 'th'
     else
-    switch (day % 10) {
+      switch (day % 10) {
       case 1:
-      suffix = "st"
-      break
+        suffix = "st"
+        break
       case 2:
-      suffix = "nd"
-      break
+        suffix = "nd"
+        break
       case 3:
-      suffix = "rd"
-      break
+        suffix = "rd"
+        break
       default:
-      suffix = "th"
-    }
+        suffix = "th"
+      }
     let month = now.toLocaleDateString(Qt.locale(), "MMMM")
     let year = now.toLocaleDateString(Qt.locale(), "yyyy")
-    return `${dayName}, `
-    + (Settings.data.location.reverseDayMonth ? `${month} ${day}${suffix} ${year}` : `${day}${suffix} ${month} ${year}`)
-  }
 
-  // Returns a Unix Timestamp (in seconds)
-  readonly property int timestamp: {
-    return Math.floor(date / 1000)
+    return `${dayName}, ` + (reverseDayMonth ? `${month} ${day}${suffix} ${year}` : `${day}${suffix} ${month} ${year}`)
   }
 
 
@@ -78,23 +64,34 @@ Singleton {
 }
 
 // Format an easy to read approximate duration ex: 4h32m
-// Used to display the time remaining on the Battery widget
+// Used to display the time remaining on the Battery widget, computer uptime, etc..
 function formatVagueHumanReadableDuration(totalSeconds) {
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds - (hours * 3600)) / 60)
-  const seconds = totalSeconds - (hours * 3600) - (minutes * 60)
+  if (typeof totalSeconds !== 'number' || totalSeconds < 0) {
+    return '0s'
+  }
 
-  var str = ""
-  if (hours) {
-    str += hours.toString() + "h"
-  }
-  if (minutes) {
-    str += minutes.toString() + "m"
-  }
+  // Floor the input to handle decimal seconds
+  totalSeconds = Math.floor(totalSeconds)
+
+  const days = Math.floor(totalSeconds / 86400)
+  const hours = Math.floor((totalSeconds % 86400) / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+
+  const parts = []
+  if (days)
+    parts.push(`${days}d`)
+  if (hours)
+    parts.push(`${hours}h`)
+  if (minutes)
+    parts.push(`${minutes}m`)
+
+  // Only show seconds if no hours and no minutes
   if (!hours && !minutes) {
-    str += seconds.toString() + "s"
+    parts.push(`${seconds}s`)
   }
-  return str
+
+  return parts.join('')
 }
 
 Timer {

@@ -510,7 +510,7 @@
 }
 
 .visual-refresh.theme-dark .slateTextArea_ec4baf > div:first-child .emptyText__1464f::before {
-  content: "Message #general" !important;
+  content: "send a message" !important;
   color: {{colors.on_surface_variant.default.hex}} !important;
 }
 

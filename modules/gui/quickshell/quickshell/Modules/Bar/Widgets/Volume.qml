@@ -12,9 +12,27 @@ Item {
 
   property ShellScreen screen
   property real scaling: 1.0
+
+  // Widget properties passed from Bar.qml for per-instance settings
+  property string widgetId: ""
   property string barSection: ""
-  property int sectionWidgetIndex: 0
+  property int sectionWidgetIndex: -1
   property int sectionWidgetsCount: 0
+
+  property var widgetMetadata: BarWidgetRegistry.widgetMetadata[widgetId]
+  property var widgetSettings: {
+    var section = barSection.replace("Section", "").toLowerCase()
+    if (section && sectionWidgetIndex >= 0) {
+      var widgets = Settings.data.bar.widgets[section]
+      if (widgets && sectionWidgetIndex < widgets.length) {
+        return widgets[sectionWidgetIndex]
+      }
+    }
+    return {}
+  }
+
+  readonly property bool alwaysShowPercentage: (widgetSettings.alwaysShowPercentage
+                                                !== undefined) ? widgetSettings.alwaysShowPercentage : widgetMetadata.alwaysShowPercentage
 
   // Used to avoid opening the pill on Quickshell startup
   property bool firstVolumeReceived: false
@@ -25,9 +43,9 @@ Item {
 
   function getIcon() {
     if (AudioService.muted) {
-      return "volume_off"
+      return "volume-mute"
     }
-    return AudioService.volume <= Number.EPSILON ? "volume_off" : (AudioService.volume < 0.33 ? "volume_down" : "volume_up")
+    return (AudioService.volume <= Number.EPSILON) ? "volume-zero" : (AudioService.volume <= 0.5) ? "volume-low" : "volume-high"
   }
 
   // Connection used to open the pill when volume changes
@@ -59,12 +77,11 @@ Item {
 
     rightOpen: BarWidgetRegistry.getNPillDirection(root)
     icon: getIcon()
-    iconCircleColor: Color.mPrimary
-    collapsedIconColor: Color.mOnSurface
     autoHide: false // Important to be false so we can hover as long as we want
     text: Math.floor(AudioService.volume * 100) + "%"
-    tooltipText: "Volume: " + Math.round(
-                   AudioService.volume * 100) + "%\nLeft click for advanced settings.\nScroll up/down to change volume."
+    forceOpen: alwaysShowPercentage
+    tooltipText: "Volume: " + Math.round(AudioService.volume * 100)
+                 + "%\nLeft click for advanced settings.\nScroll up/down to change volume.\nRight click to toggle mute."
 
     onWheel: function (delta) {
       wheelAccumulator += delta
@@ -78,17 +95,14 @@ Item {
     }
     onClicked: {
       var settingsPanel = PanelService.getPanel("settingsPanel")
-      settingsPanel.requestedTab = SettingsPanel.Tab.AudioService
-      settingsPanel.open(screen)
+      settingsPanel.requestedTab = SettingsPanel.Tab.Audio
+      settingsPanel.open()
     }
     onRightClicked: {
-      pwvucontrolProcess.running = true
+      AudioService.setMuted(!AudioService.muted)
     }
-  }
-
-  Process {
-    id: pwvucontrolProcess
-    command: ["pwvucontrol"]
-    running: false
+    onMiddleClicked: {
+      Quickshell.execDetached(["pwvucontrol"])
+    }
   }
 }

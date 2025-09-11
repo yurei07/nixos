@@ -45,7 +45,7 @@ Singleton {
 
       property string version: "Unknown"
       property var contributors: []
-      property double timestamp: 0
+      property real timestamp: 0
     }
   }
 

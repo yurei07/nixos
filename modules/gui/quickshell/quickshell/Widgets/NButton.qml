@@ -9,19 +9,23 @@ Rectangle {
   // Public properties
   property string text: ""
   property string icon: ""
+  property string tooltipText
   property color backgroundColor: Color.mPrimary
   property color textColor: Color.mOnPrimary
   property color hoverColor: Color.mTertiary
   property color pressColor: Color.mSecondary
   property bool enabled: true
-  property int fontSize: Style.fontSizeM * scaling
-  property int iconSize: Style.fontSizeL * scaling
+  property real fontSize: Style.fontSizeM * scaling
+  property int fontWeight: Style.fontWeightBold
+  property real iconSize: Style.fontSizeL * scaling
   property bool outlined: false
   property real customWidth: -1
   property real customHeight: -1
 
   // Signals
   signal clicked
+  signal rightClicked
+  signal middleClicked
 
   // Internal properties
   property bool hovered: false
@@ -73,12 +77,14 @@ Rectangle {
   RowLayout {
     id: contentRow
     anchors.centerIn: parent
-    spacing: Style.marginS * scaling
+    spacing: Style.marginXS * scaling
 
     // Icon (optional)
     NIcon {
+      Layout.alignment: Qt.AlignVCenter
       visible: root.icon !== ""
-      text: root.icon
+
+      icon: root.icon
       font.pointSize: root.iconSize
       color: {
         if (!root.enabled)
@@ -101,10 +107,11 @@ Rectangle {
 
     // Text
     NText {
+      Layout.alignment: Qt.AlignVCenter
       visible: root.text !== ""
       text: root.text
       font.pointSize: root.fontSize
-      font.weight: Style.fontWeightBold
+      font.weight: root.fontWeight
       color: {
         if (!root.enabled)
           return Color.mOnSurfaceVariant
@@ -125,48 +132,11 @@ Rectangle {
     }
   }
 
-  // Ripple effect
-  Rectangle {
-    id: ripple
-    anchors.centerIn: parent
-    width: 0
-    height: width
-    radius: width / 2
-    color: root.outlined ? root.backgroundColor : root.textColor
-    opacity: 0
-
-    ParallelAnimation {
-      id: rippleAnimation
-
-      NumberAnimation {
-        target: ripple
-        property: "width"
-        from: 0
-        to: Math.max(root.width, root.height) * 2
-        duration: Style.animationFast
-        easing.type: Easing.OutCubic
-      }
-
-      SequentialAnimation {
-        NumberAnimation {
-          target: ripple
-          property: "opacity"
-          from: 0
-          to: 0.2
-          duration: 100
-          easing.type: Easing.OutCubic
-        }
-
-        NumberAnimation {
-          target: ripple
-          property: "opacity"
-          from: 0.2
-          to: 0
-          duration: 300
-          easing.type: Easing.InCubic
-        }
-      }
-    }
+  NTooltip {
+    id: tooltip
+    target: root
+    positionAbove: Settings.data.bar.position === "bottom"
+    text: root.tooltipText
   }
 
   // Mouse interaction
@@ -175,26 +145,48 @@ Rectangle {
     anchors.fill: parent
     enabled: root.enabled
     hoverEnabled: true
+    acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
     cursorShape: root.enabled ? Qt.PointingHandCursor : Qt.ArrowCursor
 
-    onEntered: root.hovered = true
+    onEntered: {
+      root.hovered = true
+      if (tooltipText) {
+        tooltip.show()
+      }
+    }
     onExited: {
       root.hovered = false
       root.pressed = false
-    }
-    onPressed: {
-      root.pressed = true
-      rippleAnimation.restart()
-    }
-    onReleased: {
-      if (containsMouse) {
-        root.clicked()
+      if (tooltipText) {
+        tooltip.hide()
       }
-      root.pressed = false
     }
+    onPressed: mouse => {
+                 root.pressed = true
+               }
+    onReleased: mouse => {
+                  root.pressed = false
+                  if (tooltipText) {
+                    tooltip.hide()
+                  }
+                  if (!root.hovered) {
+                    return
+                  }
+
+                  if (mouse.button === Qt.LeftButton) {
+                    root.clicked()
+                  } else if (mouse.button == Qt.RightButton) {
+                    root.rightClicked()
+                  } else if (mouse.button == Qt.MiddleButton) {
+                    root.middleClicked
+                  }
+                }
     onCanceled: {
       root.pressed = false
       root.hovered = false
+      if (tooltipText) {
+        tooltip.hide()
+      }
     }
   }
 }

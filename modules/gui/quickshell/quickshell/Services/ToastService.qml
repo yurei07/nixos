@@ -165,24 +165,32 @@ Singleton {
       "timestamp": Date.now()
     }
 
+    // If there's already a toast showing, instantly start hide animation and show new one
+    if (isShowingToast) {
+      // Instantly start hide animation of current toast
+      for (var i = 0; i < allToasts.length; i++) {
+        allToasts[i].hide()
+      }
+      // Clear the queue since we're showing the new toast immediately
+      messageQueue = []
+    }
+
     // Add to queue
     messageQueue.push(toastData)
 
-    // Process queue if not currently showing a toast
-    if (!isShowingToast) {
-      processQueue()
-    }
+    // Always process immediately for instant display
+    processQueue()
   }
 
   // Process the message queue
   function processQueue() {
     if (messageQueue.length === 0 || allToasts.length === 0) {
+      // Added this so we don't accidentally get duplicate toasts
+      // if it causes issues, remove it and we'll find a different solution
+      if (allToasts.length === 0 && messageQueue.length > 0) {
+        messageQueue = []
+      }
       isShowingToast = false
-      return
-    }
-
-    if (isShowingToast) {
-      // Wait for current toast to finish
       return
     }
 

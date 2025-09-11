@@ -1,9 +1,10 @@
 import QtQuick
+import QtQuick.Layouts
 import qs.Commons
 import qs.Services
 import qs.Widgets
 
-// Compact circular statistic display used in the SidePanel
+// Compact circular statistic display using Layout management
 Rectangle {
   id: root
 
@@ -28,20 +29,20 @@ Rectangle {
   // Repaint gauge when the bound value changes
   onValueChanged: gauge.requestPaint()
 
-  Row {
-    id: innerRow
+  ColumnLayout {
+    id: mainLayout
     anchors.fill: parent
     anchors.margins: Style.marginS * scaling * contentScale
-    spacing: Style.marginS * scaling * contentScale
-    anchors.horizontalCenter: parent.horizontalCenter
-    anchors.verticalCenter: parent.verticalCenter
+    spacing: 0
 
-    // Gauge with percentage label placed inside the open gap (right side)
+    // Main gauge container
     Item {
-      id: gaugeWrap
-      anchors.verticalCenter: innerRow.verticalCenter
-      width: 68 * scaling * contentScale
-      height: 68 * scaling * contentScale
+      id: gaugeContainer
+      Layout.fillWidth: true
+      Layout.fillHeight: true
+      Layout.alignment: Qt.AlignCenter
+      Layout.preferredWidth: 68 * scaling * contentScale
+      Layout.preferredHeight: 68 * scaling * contentScale
 
       Canvas {
         id: gauge
@@ -84,25 +85,24 @@ Rectangle {
         horizontalAlignment: Text.AlignHCenter
       }
 
-      // Tiny circular badge for the icon, inside the right-side gap
+      // Tiny circular badge for the icon, positioned using anchors within the gauge
       Rectangle {
         id: iconBadge
-        width: 28 * scaling * contentScale
+        width: iconText.implicitWidth + Style.marginXS * scaling
         height: width
         radius: width / 2
-        color: Color.mSurface
-        // border.color: Color.mPrimary
-        // border.width: Math.max(1, Style.borderS * scaling)
+        color: Color.mPrimary
         anchors.right: parent.right
         anchors.top: parent.top
-        anchors.rightMargin: -6 * scaling * contentScale
-        anchors.topMargin: Style.marginXXS * scaling * contentScale
+        anchors.rightMargin: -2 * scaling
+        anchors.topMargin: -2 * scaling
 
         NIcon {
+          id: iconText
           anchors.centerIn: parent
-          text: root.icon
-          font.pointSize: Style.fontSizeLargeXL * scaling * contentScale
-          color: Color.mOnSurface
+          icon: root.icon
+          color: Color.mOnPrimary
+          font.pointSize: Style.fontSizeM * scaling
           horizontalAlignment: Text.AlignHCenter
           verticalAlignment: Text.AlignVCenter
         }

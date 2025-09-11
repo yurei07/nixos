@@ -2,38 +2,72 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Wayland
 import Quickshell.Widgets
 import qs.Commons
 import qs.Services
 import qs.Widgets
 
-Row {
+RowLayout {
   id: root
-
   property ShellScreen screen
   property real scaling: 1.0
-  readonly property real minWidth: 160
-  readonly property real maxWidth: 400
 
-  anchors.verticalCenter: parent.verticalCenter
-  spacing: Style.marginS * scaling
-  visible: getTitle() !== ""
+  // Widget properties passed from Bar.qml for per-instance settings
+  property string widgetId: ""
+  property string barSection: ""
+  property int sectionWidgetIndex: -1
+  property int sectionWidgetsCount: 0
+
+  property var widgetMetadata: BarWidgetRegistry.widgetMetadata[widgetId]
+  property var widgetSettings: {
+    var section = barSection.replace("Section", "").toLowerCase()
+    if (section && sectionWidgetIndex >= 0) {
+      var widgets = Settings.data.bar.widgets[section]
+      if (widgets && sectionWidgetIndex < widgets.length) {
+        return widgets[sectionWidgetIndex]
+      }
+    }
+    return {}
+  }
+
+  readonly property bool showIcon: (widgetSettings.showIcon !== undefined) ? widgetSettings.showIcon : widgetMetadata.showIcon
+
+  // 6% of total width
+  readonly property real minWidth: Math.max(1, screen.width * 0.06)
+  readonly property real maxWidth: minWidth * 2
 
   function getTitle() {
-    // Use the service's focusedWindowTitle property which is updated immediately
-    // when WindowOpenedOrChanged events are received
     return CompositorService.focusedWindowTitle !== "(No active window)" ? CompositorService.focusedWindowTitle : ""
   }
 
-  function getAppIcon() {
-    const focusedWindow = CompositorService.getFocusedWindow()
-    if (!focusedWindow || !focusedWindow.appId)
-      return ""
+  Layout.alignment: Qt.AlignVCenter
+  spacing: Style.marginS * scaling
+  visible: getTitle() !== ""
 
-    return Icons.iconForAppId(focusedWindow.appId)
+  function getAppIcon() {
+    // Try CompositorService first
+    const focusedWindow = CompositorService.getFocusedWindow()
+    if (focusedWindow && focusedWindow.appId) {
+      const idValue = focusedWindow.appId
+      const normalizedId = (typeof idValue === 'string') ? idValue : String(idValue)
+      return AppIcons.iconForAppId(normalizedId.toLowerCase())
+    }
+
+    // Fallback to ToplevelManager
+    if (ToplevelManager && ToplevelManager.activeToplevel) {
+      const activeToplevel = ToplevelManager.activeToplevel
+      if (activeToplevel.appId) {
+        const idValue2 = activeToplevel.appId
+        const normalizedId2 = (typeof idValue2 === 'string') ? idValue2 : String(idValue2)
+        return AppIcons.iconForAppId(normalizedId2.toLowerCase())
+      }
+    }
+
+    return ""
   }
 
-  //  A hidden text element to safely measure the full title width
+  // A hidden text element to safely measure the full title width
   NText {
     id: fullTitleMetrics
     visible: false
@@ -43,14 +77,12 @@ Row {
   }
 
   Rectangle {
-    // Let the Rectangle size itself based on its content (the Row)
+    id: windowTitleRect
     visible: root.visible
-    width: row.width + Style.marginM * 2 * scaling
-    height: Math.round(Style.capsuleHeight * scaling)
+    Layout.preferredWidth: contentLayout.implicitWidth + Style.marginM * 2 * scaling
+    Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
     radius: Math.round(Style.radiusM * scaling)
     color: Color.mSurfaceVariant
-
-    anchors.verticalCenter: parent.verticalCenter
 
     Item {
       id: mainContainer
@@ -59,17 +91,17 @@ Row {
       anchors.rightMargin: Style.marginS * scaling
       clip: true
 
-      Row {
-        id: row
-        anchors.verticalCenter: parent.verticalCenter
+      RowLayout {
+        id: contentLayout
+        anchors.centerIn: parent
         spacing: Style.marginS * scaling
 
         // Window icon
         Item {
-          width: Style.fontSizeL * scaling * 1.2
-          height: Style.fontSizeL * scaling * 1.2
-          anchors.verticalCenter: parent.verticalCenter
-          visible: getTitle() !== "" && Settings.data.bar.showActiveWindowIcon
+          Layout.preferredWidth: Style.fontSizeL * scaling * 1.2
+          Layout.preferredHeight: Style.fontSizeL * scaling * 1.2
+          Layout.alignment: Qt.AlignVCenter
+          visible: getTitle() !== "" && showIcon
 
           IconImage {
             id: windowIcon
@@ -83,26 +115,24 @@ Row {
 
         NText {
           id: titleText
-
-          // For short titles, show full. For long titles, truncate and expand on hover
-          width: {
+          Layout.preferredWidth: {
             if (mouseArea.containsMouse) {
               return Math.round(Math.min(fullTitleMetrics.contentWidth, root.maxWidth * scaling))
             } else {
               return Math.round(Math.min(fullTitleMetrics.contentWidth, root.minWidth * scaling))
             }
           }
+          Layout.alignment: Qt.AlignVCenter
           horizontalAlignment: Text.AlignLeft
           text: getTitle()
           font.pointSize: Style.fontSizeS * scaling
           font.weight: Style.fontWeightMedium
           elide: mouseArea.containsMouse ? Text.ElideNone : Text.ElideRight
-          anchors.verticalCenter: parent.verticalCenter
           verticalAlignment: Text.AlignVCenter
-          color: Color.mSecondary
+          color: Color.mPrimary
           clip: true
 
-          Behavior on width {
+          Behavior on Layout.preferredWidth {
             NumberAnimation {
               duration: Style.animationSlow
               easing.type: Easing.InOutCubic
@@ -118,6 +148,16 @@ Row {
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
       }
+    }
+  }
+
+  Connections {
+    target: CompositorService
+    function onActiveWindowChanged() {
+      windowIcon.source = Qt.binding(getAppIcon)
+    }
+    function onWindowListChanged() {
+      windowIcon.source = Qt.binding(getAppIcon)
     }
   }
 }

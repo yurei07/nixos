@@ -12,30 +12,8 @@ ColumnLayout {
   id: root
 
   property string latestVersion: GitHubService.latestVersion
-  property string currentVersion: "Unknown" // Fallback version
+  property string currentVersion: UpdateService.currentVersion
   property var contributors: GitHubService.contributors
-
-  Process {
-    id: currentVersionProcess
-
-    command: ["sh", "-c", "cd " + Quickshell.shellDir + " && git describe --tags --abbrev=0 2>/dev/null || echo 'Unknown'"]
-    Component.onCompleted: {
-      running = true
-    }
-
-    stdout: StdioCollector {
-      onStreamFinished: {
-        const version = text.trim()
-        if (version && version !== "Unknown") {
-          root.currentVersion = version
-        } else {
-          currentVersionProcess.command = ["sh", "-c", "cd " + Quickshell.shellDir
-                                           + " && cat package.json 2>/dev/null | grep '\"version\"' | cut -d'\"' -f4 || echo 'Unknown'"]
-          currentVersionProcess.running = true
-        }
-      }
-    }
-  }
 
   NText {
     text: "Noctalia Shell"
@@ -82,14 +60,14 @@ ColumnLayout {
   Rectangle {
     Layout.alignment: Qt.AlignCenter
     Layout.topMargin: Style.marginS * scaling
-    Layout.preferredWidth: updateText.implicitWidth + 46 * scaling
+    Layout.preferredWidth: Math.round(updateRow.implicitWidth + (Style.marginL * scaling * 2))
     Layout.preferredHeight: Math.round(Style.barHeight * scaling)
     radius: Style.radiusL * scaling
     color: updateArea.containsMouse ? Color.mPrimary : Color.transparent
     border.color: Color.mPrimary
     border.width: Math.max(1, Style.borderS * scaling)
     visible: {
-      if (root.currentVersion === "Unknown" || root.latestVersion === "Unknown")
+      if (root.latestVersion === "Unknown")
         return false
 
       const latest = root.latestVersion.replace("v", "").split(".")
@@ -107,11 +85,12 @@ ColumnLayout {
     }
 
     RowLayout {
+      id: updateRow
       anchors.centerIn: parent
       spacing: Style.marginS * scaling
 
       NIcon {
-        text: "system_update"
+        icon: "download"
         font.pointSize: Style.fontSizeXXL * scaling
         color: updateArea.containsMouse ? Color.mSurface : Color.mPrimary
       }

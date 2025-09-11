@@ -27,6 +27,11 @@ RowLayout {
     visible: root.label !== "" || root.description !== ""
   }
 
+  // Spacer to push the checkbox to the far right
+  Item {
+    Layout.fillWidth: true
+  }
+
   Rectangle {
     id: box
 
@@ -39,20 +44,20 @@ RowLayout {
 
     Behavior on color {
       ColorAnimation {
-        duration: Style.animationNormal
+        duration: Style.animationFast
       }
     }
 
     Behavior on border.color {
       ColorAnimation {
-        duration: Style.animationNormal
+        duration: Style.animationFast
       }
     }
 
     NIcon {
       visible: root.checked
       anchors.centerIn: parent
-      text: "check"
+      icon: "check"
       color: root.activeOnColor
       font.pointSize: Math.max(Style.fontSizeS, root.baseSize * 0.7) * scaling
     }

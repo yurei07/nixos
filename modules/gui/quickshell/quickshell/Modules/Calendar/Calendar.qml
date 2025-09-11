@@ -10,8 +10,8 @@ import qs.Widgets
 NPanel {
   id: root
 
-  panelWidth: 340 * scaling
-  panelHeight: 320 * scaling
+  preferredWidth: 340
+  preferredHeight: 320
   panelAnchorRight: true
 
   // Main Column
@@ -28,7 +28,7 @@ NPanel {
       spacing: Style.marginS * scaling
 
       NIconButton {
-        icon: "chevron_left"
+        icon: "chevron-left"
         tooltipText: "Previous month"
         onClicked: {
           let newDate = new Date(grid.year, grid.month - 1, 1)
@@ -47,7 +47,7 @@ NPanel {
       }
 
       NIconButton {
-        icon: "chevron_right"
+        icon: "chevron-right"
         tooltipText: "Next month"
         onClicked: {
           let newDate = new Date(grid.year, grid.month + 1, 1)

@@ -19,8 +19,7 @@ Loader {
       property real scaling: ScalingService.getScreenScale(screen)
       screen: modelData
 
-      property color cornerColor: Qt.rgba(Color.mSurface.r, Color.mSurface.g, Color.mSurface.b,
-                                          Settings.data.bar.backgroundOpacity)
+      property color cornerColor: Qt.alpha(Color.mSurface, Settings.data.bar.backgroundOpacity)
       property real cornerRadius: 20 * scaling
       property real cornerSize: 20 * scaling
 
@@ -55,6 +54,8 @@ Loader {
                 && Settings.data.bar.backgroundOpacity > 0 ? Math.round(Style.barHeight * scaling) : 0
       }
 
+      mask: Region {}
+
       // Top-left concave corner
       Canvas {
         id: topLeftCorner
@@ -75,7 +76,7 @@ Loader {
           ctx.clearRect(0, 0, width, height)
 
           // Fill the entire area with the corner color
-          ctx.fillStyle = Qt.rgba(root.cornerColor.r, root.cornerColor.g, root.cornerColor.b, root.cornerColor.a)
+          ctx.fillStyle = root.cornerColor
           ctx.fillRect(0, 0, width, height)
 
           // Cut out the rounded corner using destination-out
@@ -123,7 +124,7 @@ Loader {
           ctx.reset()
           ctx.clearRect(0, 0, width, height)
 
-          ctx.fillStyle = Qt.rgba(root.cornerColor.r, root.cornerColor.g, root.cornerColor.b, root.cornerColor.a)
+          ctx.fillStyle = root.cornerColor
           ctx.fillRect(0, 0, width, height)
 
           ctx.globalCompositeOperation = "destination-out"
@@ -170,7 +171,7 @@ Loader {
           ctx.reset()
           ctx.clearRect(0, 0, width, height)
 
-          ctx.fillStyle = Qt.rgba(root.cornerColor.r, root.cornerColor.g, root.cornerColor.b, root.cornerColor.a)
+          ctx.fillStyle = root.cornerColor
           ctx.fillRect(0, 0, width, height)
 
           ctx.globalCompositeOperation = "destination-out"
@@ -217,7 +218,7 @@ Loader {
           ctx.reset()
           ctx.clearRect(0, 0, width, height)
 
-          ctx.fillStyle = Qt.rgba(root.cornerColor.r, root.cornerColor.g, root.cornerColor.b, root.cornerColor.a)
+          ctx.fillStyle = root.cornerColor
           ctx.fillRect(0, 0, width, height)
 
           ctx.globalCompositeOperation = "destination-out"
@@ -244,8 +245,6 @@ Loader {
           }
         }
       }
-
-      mask: Region {}
     }
   }
 }

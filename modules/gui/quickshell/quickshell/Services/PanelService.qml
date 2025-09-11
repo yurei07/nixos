@@ -12,6 +12,7 @@ Singleton {
 
   // Currently opened panel
   property var openedPanel: null
+  readonly property bool hasOpenedPanel: (openedPanel !== null)
 
   property var registeredPanels: ({})
 
@@ -33,9 +34,15 @@ Singleton {
 
   // Helper to keep only one panel open at any time
   function willOpenPanel(panel) {
-    if (openedPanel && openedPanel != panel) {
+    if (openedPanel && openedPanel !== panel) {
       openedPanel.close()
     }
     openedPanel = panel
+  }
+
+  function closedPanel(panel) {
+    if (openedPanel && openedPanel === panel) {
+      openedPanel = null
+    }
   }
 }

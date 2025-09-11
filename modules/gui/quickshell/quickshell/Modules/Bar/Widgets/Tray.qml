@@ -15,6 +15,7 @@ Rectangle {
 
   property ShellScreen screen
   property real scaling: 1.0
+
   readonly property real itemSize: 24 * scaling
 
   function onLoaded() {
@@ -26,26 +27,26 @@ Rectangle {
   }
 
   visible: SystemTray.items.values.length > 0
-  implicitWidth: tray.width + Style.marginM * scaling * 2
+  implicitWidth: trayLayout.implicitWidth + Style.marginM * scaling * 2
   implicitHeight: Math.round(Style.capsuleHeight * scaling)
   radius: Math.round(Style.radiusM * scaling)
   color: Color.mSurfaceVariant
 
   Layout.alignment: Qt.AlignVCenter
 
-  Row {
-    id: tray
-
-    anchors.verticalCenter: parent.verticalCenter
-    anchors.horizontalCenter: parent.horizontalCenter
+  RowLayout {
+    id: trayLayout
+    anchors.centerIn: parent
     spacing: Style.marginS * scaling
 
     Repeater {
       id: repeater
       model: SystemTray.items
+
       delegate: Item {
-        width: itemSize
-        height: itemSize
+        Layout.preferredWidth: itemSize
+        Layout.preferredHeight: itemSize
+        Layout.alignment: Qt.AlignCenter
         visible: modelData
 
         IconImage {
@@ -146,13 +147,14 @@ Rectangle {
 
     function open() {
       visible = true
-
       PanelService.willOpenPanel(trayPanel)
     }
 
     function close() {
       visible = false
-      trayMenu.item.hideMenu()
+      if (trayMenu.item) {
+        trayMenu.item.hideMenu()
+      }
     }
 
     // Clicking outside of the rectangle to close

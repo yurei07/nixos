@@ -115,7 +115,6 @@ ColumnLayout {
       NColorPicker {
         selectedColor: Settings.data.wallpaper.fillColor
         onColorSelected: color => Settings.data.wallpaper.fillColor = color
-        onColorCancelled: selectedColor = Settings.data.wallpaper.fillColor
       }
     }
 
@@ -139,8 +138,8 @@ ColumnLayout {
         spacing: Style.marginL * scaling
         NSlider {
           Layout.fillWidth: true
-          from: 100
-          to: 5000
+          from: 500
+          to: 10000
           stepSize: 100
           value: Settings.data.wallpaper.transitionDuration
           onMoved: Settings.data.wallpaper.transitionDuration = value
@@ -278,7 +277,6 @@ ColumnLayout {
         NTextInput {
           label: "Custom Interval"
           description: "Enter time as HH:MM (e.g., 01:30)."
-          inputMaxWidth: 100 * scaling
           text: {
             const s = Settings.data.wallpaper.randomIntervalSec
             const h = Math.floor(s / 3600)

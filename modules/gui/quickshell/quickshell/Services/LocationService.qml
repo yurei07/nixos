@@ -25,6 +25,7 @@ Singleton {
   FileView {
     id: locationFileView
     path: locationFile
+    printErrors: false
     onAdapterUpdated: saveTimer.start()
     onLoaded: {
       Logger.log("Location", "Loaded cached data")
@@ -230,22 +231,24 @@ Singleton {
   // --------------------------------
   function weatherSymbolFromCode(code) {
     if (code === 0)
-      return "sunny"
+      return "weather-sun"
     if (code === 1 || code === 2)
-      return "partly_cloudy_day"
+      return "weather-cloud-sun"
     if (code === 3)
-      return "cloud"
+      return "weather-cloud"
     if (code >= 45 && code <= 48)
-      return "foggy"
+      return "weather-cloud-haze"
     if (code >= 51 && code <= 67)
-      return "rainy"
+      return "weather-cloud-rain"
     if (code >= 71 && code <= 77)
-      return "weather_snowy"
-    if (code >= 80 && code <= 82)
-      return "rainy"
+      return "weather-cloud-snow"
+    if (code >= 71 && code <= 77)
+      return "weather-cloud-snow"
+    if (code >= 85 && code <= 86)
+      return "weather-cloud-snow"
     if (code >= 95 && code <= 99)
-      return "thunderstorm"
-    return "cloud"
+      return "weather-cloud-lightning"
+    return "weather-cloud"
   }
 
   // --------------------------------

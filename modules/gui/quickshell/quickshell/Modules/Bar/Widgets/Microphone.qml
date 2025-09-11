@@ -12,9 +12,27 @@ Item {
 
   property ShellScreen screen
   property real scaling: 1.0
+
+  // Widget properties passed from Bar.qml for per-instance settings
+  property string widgetId: ""
   property string barSection: ""
-  property int sectionWidgetIndex: 0
+  property int sectionWidgetIndex: -1
   property int sectionWidgetsCount: 0
+
+  property var widgetMetadata: BarWidgetRegistry.widgetMetadata[widgetId]
+  property var widgetSettings: {
+    var section = barSection.replace("Section", "").toLowerCase()
+    if (section && sectionWidgetIndex >= 0) {
+      var widgets = Settings.data.bar.widgets[section]
+      if (widgets && sectionWidgetIndex < widgets.length) {
+        return widgets[sectionWidgetIndex]
+      }
+    }
+    return {}
+  }
+
+  readonly property bool alwaysShowPercentage: (widgetSettings.alwaysShowPercentage
+                                                !== undefined) ? widgetSettings.alwaysShowPercentage : widgetMetadata.alwaysShowPercentage
 
   // Used to avoid opening the pill on Quickshell startup
   property bool firstInputVolumeReceived: false
@@ -25,9 +43,9 @@ Item {
 
   function getIcon() {
     if (AudioService.inputMuted) {
-      return "mic_off"
+      return "microphone-mute"
     }
-    return AudioService.inputVolume <= Number.EPSILON ? "mic_off" : (AudioService.inputVolume < 0.33 ? "mic" : "mic")
+    return (AudioService.inputVolume <= Number.EPSILON) ? "microphone-mute" : "microphone"
   }
 
   // Connection used to open the pill when input volume changes
@@ -74,10 +92,9 @@ Item {
 
     rightOpen: BarWidgetRegistry.getNPillDirection(root)
     icon: getIcon()
-    iconCircleColor: Color.mPrimary
-    collapsedIconColor: Color.mOnSurface
     autoHide: false // Important to be false so we can hover as long as we want
     text: Math.floor(AudioService.inputVolume * 100) + "%"
+    forceOpen: alwaysShowPercentage
     tooltipText: "Microphone: " + Math.round(AudioService.inputVolume * 100)
                  + "%\nLeft click for advanced settings.\nScroll up/down to change volume.\nRight click to toggle mute."
 
@@ -93,17 +110,14 @@ Item {
     }
     onClicked: {
       var settingsPanel = PanelService.getPanel("settingsPanel")
-      settingsPanel.requestedTab = SettingsPanel.Tab.AudioService
-      settingsPanel.open(screen)
+      settingsPanel.requestedTab = SettingsPanel.Tab.Audio
+      settingsPanel.open()
     }
     onRightClicked: {
       AudioService.setInputMuted(!AudioService.inputMuted)
     }
-  }
-
-  Process {
-    id: pwvucontrolProcess
-    command: ["pwvucontrol"]
-    running: false
+    onMiddleClicked: {
+      Quickshell.execDetached(["pwvucontrol"])
+    }
   }
 }

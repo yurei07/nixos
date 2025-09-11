@@ -35,6 +35,14 @@ Singleton {
       }
     }
 
+    // NixOS hicolor paths
+    candidates.push(`/run/current-system/sw/share/icons/hicolor/scalable/apps/${n}.svg`)
+    for (const s of sizes) {
+      for (const ext of exts) {
+        candidates.push(`/run/current-system/sw/share/icons/hicolor/${s}/apps/${n}.${ext}`)
+      }
+    }
+
     // Generic icon themes under /usr/share/icons (common cases)
     for (const ext of exts) {
       candidates.push(`/usr/share/icons/${n}.${ext}`)

@@ -44,14 +44,6 @@ Singleton {
 
   property color transparent: "transparent"
 
-  // -----------
-  function applyOpacity(color, opacity) {
-    // Convert color to string and apply opacity
-    if (!color)
-      return "transparent"
-    return color.toString().replace("#", "#" + opacity)
-  }
-
   // --------------------------------
   // Default colors: RosePine
   QtObject {
@@ -110,7 +102,8 @@ Singleton {
   // FileView to load custom colors data from colors.json
   FileView {
     id: customColorsFile
-    path: Settings.configDir + "colors.json"
+    path: Settings.directoriesCreated ? (Settings.configDir + "colors.json") : undefined
+    printErrors: false
     watchChanges: true
     onFileChanged: {
       Logger.log("Color", "Reloading colors from disk")
@@ -119,6 +112,13 @@ Singleton {
     onAdapterUpdated: {
       Logger.log("Color", "Writing colors to disk")
       writeAdapter()
+    }
+
+    // Trigger initial load when path changes from empty to actual path
+    onPathChanged: {
+      if (path !== undefined) {
+        reload()
+      }
     }
     onLoadFailed: function (error) {
       if (error.toString().includes("No such file") || error === 2) {

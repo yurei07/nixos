@@ -78,7 +78,7 @@ Variants {
       }
 
       // Main notification container
-      Column {
+      ColumnLayout {
         id: notificationStack
         // Position based on bar location
         anchors.top: Settings.data.bar.position === "top" ? parent.top : undefined
@@ -92,11 +92,12 @@ Variants {
         Repeater {
           model: notificationModel
           delegate: Rectangle {
-            width: 360 * scaling
-            height: Math.max(80 * scaling, contentColumn.implicitHeight + (Style.marginM * 2 * scaling))
+            Layout.preferredWidth: 360 * scaling
+            Layout.preferredHeight: notificationLayout.implicitHeight + (Style.marginL * 2 * scaling)
+            Layout.maximumHeight: Layout.preferredHeight
             clip: true
-            radius: Style.radiusM * scaling
-            border.color: Color.mPrimary
+            radius: Style.radiusL * scaling
+            border.color: Color.mOutline
             border.width: Math.max(1, Style.borderS * scaling)
             color: Color.mSurface
 
@@ -104,6 +105,17 @@ Variants {
             property real scaleValue: 0.8
             property real opacityValue: 0.0
             property bool isRemoving: false
+
+            // Right-click to dismiss
+            MouseArea {
+              anchors.fill: parent
+              acceptedButtons: Qt.RightButton
+              onClicked: {
+                if (mouse.button === Qt.RightButton) {
+                  animateOut()
+                }
+              }
+            }
 
             // Scale and fade-in animation
             scale: scaleValue
@@ -156,67 +168,137 @@ Variants {
               }
             }
 
-            Column {
-              id: contentColumn
+            ColumnLayout {
+              id: notificationLayout
               anchors.fill: parent
               anchors.margins: Style.marginM * scaling
-              spacing: Style.marginS * scaling
+              anchors.rightMargin: (Style.marginM + 32) * scaling // Leave space for close button
+              spacing: Style.marginM * scaling
 
+              // Header section with app name and timestamp
               RowLayout {
+                Layout.fillWidth: true
                 spacing: Style.marginS * scaling
+
                 NText {
-                  text: (model.appName || model.desktopEntry) || "Unknown App"
+                  text: `${(model.appName || model.desktopEntry)
+                        || "Unknown App"} · ${NotificationService.formatTimestamp(model.timestamp)}`
                   color: Color.mSecondary
                   font.pointSize: Style.fontSizeXS * scaling
                 }
+
                 Rectangle {
-                  width: 6 * scaling
-                  height: 6 * scaling
+                  Layout.preferredWidth: 6 * scaling
+                  Layout.preferredHeight: 6 * scaling
                   radius: Style.radiusXS * scaling
                   color: (model.urgency === NotificationUrgency.Critical) ? Color.mError : (model.urgency === NotificationUrgency.Low) ? Color.mOnSurface : Color.mPrimary
                   Layout.alignment: Qt.AlignVCenter
                 }
+
                 Item {
                   Layout.fillWidth: true
                 }
-                NText {
-                  text: NotificationService.formatTimestamp(model.timestamp)
-                  color: Color.mOnSurface
-                  font.pointSize: Style.fontSizeXS * scaling
+              }
+
+              // Main content section
+              RowLayout {
+                Layout.fillWidth: true
+                spacing: Style.marginM * scaling
+
+                // Image
+                NImageCircled {
+                  Layout.preferredWidth: 40 * scaling
+                  Layout.preferredHeight: 40 * scaling
+                  Layout.alignment: Qt.AlignTop
+                  imagePath: model.image && model.image !== "" ? model.image : ""
+                  borderColor: Color.transparent
+                  borderWidth: 0
+                  visible: (model.image && model.image !== "")
+                }
+
+                // Text content
+                ColumnLayout {
+                  Layout.fillWidth: true
+                  spacing: Style.marginS * scaling
+
+                  NText {
+                    text: model.summary || "No summary"
+                    font.pointSize: Style.fontSizeL * scaling
+                    font.weight: Style.fontWeightMedium
+                    color: Color.mOnSurface
+                    wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                    Layout.fillWidth: true
+                    maximumLineCount: 3
+                    elide: Text.ElideRight
+                  }
+
+                  NText {
+                    text: model.body || ""
+                    font.pointSize: Style.fontSizeM * scaling
+                    color: Color.mOnSurface
+                    wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                    Layout.fillWidth: true
+                    maximumLineCount: 5
+                    elide: Text.ElideRight
+                    visible: text.length > 0
+                  }
                 }
               }
 
-              NText {
-                text: model.summary || "No summary"
-                font.pointSize: Style.fontSizeL * scaling
-                font.weight: Style.fontWeightBold
-                color: Color.mOnSurface
-                wrapMode: Text.Wrap
-                width: 300 * scaling
-                maximumLineCount: 3
-                elide: Text.ElideRight
-              }
+              // Notification actions
+              RowLayout {
+                Layout.fillWidth: true
+                spacing: Style.marginS * scaling
+                visible: model.rawNotification && model.rawNotification.actions
+                         && model.rawNotification.actions.length > 0
 
-              NText {
-                text: model.body || ""
-                font.pointSize: Style.fontSizeXS * scaling
-                color: Color.mOnSurface
-                wrapMode: Text.Wrap
-                width: 300 * scaling
-                maximumLineCount: 5
-                elide: Text.ElideRight
-              }
+                property var notificationActions: model.rawNotification ? model.rawNotification.actions : []
 
-              // Actions removed
+                Repeater {
+                  model: parent.notificationActions
+
+                  delegate: NButton {
+                    text: {
+                      var actionText = modelData.text || "Open"
+                      // If text contains comma, take the part after the comma (the display text)
+                      if (actionText.includes(",")) {
+                        return actionText.split(",")[1] || actionText
+                      }
+                      return actionText
+                    }
+                    fontSize: Style.fontSizeS * scaling
+                    backgroundColor: Color.mPrimary
+                    textColor: Color.mOnPrimary
+                    hoverColor: Color.mSecondary
+                    pressColor: Color.mTertiary
+                    outlined: false
+                    customHeight: 32 * scaling
+                    Layout.preferredHeight: 32 * scaling
+
+                    onClicked: {
+                      if (modelData && modelData.invoke) {
+                        modelData.invoke()
+                      }
+                    }
+                  }
+                }
+
+                // Spacer to push buttons to the left if needed
+                Item {
+                  Layout.fillWidth: true
+                }
+              }
             }
 
+            // Close button positioned absolutely
             NIconButton {
               icon: "close"
               tooltipText: "Close"
-              sizeRatio: 0.8
+              sizeRatio: 0.6
               anchors.top: parent.top
+              anchors.topMargin: Style.marginM * scaling
               anchors.right: parent.right
-              anchors.margins: Style.marginS * scaling
+              anchors.rightMargin: Style.marginM * scaling
 
               onClicked: {
                 animateOut()

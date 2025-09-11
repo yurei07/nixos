@@ -28,7 +28,6 @@ import qs.Modules.PowerPanel
 import qs.Modules.SidePanel
 import qs.Modules.Toast
 import qs.Modules.WiFiPanel
-import qs.Modules.ArchUpdaterPanel
 import qs.Services
 import qs.Widgets
 
@@ -95,19 +94,8 @@ ShellRoot {
     objectName: "bluetoothPanel"
   }
 
-  ArchUpdaterPanel {
-    id: archUpdaterPanel
-    objectName: "archUpdaterPanel"
-  }
-
   Component.onCompleted: {
     // Save a ref. to our lockScreen so we can access it  easily
     PanelService.lockScreen = lockScreen
-
-    // Ensure our location singleton is created as soon as possible so we start fetching weather asap
-    LocationService.init()
-
-    // Kickoff NightLight service
-    NightLightService.apply()
   }
 }

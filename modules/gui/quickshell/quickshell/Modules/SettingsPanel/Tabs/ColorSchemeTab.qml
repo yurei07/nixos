@@ -8,6 +8,7 @@ import qs.Widgets
 
 ColumnLayout {
   id: root
+  spacing: 0
 
   // Cache for scheme JSON (can be flat or {dark, light})
   property var schemeColorsCache: ({})
@@ -103,225 +104,220 @@ ColumnLayout {
     }
   }
 
+  // Main Toggles - Dark Mode / Matugen
   ColumnLayout {
-    spacing: 0
+    spacing: Style.marginL * scaling
+    Layout.fillWidth: true
 
-    Item {
-      Layout.fillWidth: true
-      Layout.preferredHeight: 0
+    // Dark Mode Toggle (affects both Matugen and predefined schemes that provide variants)
+    NToggle {
+      label: "Dark Mode"
+      description: Settings.data.colorSchemes.useWallpaperColors ? "Generate dark theme colors when using Matugen." : "Use a dark variant if available."
+      checked: Settings.data.colorSchemes.darkMode
+      enabled: true
+      onToggled: checked => Settings.data.colorSchemes.darkMode = checked
     }
 
-    ColumnLayout {
-      spacing: Style.marginL * scaling
-      Layout.fillWidth: true
+    // Use Matugen
+    NToggle {
+      label: "Enable Matugen"
+      description: "Automatically generate colors based on your active wallpaper."
+      checked: Settings.data.colorSchemes.useWallpaperColors
+      onToggled: checked => {
+                   if (checked) {
+                     // Check if matugen is installed
+                     matugenCheck.running = true
+                   } else {
+                     Settings.data.colorSchemes.useWallpaperColors = false
+                     ToastService.showNotice("Matugen", "Disabled")
 
-      // Dark Mode Toggle (affects both Matugen and predefined schemes that provide variants)
-      NToggle {
-        label: "Dark Mode"
-        description: Settings.data.colorSchemes.useWallpaperColors ? "Generate dark theme colors when using Matugen." : "Use a dark variant if available."
-        checked: Settings.data.colorSchemes.darkMode
-        enabled: true
-        onToggled: checked => Settings.data.colorSchemes.darkMode = checked
-      }
+                     if (Settings.data.colorSchemes.predefinedScheme) {
 
-      // Use Matugen
-      NToggle {
-        label: "Enable Matugen"
-        description: "Automatically generate colors based on your active wallpaper."
-        checked: Settings.data.colorSchemes.useWallpaperColors
-        onToggled: checked => {
-                     if (checked) {
-                       // Check if matugen is installed
-                       matugenCheck.running = true
-                     } else {
-                       Settings.data.colorSchemes.useWallpaperColors = false
-                       ToastService.showNotice("Matugen", "Disabled")
-
-                       if (Settings.data.colorSchemes.predefinedScheme) {
-
-                         ColorSchemeService.applyScheme(Settings.data.colorSchemes.predefinedScheme)
-                       }
+                       ColorSchemeService.applyScheme(Settings.data.colorSchemes.predefinedScheme)
                      }
                    }
-      }
+                 }
+    }
+  }
 
-      NDivider {
-        Layout.fillWidth: true
-        Layout.topMargin: Style.marginXL * scaling
-        Layout.bottomMargin: Style.marginXL * scaling
-      }
+  NDivider {
+    Layout.fillWidth: true
+    Layout.topMargin: Style.marginXL * scaling
+    Layout.bottomMargin: Style.marginXL * scaling
+  }
 
-      ColumnLayout {
-        spacing: Style.marginS * scaling
-        Layout.fillWidth: true
+  // Predefined Color Schemes
+  ColumnLayout {
+    spacing: Style.marginM * scaling
+    Layout.fillWidth: true
 
-        NText {
-          text: "Predefined Color Schemes"
-          font.pointSize: Style.fontSizeXXL * scaling
-          font.weight: Style.fontWeightBold
-          color: Color.mSecondary
-        }
+    NText {
+      text: "Predefined Color Schemes"
+      font.pointSize: Style.fontSizeXXL * scaling
+      font.weight: Style.fontWeightBold
+      color: Color.mSecondary
+    }
 
-        NText {
-          text: "These color schemes are only active when 'Use Matugen' is turned off. With Matugen enabled, colors will be automatically generated from your wallpaper. You can still switch between light and dark themes while using Matugen."
-          font.pointSize: Style.fontSizeM * scaling
-          color: Color.mOnSurfaceVariant
+    NText {
+      text: "To use these color schemes, you must turn off Matugen. With Matugen enabled, colors are automatically generated from your wallpaper."
+      font.pointSize: Style.fontSizeM * scaling
+      color: Color.mOnSurfaceVariant
+      Layout.fillWidth: true
+      wrapMode: Text.WordWrap
+    }
+
+    // Color Schemes Grid
+    GridLayout {
+      columns: 3
+      rowSpacing: Style.marginM * scaling
+      columnSpacing: Style.marginM * scaling
+      Layout.fillWidth: true
+
+      Repeater {
+        model: ColorSchemeService.schemes
+
+        Rectangle {
+          id: schemeCard
+
+          property string schemePath: modelData
+
           Layout.fillWidth: true
-          wrapMode: Text.WordWrap
-        }
-      }
+          Layout.preferredHeight: 120 * scaling
+          radius: Style.radiusM * scaling
+          color: getSchemeColor(modelData, "mSurface")
+          border.width: Math.max(1, Style.borderL * scaling)
+          border.color: (!Settings.data.colorSchemes.useWallpaperColors
+                         && (Settings.data.colorSchemes.predefinedScheme === modelData.split("/").pop().replace(
+                               ".json", ""))) ? Color.mPrimary : Color.mOutline
+          scale: root.cardScaleLow
 
-      // Color Schemes Grid
-      GridLayout {
-        columns: 3
-        rowSpacing: Style.marginM * scaling
-        columnSpacing: Style.marginM * scaling
-        Layout.fillWidth: true
+          // Mouse area for selection
+          MouseArea {
+            anchors.fill: parent
+            onClicked: {
+              // Disable useWallpaperColors when picking a predefined color scheme
+              Settings.data.colorSchemes.useWallpaperColors = false
+              Logger.log("ColorSchemeTab", "Disabled matugen setting")
 
-        Repeater {
-          model: ColorSchemeService.schemes
+              Settings.data.colorSchemes.predefinedScheme = schemePath.split("/").pop().replace(".json", "")
+              ColorSchemeService.applyScheme(Settings.data.colorSchemes.predefinedScheme)
+            }
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
 
-          Rectangle {
-            id: schemeCard
-
-            property string schemePath: modelData
-
-            Layout.fillWidth: true
-            Layout.preferredHeight: 120 * scaling
-            radius: Style.radiusM * scaling
-            color: getSchemeColor(modelData, "mSurface")
-            border.width: Math.max(1, Style.borderL * scaling)
-            border.color: (!Settings.data.colorSchemes.useWallpaperColors
-                           && (Settings.data.colorSchemes.predefinedScheme === modelData)) ? Color.mPrimary : Color.mOutline
-            scale: root.cardScaleLow
-
-            // Mouse area for selection
-            MouseArea {
-              anchors.fill: parent
-              onClicked: {
-                // Disable useWallpaperColors when picking a predefined color scheme
-                Settings.data.colorSchemes.useWallpaperColors = false
-                Logger.log("ColorSchemeTab", "Disabled matugen setting")
-
-                Settings.data.colorSchemes.predefinedScheme = schemePath
-                ColorSchemeService.applyScheme(schemePath)
-              }
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-
-              onEntered: {
-                schemeCard.scale = root.cardScaleHigh
-              }
-
-              onExited: {
-                schemeCard.scale = root.cardScaleLow
-              }
+            onEntered: {
+              schemeCard.scale = root.cardScaleHigh
             }
 
-            // Card content
-            ColumnLayout {
-              anchors.fill: parent
-              anchors.margins: Style.marginXL * scaling
+            onExited: {
+              schemeCard.scale = root.cardScaleLow
+            }
+          }
+
+          // Card content
+          ColumnLayout {
+            anchors.fill: parent
+            anchors.margins: Style.marginXL * scaling
+            spacing: Style.marginS * scaling
+
+            // Scheme name
+            NText {
+              text: {
+                // Remove json and the full path
+                var chunks = schemePath.replace(".json", "").split("/")
+                return chunks[chunks.length - 1]
+              }
+              font.pointSize: Style.fontSizeM * scaling
+              font.weight: Style.fontWeightBold
+              color: getSchemeColor(modelData, "mOnSurface")
+              Layout.fillWidth: true
+              elide: Text.ElideRight
+              horizontalAlignment: Text.AlignHCenter
+            }
+
+            // Color swatches
+            RowLayout {
+              id: swatches
+
               spacing: Style.marginS * scaling
+              Layout.fillWidth: true
+              Layout.alignment: Qt.AlignHCenter
 
-              // Scheme name
-              NText {
-                text: {
-                  // Remove json and the full path
-                  var chunks = schemePath.replace(".json", "").split("/")
-                  return chunks[chunks.length - 1]
-                }
-                font.pointSize: Style.fontSizeM * scaling
-                font.weight: Style.fontWeightBold
-                color: getSchemeColor(modelData, "mOnSurface")
-                Layout.fillWidth: true
-                elide: Text.ElideRight
-                horizontalAlignment: Text.AlignHCenter
+              readonly property int swatchSize: 20 * scaling
+
+              // Primary color swatch
+              Rectangle {
+                width: swatches.swatchSize
+                height: swatches.swatchSize
+                radius: width * 0.5
+                color: getSchemeColor(modelData, "mPrimary")
               }
 
-              // Color swatches
-              RowLayout {
-                id: swatches
+              // Secondary color swatch
+              Rectangle {
+                width: swatches.swatchSize
+                height: swatches.swatchSize
+                radius: width * 0.5
+                color: getSchemeColor(modelData, "mSecondary")
+              }
 
-                spacing: Style.marginS * scaling
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignHCenter
+              // Tertiary color swatch
+              Rectangle {
+                width: swatches.swatchSize
+                height: swatches.swatchSize
+                radius: width * 0.5
+                color: getSchemeColor(modelData, "mTertiary")
+              }
 
-                readonly property int swatchSize: 20 * scaling
-
-                // Primary color swatch
-                Rectangle {
-                  width: swatches.swatchSize
-                  height: swatches.swatchSize
-                  radius: width * 0.5
-                  color: getSchemeColor(modelData, "mPrimary")
-                }
-
-                // Secondary color swatch
-                Rectangle {
-                  width: swatches.swatchSize
-                  height: swatches.swatchSize
-                  radius: width * 0.5
-                  color: getSchemeColor(modelData, "mSecondary")
-                }
-
-                // Tertiary color swatch
-                Rectangle {
-                  width: swatches.swatchSize
-                  height: swatches.swatchSize
-                  radius: width * 0.5
-                  color: getSchemeColor(modelData, "mTertiary")
-                }
-
-                // Error color swatch
-                Rectangle {
-                  width: swatches.swatchSize
-                  height: swatches.swatchSize
-                  radius: width * 0.5
-                  color: getSchemeColor(modelData, "mError")
-                }
+              // Error color swatch
+              Rectangle {
+                width: swatches.swatchSize
+                height: swatches.swatchSize
+                radius: width * 0.5
+                color: getSchemeColor(modelData, "mError")
               }
             }
+          }
 
-            // Selection indicator (Checkmark)
-            Rectangle {
-              visible: !Settings.data.colorSchemes.useWallpaperColors
-                       && (Settings.data.colorSchemes.predefinedScheme === schemePath)
-              anchors.right: parent.right
-              anchors.top: parent.top
-              anchors.margins: Style.marginS * scaling
-              width: 24 * scaling
-              height: 24 * scaling
-              radius: width * 0.5
-              color: Color.mPrimary
+          // Selection indicator (Checkmark)
+          Rectangle {
+            visible: !Settings.data.colorSchemes.useWallpaperColors
+                     && (Settings.data.colorSchemes.predefinedScheme === schemePath.split("/").pop().replace(".json",
+                                                                                                             ""))
+            anchors.right: parent.right
+            anchors.top: parent.top
+            anchors.margins: Style.marginS * scaling
+            width: 24 * scaling
+            height: 24 * scaling
+            radius: width * 0.5
+            color: Color.mPrimary
 
-              NText {
-                anchors.centerIn: parent
-                text: "✓"
-                font.pointSize: Style.fontSizeXS * scaling
-                font.weight: Style.fontWeightBold
-                color: Color.mOnPrimary
-              }
+            NText {
+              anchors.centerIn: parent
+              text: "✓"
+              font.pointSize: Style.fontSizeXS * scaling
+              font.weight: Style.fontWeightBold
+              color: Color.mOnPrimary
             }
+          }
 
-            // Smooth animations
-            Behavior on scale {
-              NumberAnimation {
-                duration: Style.animationNormal
-                easing.type: Easing.OutCubic
-              }
+          // Smooth animations
+          Behavior on scale {
+            NumberAnimation {
+              duration: Style.animationNormal
+              easing.type: Easing.OutCubic
             }
+          }
 
-            Behavior on border.color {
-              ColorAnimation {
-                duration: Style.animationNormal
-              }
+          Behavior on border.color {
+            ColorAnimation {
+              duration: Style.animationNormal
             }
+          }
 
-            Behavior on border.width {
-              NumberAnimation {
-                duration: Style.animationFast
-              }
+          Behavior on border.width {
+            NumberAnimation {
+              duration: Style.animationFast
             }
           }
         }

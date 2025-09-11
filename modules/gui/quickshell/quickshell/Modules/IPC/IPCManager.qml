@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import Quickshell.Wayland
 import qs.Commons
 import qs.Services
 
@@ -10,23 +11,26 @@ Item {
   IpcHandler {
     target: "screenRecorder"
     function toggle() {
-      ScreenRecorderService.toggleRecording()
+      if (ScreenRecorderService.isAvailable) {
+        ScreenRecorderService.toggleRecording()
+      }
     }
   }
 
   IpcHandler {
     target: "settings"
     function toggle() {
-      settingsPanel.toggle(Quickshell.screens[0])
+      settingsPanel.toggle()
     }
   }
 
   IpcHandler {
     target: "notifications"
     function toggleHistory() {
-      notificationHistoryPanel.toggle(Quickshell.screens[0])
+      notificationHistoryPanel.toggle()
     }
-    function toggleDoNotDisturb() {// TODO
+    function toggleDND() {
+      Settings.data.notifications.doNotDisturb = !Settings.data.notifications.doNotDisturb
     }
   }
 
@@ -38,44 +42,17 @@ Item {
   }
 
   IpcHandler {
-    target: "appLauncher"
-    function toggle() {
-      launcherPanel.toggle(Quickshell.screens[0])
-    }
-    function clipboard() {
-      launcherPanel.toggle(Quickshell.screens[0])
-      // Use the setSearchText function to set clipboard mode
-      Qt.callLater(() => {
-                     launcherPanel.setSearchText(">clip ")
-                   })
-    }
-    function calculator() {
-      launcherPanel.toggle(Quickshell.screens[0])
-      // Use the setSearchText function to set calculator mode
-      Qt.callLater(() => {
-                     launcherPanel.setSearchText(">calc ")
-                   })
-    }
-  }
-
-  IpcHandler {
     target: "launcher"
     function toggle() {
-      launcherPanel.toggle(Quickshell.screens[0])
+      launcherPanel.toggle()
     }
     function clipboard() {
-      launcherPanel.toggle(Quickshell.screens[0])
-      // Use the setSearchText function to set clipboard mode
-      Qt.callLater(() => {
-                     launcherPanel.setSearchText(">clip ")
-                   })
+      launcherPanel.setSearchText(">clip ")
+      launcherPanel.toggle()
     }
     function calculator() {
-      launcherPanel.toggle(Quickshell.screens[0])
-      // Use the setSearchText function to set calculator mode
-      Qt.callLater(() => {
-                     launcherPanel.setSearchText(">calc ")
-                   })
+      launcherPanel.setSearchText(">calc ")
+      launcherPanel.toggle()
     }
   }
 
@@ -134,14 +111,14 @@ Item {
   IpcHandler {
     target: "powerPanel"
     function toggle() {
-      powerPanel.toggle(Quickshell.screens[0])
+      powerPanel.toggle()
     }
   }
 
   IpcHandler {
     target: "sidePanel"
     function toggle() {
-      sidePanel.toggle(Quickshell.screens[0])
+      sidePanel.toggle()
     }
   }
 
@@ -152,6 +129,13 @@ Item {
       if (Settings.data.wallpaper.enabled) {
         WallpaperService.setRandomWallpaper()
       }
+    }
+
+    function set(path: string, screen: string) {
+      if (screen === "all" || screen === "") {
+        screen = undefined
+      }
+      WallpaperService.changeWallpaper(path, screen)
     }
   }
 }

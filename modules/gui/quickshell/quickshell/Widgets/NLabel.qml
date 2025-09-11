@@ -20,6 +20,7 @@ ColumnLayout {
     font.capitalization: Font.Capitalize
     color: labelColor
     visible: label !== ""
+    Layout.fillWidth: true
   }
 
   NText {

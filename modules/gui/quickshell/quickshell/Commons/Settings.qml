@@ -22,17 +22,22 @@ Singleton {
 
   property string settingsFile: Quickshell.env("NOCTALIA_SETTINGS_FILE") || (configDir + "settings.json")
 
-  property string defaultWallpaper: Qt.resolvedUrl("../Assets/Tests/wallpaper.png")
   property string defaultAvatar: Quickshell.env("HOME") + "/.face"
+  property string defaultVideosDirectory: Quickshell.env("HOME") + "/Videos"
+  property string defaultLocation: "Tokyo"
+  property string defaultWallpapersDirectory: Quickshell.env("HOME") + "/Pictures/Wallpapers"
+  property string defaultWallpaper: Quickshell.shellDir + "/Assets/Wallpaper/noctalia.png"
 
   // Used to access via Settings.data.xxx.yyy
   readonly property alias data: adapter
 
   property bool isLoaded: false
+  property bool directoriesCreated: false
 
   // Signal emitted when settings are loaded after startupcale changes
   signal settingsLoaded
 
+  // -----------------------------------------------------
   // Function to validate monitor configurations
   function validateMonitorConfigurations() {
     var availableScreenNames = []
@@ -53,25 +58,155 @@ Singleton {
         }
       }
       if (!hasValidBarMonitor) {
-        Logger.log("Settings",
-                   "No configured bar monitors found on system, clearing bar monitor list to show on all screens")
+        Logger.warn("Settings",
+                    "No configured bar monitors found on system, clearing bar monitor list to show on all screens")
         adapter.bar.monitors = []
       } else {
-        Logger.log("Settings", "Found valid bar monitors, keeping configuration")
+
+        //Logger.log("Settings", "Found valid bar monitors, keeping configuration")
       }
     } else {
-      Logger.log("Settings", "Bar monitor list is empty, will show on all available screens")
+
+      //Logger.log("Settings", "Bar monitor list is empty, will show on all available screens")
     }
   }
 
-  Item {
-    Component.onCompleted: {
+  // -----------------------------------------------------
+  // If the settings structure has changed, ensure
+  // backward compatibility by upgrading the settings
+  function upgradeSettingsData() {
 
-      // ensure settings dir exists
-      Quickshell.execDetached(["mkdir", "-p", configDir])
-      Quickshell.execDetached(["mkdir", "-p", cacheDir])
-      Quickshell.execDetached(["mkdir", "-p", cacheDirImages])
+    const sections = ["left", "center", "right"]
+
+    // -----------------
+    // 1st. check our settings are not super old, when we only had the widget type as a plain string
+    for (var s = 0; s < sections.length; s++) {
+      const sectionName = sections[s]
+      for (var i = 0; i < adapter.bar.widgets[sectionName].length; i++) {
+        var widget = adapter.bar.widgets[sectionName][i]
+        if (typeof widget === "string") {
+          adapter.bar.widgets[sectionName][i] = {
+            "id": widget
+          }
+        }
+      }
     }
+
+    // -----------------
+    // 2nd. remove any non existing widget type
+    for (var s = 0; s < sections.length; s++) {
+      const sectionName = sections[s]
+      const widgets = adapter.bar.widgets[sectionName]
+      // Iterate backward through the widgets array, so it does not break when removing a widget
+      for (var i = widgets.length - 1; i >= 0; i--) {
+        var widget = widgets[i]
+        if (!BarWidgetRegistry.hasWidget(widget.id)) {
+          widgets.splice(i, 1)
+          Logger.warn(`Settings`, `Deleted invalid widget ${widget.id}`)
+        }
+      }
+    }
+
+    // -----------------
+    // 3nd. migrate global settings to user settings
+    for (var s = 0; s < sections.length; s++) {
+      const sectionName = sections[s]
+      for (var i = 0; i < adapter.bar.widgets[sectionName].length; i++) {
+        var widget = adapter.bar.widgets[sectionName][i]
+
+        // Check if widget registry supports user settings, if it does not, then there is nothing to do
+        const reg = BarWidgetRegistry.widgetMetadata[widget.id]
+        if ((reg === undefined) || (reg.allowUserSettings === undefined) || !reg.allowUserSettings) {
+          continue
+        }
+
+        if (upgradeWidget(widget)) {
+          Logger.log("Settings", `Upgraded ${widget.id} widget:`, JSON.stringify(widget))
+        }
+      }
+    }
+  }
+
+  // -----------------------------------------------------
+  function upgradeWidget(widget) {
+    // Backup the widget definition before altering
+    const widgetBefore = JSON.stringify(widget)
+
+    // Migrate old bar settings to proper per widget settings
+    switch (widget.id) {
+    case "ActiveWindow":
+      widget.showIcon = widget.showIcon !== undefined ? widget.showIcon : adapter.bar.showActiveWindowIcon
+      break
+    case "Battery":
+      widget.alwaysShowPercentage = widget.alwaysShowPercentage
+          !== undefined ? widget.alwaysShowPercentage : adapter.bar.alwaysShowBatteryPercentage
+      break
+    case "Clock":
+      widget.showDate = widget.showDate !== undefined ? widget.showDate : adapter.location.showDateWithClock
+      widget.use12HourClock = widget.use12HourClock !== undefined ? widget.use12HourClock : adapter.location.use12HourClock
+      widget.reverseDayMonth = widget.reverseDayMonth !== undefined ? widget.reverseDayMonth : adapter.location.reverseDayMonth
+      break
+    case "MediaMini":
+      widget.showAlbumArt = widget.showAlbumArt !== undefined ? widget.showAlbumArt : adapter.audio.showMiniplayerAlbumArt
+      widget.showVisualizer = widget.showVisualizer !== undefined ? widget.showVisualizer : adapter.audio.showMiniplayerCava
+      break
+    case "SidePanelToggle":
+      widget.useDistroLogo = widget.useDistroLogo !== undefined ? widget.useDistroLogo : adapter.bar.useDistroLogo
+      break
+    case "SystemMonitor":
+      widget.showNetworkStats = widget.showNetworkStats !== undefined ? widget.showNetworkStats : adapter.bar.showNetworkStats
+      break
+    case "Workspace":
+      widget.labelMode = widget.labelMode !== undefined ? widget.labelMode : adapter.bar.showWorkspaceLabel
+      break
+    }
+
+    // Inject missing default setting (metaData) from BarWidgetRegistry
+    const keys = Object.keys(BarWidgetRegistry.widgetMetadata[widget.id])
+    for (var i = 0; i < keys.length; i++) {
+      const k = keys[i]
+      if (k === "id" || k === "allowUserSettings") {
+        continue
+      }
+
+      if (widget[k] === undefined) {
+        widget[k] = BarWidgetRegistry.widgetMetadata[widget.id][k]
+      }
+    }
+
+    // Backup the widget definition before altering
+    const widgetAfter = JSON.stringify(widget)
+    return (widgetAfter !== widgetBefore)
+  }
+  // -----------------------------------------------------
+  // Kickoff essential services
+  function kickOffServices() {
+    // Ensure our location singleton is created as soon as possible so we start fetching weather asap
+    LocationService.init()
+
+    NightLightService.apply()
+
+    ColorSchemeService.init()
+
+    MatugenService.init()
+
+    FontService.init()
+
+    HooksService.init()
+
+    BluetoothService.init()
+  }
+
+  // -----------------------------------------------------
+  // Ensure directories exist before FileView tries to read files
+  Component.onCompleted: {
+    // ensure settings dir exists
+    Quickshell.execDetached(["mkdir", "-p", configDir])
+    Quickshell.execDetached(["mkdir", "-p", cacheDir])
+    Quickshell.execDetached(["mkdir", "-p", cacheDirImages])
+
+    // Mark directories as created and trigger file loading
+    directoriesCreated = true
   }
 
   // Don't write settings to disk immediately
@@ -85,31 +220,33 @@ Singleton {
 
   FileView {
     id: settingsFileView
-    path: settingsFile
+    path: directoriesCreated ? settingsFile : undefined
+    printErrors: false
     watchChanges: true
     onFileChanged: reload()
     onAdapterUpdated: saveTimer.start()
-    Component.onCompleted: function () {
-      reload()
+
+    // Trigger initial load when path changes from empty to actual path
+    onPathChanged: {
+      if (path !== undefined) {
+        reload()
+      }
     }
     onLoaded: function () {
       if (!isLoaded) {
         Logger.log("Settings", "----------------------------")
         Logger.log("Settings", "Settings loaded successfully")
+
+        upgradeSettingsData()
+
+        validateMonitorConfigurations()
+
+        kickOffServices()
+
         isLoaded = true
 
         // Emit the signal
         root.settingsLoaded()
-
-        // Kickoff ColorScheme service
-        ColorSchemeService.init()
-
-        // Kickoff Matugen service
-        MatugenService.init()
-
-        Qt.callLater(function () {
-          validateMonitorConfigurations()
-        })
       }
     }
     onLoadFailed: function (error) {
@@ -121,23 +258,56 @@ Singleton {
     JsonAdapter {
       id: adapter
 
+      property int settingsVersion: 1
+
       // bar
       property JsonObject bar: JsonObject {
-        property string position: "top" // Possible values: "top", "bottom"
-        property bool showActiveWindowIcon: true
-        property bool alwaysShowBatteryPercentage: false
-        property bool showNetworkStats: false
+        property string position: "top" // "top" or "bottom"
         property real backgroundOpacity: 1.0
-        property bool useDistroLogo: false
-        property string showWorkspaceLabel: "none"
         property list<string> monitors: []
+
+        property bool showActiveWindowIcon: true // TODO: delete
+        property bool alwaysShowBatteryPercentage: false // TODO: delete
+        property bool showNetworkStats: false // TODO: delete
+        property bool useDistroLogo: false // TODO: delete
+        property string showWorkspaceLabel: "none" // TODO: delete
 
         // Widget configuration for modular bar system
         property JsonObject widgets
         widgets: JsonObject {
-          property list<string> left: ["SystemMonitor", "ActiveWindow", "MediaMini"]
-          property list<string> center: ["Workspace"]
-          property list<string> right: ["ScreenRecorderIndicator", "Tray", "NotificationHistory", "WiFi", "Bluetooth", "Battery", "Volume", "Brightness", "NightLight", "Clock", "SidePanelToggle"]
+          property list<var> left: [{
+              "id": "SystemMonitor"
+            }, {
+              "id": "ActiveWindow"
+            }, {
+              "id": "MediaMini"
+            }]
+          property list<var> center: [{
+              "id": "Workspace"
+            }]
+          property list<var> right: [{
+              "id": "ScreenRecorderIndicator"
+            }, {
+              "id": "Tray"
+            }, {
+              "id": "NotificationHistory"
+            }, {
+              "id": "WiFi"
+            }, {
+              "id": "Bluetooth"
+            }, {
+              "id": "Battery"
+            }, {
+              "id": "Volume"
+            }, {
+              "id": "Brightness"
+            }, {
+              "id": "NightLight"
+            }, {
+              "id": "Clock"
+            }, {
+              "id": "SidePanelToggle"
+            }]
         }
       }
 
@@ -153,16 +323,17 @@ Singleton {
 
       // location
       property JsonObject location: JsonObject {
-        property string name: "Tokyo"
+        property string name: defaultLocation
         property bool useFahrenheit: false
-        property bool reverseDayMonth: false
-        property bool use12HourClock: false
-        property bool showDateWithClock: false
+
+        property bool reverseDayMonth: false // TODO: delete
+        property bool use12HourClock: false // TODO: delete
+        property bool showDateWithClock: false // TODO: delete
       }
 
       // screen recorder
       property JsonObject screenRecorder: JsonObject {
-        property string directory: "~/Videos"
+        property string directory: defaultVideosDirectory
         property int frameRate: 60
         property string audioCodec: "opus"
         property string videoCodec: "h264"
@@ -176,7 +347,7 @@ Singleton {
       // wallpaper
       property JsonObject wallpaper: JsonObject {
         property bool enabled: true
-        property string directory: "/usr/share/wallpapers"
+        property string directory: defaultWallpapersDirectory
         property bool enableMultiMonitorDirectories: false
         property bool setWallpaperOnAllMonitors: true
         property string fillMode: "crop"
@@ -197,12 +368,14 @@ Singleton {
         property string position: "center"
         property real backgroundOpacity: 1.0
         property list<string> pinnedExecs: []
+        property bool useApp2Unit: false
       }
 
       // dock
       property JsonObject dock: JsonObject {
         property bool autoHide: false
         property bool exclusive: false
+        property real backgroundOpacity: 1.0
         property list<string> monitors: []
       }
 
@@ -214,26 +387,29 @@ Singleton {
 
       // notifications
       property JsonObject notifications: JsonObject {
+        property bool doNotDisturb: false
         property list<string> monitors: []
+        // Last time the user opened the notification history (ms since epoch)
+        property real lastSeenTs: 0
       }
 
       // audio
       property JsonObject audio: JsonObject {
-        property bool showMiniplayerAlbumArt: false
-        property bool showMiniplayerCava: false
-        property string visualizerType: "linear"
         property int volumeStep: 5
         property int cavaFrameRate: 60
-        // MPRIS controls
+        property string visualizerType: "linear"
         property list<string> mprisBlacklist: []
         property string preferredPlayer: ""
+
+        property bool showMiniplayerAlbumArt: false // TODO: delete
+        property bool showMiniplayerCava: false // TODO: delete
       }
 
       // ui
       property JsonObject ui: JsonObject {
-        property string fontDefault: "Roboto" // Default font for all text
-        property string fontFixed: "DejaVu Sans Mono" // Fixed width font for terminal
-        property string fontBillboard: "Inter" // Large bold font for clocks and prominent displays
+        property string fontDefault: "Roboto"
+        property string fontFixed: "DejaVu Sans Mono"
+        property string fontBillboard: "Inter"
         property list<var> monitorsScaling: []
         property bool idleInhibitorEnabled: false
       }
@@ -267,11 +443,19 @@ Singleton {
       // night light
       property JsonObject nightLight: JsonObject {
         property bool enabled: false
+        property bool forced: false
         property bool autoSchedule: true
         property string nightTemp: "4000"
         property string dayTemp: "6500"
         property string manualSunrise: "06:30"
         property string manualSunset: "18:30"
+      }
+
+      // hooks
+      property JsonObject hooks: JsonObject {
+        property bool enabled: false
+        property string wallpaperChange: ""
+        property string darkModeChange: ""
       }
     }
   }

@@ -15,7 +15,7 @@ Singleton {
 
   function apply() {
     // If using LocationService, wait for it to be ready
-    if (params.autoSchedule && !LocationService.coordinatesReady) {
+    if (!params.forced && params.autoSchedule && !LocationService.coordinatesReady) {
       return
     }
 
@@ -34,14 +34,25 @@ Singleton {
 
   function buildCommand() {
     var cmd = ["wlsunset"]
-    cmd.push("-t", `${params.nightTemp}`, "-T", `${params.dayTemp}`)
-    if (params.autoSchedule) {
-      cmd.push("-l", `${LocationService.stableLatitude}`, "-L", `${LocationService.stableLongitude}`)
+    if (params.forced) {
+      // Force immediate full night temperature regardless of time
+      // Keep distinct day/night temps but set times so we're effectively always in "night"
+      cmd.push("-t", `${params.nightTemp}`, "-T", `${params.dayTemp}`)
+      // Night spans from sunset (00:00) to sunrise (23:59) covering almost the full day
+      cmd.push("-S", "23:59") // sunrise very late
+      cmd.push("-s", "00:00") // sunset at midnight
+      // Near-instant transition
+      cmd.push("-d", 1)
     } else {
-      cmd.push("-S", params.manualSunrise)
-      cmd.push("-s", params.manualSunset)
+      cmd.push("-t", `${params.nightTemp}`, "-T", `${params.dayTemp}`)
+      if (params.autoSchedule) {
+        cmd.push("-l", `${LocationService.stableLatitude}`, "-L", `${LocationService.stableLongitude}`)
+      } else {
+        cmd.push("-S", params.manualSunrise)
+        cmd.push("-s", params.manualSunset)
+      }
+      cmd.push("-d", 60 * 15) // 15min progressive fade at sunset/sunrise
     }
-    cmd.push("-d", 60 * 15) // 15min progressive fade at sunset/sunrise
     return cmd
   }
 
@@ -50,6 +61,15 @@ Singleton {
     target: Settings.data.nightLight
     function onEnabledChanged() {
       apply()
+      // Toast: night light toggled
+      const enabled = !!Settings.data.nightLight.enabled
+      ToastService.showNotice("Night Light", enabled ? "Enabled" : "Disabled")
+    }
+    function onForcedChanged() {
+      apply()
+      if (Settings.data.nightLight.enabled) {
+        ToastService.showNotice("Night Light", Settings.data.nightLight.forced ? "Forced activation" : "Normal mode")
+      }
     }
     function onNightTempChanged() {
       apply()

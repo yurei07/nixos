@@ -11,9 +11,8 @@ import qs.Widgets
 NPanel {
   id: root
 
-  panelWidth: 380 * scaling
-  panelHeight: 500 * scaling
-  panelAnchorRight: true
+  preferredWidth: 380
+  preferredHeight: 500
 
   panelContent: Rectangle {
     color: Color.transparent
@@ -29,7 +28,7 @@ NPanel {
         spacing: Style.marginM * scaling
 
         NIcon {
-          text: "bluetooth"
+          icon: "bluetooth"
           font.pointSize: Style.fontSizeXXL * scaling
           color: Color.mPrimary
         }
@@ -42,8 +41,16 @@ NPanel {
           Layout.fillWidth: true
         }
 
+        NToggle {
+          id: wifiSwitch
+          checked: Settings.data.network.bluetoothEnabled
+          onToggled: checked => BluetoothService.setBluetoothEnabled(checked)
+          baseSize: Style.baseWidgetSize * 0.65 * scaling
+        }
+
         NIconButton {
-          icon: BluetoothService.adapter && BluetoothService.adapter.discovering ? "stop_circle" : "refresh"
+          enabled: Settings.data.network.bluetoothEnabled
+          icon: BluetoothService.adapter && BluetoothService.adapter.discovering ? "stop" : "refresh"
           tooltipText: "Refresh Devices"
           sizeRatio: 0.8
           onClicked: {
@@ -67,7 +74,42 @@ NPanel {
         Layout.fillWidth: true
       }
 
+      Rectangle {
+        visible: !(BluetoothService.adapter && BluetoothService.adapter.enabled)
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        color: Color.transparent
+
+        // Center the content within this rectangle
+        ColumnLayout {
+          anchors.centerIn: parent
+          spacing: Style.marginM * scaling
+
+          NIcon {
+            icon: "bluetooth-off"
+            font.pointSize: 64 * scaling
+            color: Color.mOnSurfaceVariant
+            Layout.alignment: Qt.AlignHCenter
+          }
+
+          NText {
+            text: "Bluetooth is disabled"
+            font.pointSize: Style.fontSizeL * scaling
+            color: Color.mOnSurfaceVariant
+            Layout.alignment: Qt.AlignHCenter
+          }
+
+          NText {
+            text: "Enable Bluetooth to see available devices."
+            font.pointSize: Style.fontSizeS * scaling
+            color: Color.mOnSurfaceVariant
+            Layout.alignment: Qt.AlignHCenter
+          }
+        }
+      }
+
       ScrollView {
+        visible: BluetoothService.adapter && BluetoothService.adapter.enabled
         Layout.fillWidth: true
         Layout.fillHeight: true
         ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
@@ -76,7 +118,6 @@ NPanel {
         contentWidth: availableWidth
 
         ColumnLayout {
-          visible: BluetoothService.adapter && BluetoothService.adapter.enabled
           width: parent.width
           spacing: Style.marginM * scaling
 
@@ -97,7 +138,7 @@ NPanel {
           // Known devices
           BluetoothDevicesList {
             label: "Known devices"
-            tooltipText: "Left click to connect, right click to forget"
+            tooltipText: "Left click to connect.\nRight click to forget."
             property var items: {
               if (!BluetoothService.adapter || !Bluetooth.devices)
                 return []
@@ -124,9 +165,9 @@ NPanel {
             Layout.fillWidth: true
           }
 
-          // Fallback
+          // Fallback - No devices, scanning
           ColumnLayout {
-            Layout.fillWidth: true
+            Layout.alignment: Qt.AlignHCenter
             spacing: Style.marginM * scaling
             visible: {
               if (!BluetoothService.adapter || !BluetoothService.adapter.discovering || !Bluetooth.devices) {
@@ -144,11 +185,11 @@ NPanel {
 
             RowLayout {
               Layout.alignment: Qt.AlignHCenter
-              spacing: Style.marginM * scaling
+              spacing: Style.marginXS * scaling
 
               NIcon {
-                text: "sync"
-                font.pointSize: Style.fontSizeXLL * 1.5 * scaling
+                icon: "refresh"
+                font.pointSize: Style.fontSizeXXL * 1.5 * scaling
                 color: Color.mPrimary
 
                 RotationAnimation on rotation {
@@ -164,12 +205,11 @@ NPanel {
                 text: "Scanning for devices..."
                 font.pointSize: Style.fontSizeL * scaling
                 color: Color.mOnSurface
-                font.weight: Style.fontWeightMedium
               }
             }
 
             NText {
-              text: "Make sure your device is in pairing mode"
+              text: "Make sure your device is in pairing mode."
               font.pointSize: Style.fontSizeM * scaling
               color: Color.mOnSurfaceVariant
               Layout.alignment: Qt.AlignHCenter

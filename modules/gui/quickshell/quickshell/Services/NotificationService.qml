@@ -7,7 +7,7 @@ import qs.Commons
 import qs.Services
 import Quickshell.Services.Notifications
 
-QtObject {
+Singleton {
   id: root
 
   // Notification server instance
@@ -28,11 +28,11 @@ QtObject {
 
     // Signal when notification is received
     onNotification: function (notification) {
+      // Always add notification to history
+      root.addToHistory(notification)
 
-      // Check if notifications are suppressed
-      if (Settings.data.notifications && Settings.data.notifications.suppressed) {
-        // Still add to history but don't show notification
-        root.addToHistory(notification)
+      // Check if do-not-disturb is enabled
+      if (Settings.data.notifications && Settings.data.notifications.doNotDisturb) {
         return
       }
 
@@ -46,8 +46,6 @@ QtObject {
 
       // Add to our model
       root.addNotification(notification)
-      // Also add to history
-      root.addToHistory(notification)
     }
   }
 
@@ -67,6 +65,7 @@ QtObject {
     id: historyFileView
     objectName: "notificationHistoryFileView"
     path: historyFile
+    printErrors: false
     watchChanges: true
     onFileChanged: reload()
     onAdapterUpdated: writeAdapter()
@@ -82,7 +81,7 @@ QtObject {
     JsonAdapter {
       id: historyAdapter
       property var history: []
-      property double timestamp: 0
+      property real timestamp: 0
     }
   }
 
@@ -109,13 +108,62 @@ QtObject {
     }
   }
 
+  Connections {
+    target: Settings.data.notifications
+    function onDoNotDisturbChanged() {
+      const label = Settings.data.notifications.doNotDisturb ? "'Do Not Disturb' enabled" : "'Do Not Disturb' disabled"
+      const description = Settings.data.notifications.doNotDisturb ? "You'll find these notifications in your history." : "Showing all notifications."
+      ToastService.showNotice(label, description)
+    }
+  }
+
+  // Function to resolve app name from notification
+  function resolveAppName(notification) {
+    try {
+      const appName = notification.appName || ""
+
+      // If it's already a clean name (no dots or reverse domain notation), use it
+      if (!appName.includes(".") || appName.length < 10) {
+        return appName
+      }
+
+      // Try to find a desktop entry for this app ID
+      const desktopEntries = DesktopEntries.byId(appName)
+      if (desktopEntries && desktopEntries.length > 0) {
+        const entry = desktopEntries[0]
+        // Prefer name over genericName, fallback to original appName
+        return entry.name || entry.genericName || appName
+      }
+
+      // If no desktop entry found, try to clean up the app ID
+      // Convert "org.gnome.Nautilus" to "Nautilus"
+      const parts = appName.split(".")
+      if (parts.length > 1) {
+        // Take the last part and capitalize it
+        const lastPart = parts[parts.length - 1]
+        return lastPart.charAt(0).toUpperCase() + lastPart.slice(1)
+      }
+
+      return appName
+    } catch (e) {
+      // Fallback to original app name on any error
+      return notification.appName || ""
+    }
+  }
+
   // Function to add notification to model
   function addNotification(notification) {
+    const resolvedImage = resolveNotificationImage(notification)
+    const resolvedAppName = resolveAppName(notification)
+
     notificationModel.insert(0, {
                                "rawNotification": notification,
                                "summary": notification.summary,
                                "body": notification.body,
-                               "appName": notification.appName,
+                               "appName": resolvedAppName,
+                               "desktopEntry": notification.desktopEntry,
+                               "image": resolvedImage,
+                               "appIcon": notification.appIcon,
                                "urgency": notification.urgency,
                                "timestamp": new Date()
                              })
@@ -130,12 +178,51 @@ QtObject {
     }
   }
 
-  // Add a simplified copy into persistent history
+  // Resolve an image path for a notification, supporting icon names and absolute paths
+  function resolveNotificationImage(notification) {
+    try {
+      // If an explicit image is already provided, prefer it
+      if (notification && notification.image && notification.image !== "") {
+        return notification.image
+      }
+
+      // Fallback to appIcon which may be a name or a path (notify-send -i)
+      const icon = notification ? (notification.appIcon || "") : ""
+      if (!icon)
+        return ""
+
+      // Accept absolute file paths or file URLs directly
+      if (icon.startsWith("/")) {
+        return icon
+      }
+      if (icon.startsWith("file://")) {
+        // Strip the scheme for QML image source compatibility
+        return icon.substring("file://".length)
+      }
+
+      // Resolve themed icon names to absolute paths
+      try {
+        const p = AppIcons.iconFromName(icon, "")
+        return p || ""
+      } catch (e2) {
+        return ""
+      }
+    } catch (e) {
+      return ""
+    }
+  }
+
   function addToHistory(notification) {
+    const resolvedAppName = resolveAppName(notification)
+    const resolvedImage = resolveNotificationImage(notification)
+
     historyModel.insert(0, {
                           "summary": notification.summary,
                           "body": notification.body,
-                          "appName": notification.appName,
+                          "appName": resolvedAppName,
+                          "desktopEntry": notification.desktopEntry || "",
+                          "image": resolvedImage,
+                          "appIcon": notification.appIcon || "",
                           "urgency": notification.urgency,
                           "timestamp": new Date()
                         })
@@ -157,12 +244,20 @@ QtObject {
       const items = historyAdapter.history || []
       for (var i = 0; i < items.length; i++) {
         const it = items[i]
+        // Coerce legacy second-based timestamps to milliseconds
+        var ts = it.timestamp
+        if (typeof ts === "number" && ts < 1e12) {
+          ts = ts * 1000
+        }
         historyModel.append({
                               "summary": it.summary || "",
                               "body": it.body || "",
                               "appName": it.appName || "",
+                              "desktopEntry": it.desktopEntry || "",
+                              "image": it.image || "",
+                              "appIcon": it.appIcon || "",
                               "urgency": it.urgency,
-                              "timestamp": it.timestamp ? new Date(it.timestamp) : new Date()
+                              "timestamp": ts ? new Date(ts) : new Date()
                             })
       }
     } catch (e) {
@@ -180,8 +275,14 @@ QtObject {
                    "summary": n.summary,
                    "body": n.body,
                    "appName": n.appName,
+                   "desktopEntry": n.desktopEntry,
+                   "image": n.image,
+                   "appIcon": n.appIcon,
                    "urgency": n.urgency,
-                   "timestamp": (n.timestamp instanceof Date) ? n.timestamp.getTime() : n.timestamp
+                   "timestamp"// Always persist in milliseconds
+                   : (n.timestamp instanceof Date) ? n.timestamp.getTime(
+                                                       ) : (typeof n.timestamp === "number"
+                                                            && n.timestamp < 1e12 ? n.timestamp * 1000 : n.timestamp)
                  })
       }
       historyAdapter.history = arr
