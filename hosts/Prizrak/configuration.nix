@@ -14,9 +14,10 @@ in
       ./nix-modules/fonts.nix
       ./nix-modules/audio.nix
       ./nix-modules/lightdm.nix
+
+      ../../modules/gui/obs
     ];
 
-  # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
@@ -31,11 +32,6 @@ in
   services.dbus.packages = with pkgs; [ dconf ];
   services.gnome.gnome-keyring.enable = true;
   programs.dconf.enable = true;
-
-  #boot.kernelModules = [ "v4l2loopback" ];
-  #boot.extraModulePackages = with config.boot.kernelPackages; [ v4l2loopback ];
-
-  security.polkit.enable = true;
 
   services.flatpak.enable = true;
 
