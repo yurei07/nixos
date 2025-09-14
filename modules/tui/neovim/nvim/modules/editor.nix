@@ -117,8 +117,10 @@
         plugin = zen-mode-nvim; # Zen mode
         #config = sourceLuaFile "zen-mode-nvim.lua";
       }
-
-      nord-vim
+      {
+        plugin = cord-nvim;
+        config = sourceLuaFile "cord-nvim.lua";
+      }
     ];
   };
 }
