@@ -13,9 +13,9 @@ NIconButton {
   property ShellScreen screen
   property real scaling: 1.0
 
-  sizeRatio: 0.8
-
-  colorBg: Color.mSurfaceVariant
+  compact: (Settings.data.bar.density === "compact")
+  baseSize: Style.capsuleHeight
+  colorBg: (Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent)
   colorFg: Color.mOnSurface
   colorBorder: Color.transparent
   colorBorderHover: Color.transparent
@@ -42,4 +42,5 @@ NIconButton {
   }
   tooltipText: "Manage Wi-Fi."
   onClicked: PanelService.getPanel("wifiPanel")?.toggle(this)
+  onRightClicked: PanelService.getPanel("wifiPanel")?.toggle(this)
 }

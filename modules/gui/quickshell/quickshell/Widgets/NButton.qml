@@ -33,8 +33,7 @@ Rectangle {
 
   // Dimensions
   implicitWidth: customWidth > 0 ? customWidth : contentRow.implicitWidth + (Style.marginL * 2 * scaling)
-  implicitHeight: customHeight > 0 ? customHeight : Math.max(Style.baseWidgetSize * scaling,
-                                                             contentRow.implicitHeight + (Style.marginM * scaling))
+  implicitHeight: customHeight > 0 ? customHeight : Math.max(Style.baseWidgetSize * scaling, contentRow.implicitHeight + (Style.marginM * scaling))
 
   // Appearance
   radius: Style.radiusS * scaling

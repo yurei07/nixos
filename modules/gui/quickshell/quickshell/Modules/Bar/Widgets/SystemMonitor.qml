@@ -5,7 +5,7 @@ import qs.Commons
 import qs.Services
 import qs.Widgets
 
-RowLayout {
+Rectangle {
   id: root
 
   property ShellScreen screen
@@ -13,13 +13,12 @@ RowLayout {
 
   // Widget properties passed from Bar.qml for per-instance settings
   property string widgetId: ""
-  property string barSection: ""
+  property string section: ""
   property int sectionWidgetIndex: -1
   property int sectionWidgetsCount: 0
 
   property var widgetMetadata: BarWidgetRegistry.widgetMetadata[widgetId]
   property var widgetSettings: {
-    var section = barSection.replace("Section", "").toLowerCase()
     if (section && sectionWidgetIndex >= 0) {
       var widgets = Settings.data.bar.widgets[section]
       if (widgets && sectionWidgetIndex < widgets.length) {
@@ -29,213 +28,278 @@ RowLayout {
     return {}
   }
 
-  readonly property bool showCpuUsage: (widgetSettings.showCpuUsage
-                                        !== undefined) ? widgetSettings.showCpuUsage : widgetMetadata.showCpuUsage
+  readonly property string barPosition: Settings.data.bar.position
+  readonly property bool isVertical: barPosition === "left" || barPosition === "right"
+  readonly property bool compact: (Settings.data.bar.density === "compact")
+
+  readonly property bool showCpuUsage: (widgetSettings.showCpuUsage !== undefined) ? widgetSettings.showCpuUsage : widgetMetadata.showCpuUsage
   readonly property bool showCpuTemp: (widgetSettings.showCpuTemp !== undefined) ? widgetSettings.showCpuTemp : widgetMetadata.showCpuTemp
-  readonly property bool showMemoryUsage: (widgetSettings.showMemoryUsage
-                                           !== undefined) ? widgetSettings.showMemoryUsage : widgetMetadata.showMemoryUsage
-  readonly property bool showMemoryAsPercent: (widgetSettings.showMemoryAsPercent
-                                               !== undefined) ? widgetSettings.showMemoryAsPercent : widgetMetadata.showMemoryAsPercent
-  readonly property bool showNetworkStats: (widgetSettings.showNetworkStats
-                                            !== undefined) ? widgetSettings.showNetworkStats : widgetMetadata.showNetworkStats
-  readonly property bool showDiskUsage: (widgetSettings.showDiskUsage
-                                         !== undefined) ? widgetSettings.showDiskUsage : widgetMetadata.showDiskUsage
+  readonly property bool showMemoryUsage: (widgetSettings.showMemoryUsage !== undefined) ? widgetSettings.showMemoryUsage : widgetMetadata.showMemoryUsage
+  readonly property bool showMemoryAsPercent: (widgetSettings.showMemoryAsPercent !== undefined) ? widgetSettings.showMemoryAsPercent : widgetMetadata.showMemoryAsPercent
+  readonly property bool showNetworkStats: (widgetSettings.showNetworkStats !== undefined) ? widgetSettings.showNetworkStats : widgetMetadata.showNetworkStats
+  readonly property bool showDiskUsage: (widgetSettings.showDiskUsage !== undefined) ? widgetSettings.showDiskUsage : widgetMetadata.showDiskUsage
 
-  Layout.alignment: Qt.AlignVCenter
-  spacing: Style.marginS * scaling
+  readonly property real textSize: {
+    var base = isVertical ? width * 0.82 : height
+    return Math.max(1, compact ? base * 0.43 : base * 0.33)
+  }
 
-  Rectangle {
-    Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
-    Layout.preferredWidth: mainLayout.implicitWidth + Style.marginM * scaling * 2
-    Layout.alignment: Qt.AlignVCenter
+  readonly property real iconSize: textSize * 1.25
 
-    radius: Math.round(Style.radiusM * scaling)
-    color: Color.mSurfaceVariant
+  anchors.centerIn: parent
+  implicitWidth: isVertical ? Math.round(Style.capsuleHeight * scaling) : Math.round(mainGrid.implicitWidth + Style.marginM * 2 * scaling)
+  implicitHeight: isVertical ? Math.round(mainGrid.implicitHeight + Style.marginM * 2 * scaling) : Math.round(Style.capsuleHeight * scaling)
+  radius: Math.round(Style.radiusM * scaling)
+  color: Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent
 
-    RowLayout {
-      id: mainLayout
-      anchors.centerIn: parent // Better centering than margins
-      width: parent.width - Style.marginM * scaling * 2
-      spacing: Style.marginS * scaling
+  GridLayout {
+    id: mainGrid
+    anchors.centerIn: parent
 
-      // CPU Usage Component
-      Item {
-        Layout.preferredWidth: cpuUsageRow.implicitWidth
-        Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
-        Layout.alignment: Qt.AlignVCenter
-        visible: showCpuUsage
+    // Dynamic layout based on bar orientation
+    flow: isVertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
+    rows: isVertical ? -1 : 1
+    columns: isVertical ? 1 : -1
 
-        RowLayout {
-          id: cpuUsageRow
-          anchors.centerIn: parent
-          spacing: Style.marginXS * scaling
+    rowSpacing: isVertical ? (Style.marginS * scaling) : (Style.marginXS * scaling)
+    columnSpacing: isVertical ? (Style.marginXS * scaling) : (Style.marginXS * scaling)
 
-          NIcon {
-            icon: "cpu-usage"
-            font.pointSize: Style.fontSizeM * scaling
-            Layout.alignment: Qt.AlignVCenter
-          }
+    // CPU Usage Component
+    Item {
+      Layout.preferredWidth: cpuUsageContent.implicitWidth
+      Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
+      Layout.alignment: isVertical ? Qt.AlignHCenter : Qt.AlignVCenter
+      visible: showCpuUsage
 
-          NText {
-            text: `${SystemStatService.cpuUsage}%`
-            font.family: Settings.data.ui.fontFixed
-            font.pointSize: Style.fontSizeXS * scaling
-            font.weight: Style.fontWeightMedium
-            Layout.alignment: Qt.AlignVCenter
-            verticalAlignment: Text.AlignVCenter
-            color: Color.mPrimary
-          }
+      GridLayout {
+        id: cpuUsageContent
+        anchors.centerIn: parent
+        flow: isVertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
+        rows: isVertical ? 2 : 1
+        columns: isVertical ? 1 : 2
+        rowSpacing: Style.marginXXS * scaling
+        columnSpacing: Style.marginXXS * scaling
+
+        NText {
+          text: isVertical ? `${Math.round(SystemStatService.cpuUsage)}%` : `${SystemStatService.cpuUsage}%`
+          font.family: Settings.data.ui.fontFixed
+          font.pointSize: textSize
+          font.weight: Style.fontWeightMedium
+          Layout.alignment: Qt.AlignCenter
+          horizontalAlignment: Text.AlignHCenter
+          verticalAlignment: Text.AlignVCenter
+          color: Color.mPrimary
+          Layout.row: isVertical ? 0 : 0
+          Layout.column: isVertical ? 0 : 1
+        }
+
+        NIcon {
+          icon: "cpu-usage"
+          font.pointSize: iconSize
+          Layout.alignment: Qt.AlignCenter
+          Layout.row: isVertical ? 1 : 0
+          Layout.column: 0
         }
       }
+    }
 
-      // CPU Temperature Component
-      Item {
-        Layout.preferredWidth: cpuTempRow.implicitWidth
-        Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
-        Layout.alignment: Qt.AlignVCenter
-        visible: showCpuTemp
+    // CPU Temperature Component
+    Item {
+      Layout.preferredWidth: cpuTempContent.implicitWidth
+      Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
+      Layout.alignment: isVertical ? Qt.AlignHCenter : Qt.AlignVCenter
+      visible: showCpuTemp
 
-        RowLayout {
-          id: cpuTempRow
-          anchors.centerIn: parent
-          spacing: Style.marginXS * scaling
+      GridLayout {
+        id: cpuTempContent
+        anchors.centerIn: parent
+        flow: isVertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
+        rows: isVertical ? 2 : 1
+        columns: isVertical ? 1 : 2
+        rowSpacing: Style.marginXXS * scaling
+        columnSpacing: Style.marginXXS * scaling
 
-          NIcon {
-            icon: "cpu-temperature"
-            // Fire is so tall, we need to make it smaller
-            font.pointSize: Style.fontSizeS * scaling
-            Layout.alignment: Qt.AlignVCenter
-          }
+        NText {
+          text: isVertical ? `${SystemStatService.cpuTemp}°` : `${SystemStatService.cpuTemp}°C`
+          font.family: Settings.data.ui.fontFixed
+          font.pointSize: textSize
+          font.weight: Style.fontWeightMedium
+          Layout.alignment: Qt.AlignCenter
+          horizontalAlignment: Text.AlignHCenter
+          verticalAlignment: Text.AlignVCenter
+          color: Color.mPrimary
+          Layout.row: isVertical ? 0 : 0
+          Layout.column: isVertical ? 0 : 1
+        }
 
-          NText {
-            text: `${SystemStatService.cpuTemp}°C`
-            font.family: Settings.data.ui.fontFixed
-            font.pointSize: Style.fontSizeXS * scaling
-            font.weight: Style.fontWeightMedium
-            Layout.alignment: Qt.AlignVCenter
-            verticalAlignment: Text.AlignVCenter
-            color: Color.mPrimary
-          }
+        NIcon {
+          icon: "cpu-temperature"
+          font.pointSize: iconSize
+          Layout.alignment: Qt.AlignCenter
+          Layout.row: isVertical ? 1 : 0
+          Layout.column: 0
         }
       }
+    }
 
-      // Memory Usage Component
-      Item {
-        Layout.preferredWidth: memoryUsageRow.implicitWidth
-        Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
-        Layout.alignment: Qt.AlignVCenter
-        visible: showMemoryUsage
+    // Memory Usage Component
+    Item {
+      Layout.preferredWidth: memoryContent.implicitWidth
+      Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
+      Layout.alignment: isVertical ? Qt.AlignHCenter : Qt.AlignVCenter
+      visible: showMemoryUsage
 
-        RowLayout {
-          id: memoryUsageRow
-          anchors.centerIn: parent
-          spacing: Style.marginXS * scaling
+      GridLayout {
+        id: memoryContent
+        anchors.centerIn: parent
+        flow: isVertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
+        rows: isVertical ? 2 : 1
+        columns: isVertical ? 1 : 2
+        rowSpacing: Style.marginXXS * scaling
+        columnSpacing: Style.marginXXS * scaling
 
-          NIcon {
-            icon: "memory"
-            font.pointSize: Style.fontSizeM * scaling
-            Layout.alignment: Qt.AlignVCenter
+        NText {
+          text: {
+            if (showMemoryAsPercent) {
+              return `${SystemStatService.memPercent}%`
+            } else {
+              return isVertical ? `${Math.round(SystemStatService.memGb)}G` : `${SystemStatService.memGb}G`
+            }
           }
+          font.family: Settings.data.ui.fontFixed
+          font.pointSize: textSize
+          font.weight: Style.fontWeightMedium
+          Layout.alignment: Qt.AlignCenter
+          horizontalAlignment: Text.AlignHCenter
+          verticalAlignment: Text.AlignVCenter
+          color: Color.mPrimary
+          Layout.row: isVertical ? 0 : 0
+          Layout.column: isVertical ? 0 : 1
+        }
 
-          NText {
-            text: showMemoryAsPercent ? `${SystemStatService.memPercent}%` : `${SystemStatService.memGb}G`
-            font.family: Settings.data.ui.fontFixed
-            font.pointSize: Style.fontSizeXS * scaling
-            font.weight: Style.fontWeightMedium
-            Layout.alignment: Qt.AlignVCenter
-            verticalAlignment: Text.AlignVCenter
-            color: Color.mPrimary
-          }
+        NIcon {
+          icon: "memory"
+          font.pointSize: iconSize
+          Layout.alignment: Qt.AlignCenter
+          Layout.row: isVertical ? 1 : 0
+          Layout.column: 0
         }
       }
+    }
 
-      // Network Download Speed Component
-      Item {
-        Layout.preferredWidth: networkDownloadRow.implicitWidth
-        Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
-        Layout.alignment: Qt.AlignVCenter
-        visible: showNetworkStats
+    // Network Download Speed Component
+    Item {
+      Layout.preferredWidth: downloadContent.implicitWidth
+      Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
+      Layout.alignment: isVertical ? Qt.AlignHCenter : Qt.AlignVCenter
+      visible: showNetworkStats
 
-        RowLayout {
-          id: networkDownloadRow
-          anchors.centerIn: parent
-          spacing: Style.marginXS * scaling
+      GridLayout {
+        id: downloadContent
+        anchors.centerIn: parent
+        flow: isVertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
+        rows: isVertical ? 2 : 1
+        columns: isVertical ? 1 : 2
+        rowSpacing: Style.marginXXS * scaling
+        columnSpacing: isVertical ? (Style.marginXXS * scaling) : (Style.marginXS * scaling)
 
-          NIcon {
-            icon: "download-speed"
-            font.pointSize: Style.fontSizeM * scaling
-            Layout.alignment: Qt.AlignVCenter
-          }
+        NText {
+          text: isVertical ? SystemStatService.formatCompactSpeed(SystemStatService.rxSpeed) : SystemStatService.formatSpeed(SystemStatService.rxSpeed)
+          font.family: Settings.data.ui.fontFixed
+          font.pointSize: textSize
+          font.weight: Style.fontWeightMedium
+          Layout.alignment: Qt.AlignCenter
+          horizontalAlignment: Text.AlignHCenter
+          verticalAlignment: Text.AlignVCenter
+          color: Color.mPrimary
+          Layout.row: isVertical ? 0 : 0
+          Layout.column: isVertical ? 0 : 1
+        }
 
-          NText {
-            text: SystemStatService.formatSpeed(SystemStatService.rxSpeed)
-            font.family: Settings.data.ui.fontFixed
-            font.pointSize: Style.fontSizeXS * scaling
-            font.weight: Style.fontWeightMedium
-            Layout.alignment: Qt.AlignVCenter
-            verticalAlignment: Text.AlignVCenter
-            color: Color.mPrimary
-          }
+        NIcon {
+          icon: "download-speed"
+          font.pointSize: iconSize
+          Layout.alignment: Qt.AlignCenter
+          Layout.row: isVertical ? 1 : 0
+          Layout.column: 0
         }
       }
+    }
 
-      // Network Upload Speed Component
-      Item {
-        Layout.preferredWidth: networkUploadRow.implicitWidth
-        Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
-        Layout.alignment: Qt.AlignVCenter
-        visible: showNetworkStats
+    // Network Upload Speed Component
+    Item {
+      Layout.preferredWidth: uploadContent.implicitWidth
+      Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
+      Layout.alignment: isVertical ? Qt.AlignHCenter : Qt.AlignVCenter
+      visible: showNetworkStats
 
-        RowLayout {
-          id: networkUploadRow
-          anchors.centerIn: parent
-          spacing: Style.marginXS * scaling
+      GridLayout {
+        id: uploadContent
+        anchors.centerIn: parent
+        flow: isVertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
+        rows: isVertical ? 2 : 1
+        columns: isVertical ? 1 : 2
+        rowSpacing: Style.marginXXS * scaling
+        columnSpacing: isVertical ? (Style.marginXXS * scaling) : (Style.marginXS * scaling)
 
-          NIcon {
-            icon: "upload-speed"
-            font.pointSize: Style.fontSizeM * scaling
-            Layout.alignment: Qt.AlignVCenter
-          }
+        NText {
+          text: isVertical ? SystemStatService.formatCompactSpeed(SystemStatService.txSpeed) : SystemStatService.formatSpeed(SystemStatService.txSpeed)
+          font.family: Settings.data.ui.fontFixed
+          font.pointSize: textSize
+          font.weight: Style.fontWeightMedium
+          Layout.alignment: Qt.AlignCenter
+          horizontalAlignment: Text.AlignHCenter
+          verticalAlignment: Text.AlignVCenter
+          color: Color.mPrimary
+          Layout.row: isVertical ? 0 : 0
+          Layout.column: isVertical ? 0 : 1
+        }
 
-          NText {
-            text: SystemStatService.formatSpeed(SystemStatService.txSpeed)
-            font.family: Settings.data.ui.fontFixed
-            font.pointSize: Style.fontSizeXS * scaling
-            font.weight: Style.fontWeightMedium
-            Layout.alignment: Qt.AlignVCenter
-            verticalAlignment: Text.AlignVCenter
-            color: Color.mPrimary
-          }
+        NIcon {
+          icon: "upload-speed"
+          font.pointSize: iconSize
+          Layout.alignment: Qt.AlignCenter
+          Layout.row: isVertical ? 1 : 0
+          Layout.column: 0
         }
       }
+    }
 
-      // Disk Usage Component (primary drive)
-      Item {
-        Layout.preferredWidth: diskUsageRow.implicitWidth
-        Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
-        Layout.alignment: Qt.AlignVCenter
-        visible: showDiskUsage
+    // Disk Usage Component (primary drive)
+    Item {
+      Layout.preferredWidth: diskContent.implicitWidth
+      Layout.preferredHeight: Math.round(Style.capsuleHeight * scaling)
+      Layout.alignment: isVertical ? Qt.AlignHCenter : Qt.AlignVCenter
+      visible: showDiskUsage
 
-        RowLayout {
-          id: diskUsageRow
-          anchors.centerIn: parent
-          spacing: Style.marginXS * scaling
+      GridLayout {
+        id: diskContent
+        anchors.centerIn: parent
+        flow: isVertical ? GridLayout.TopToBottom : GridLayout.LeftToRight
+        rows: isVertical ? 2 : 1
+        columns: isVertical ? 1 : 2
+        rowSpacing: Style.marginXXS * scaling
+        columnSpacing: isVertical ? (Style.marginXXS * scaling) : (Style.marginXS * scaling)
 
-          NIcon {
-            icon: "storage"
-            font.pointSize: Style.fontSizeM * scaling
-            Layout.alignment: Qt.AlignVCenter
-          }
+        NText {
+          text: `${SystemStatService.diskPercent}%`
+          font.family: Settings.data.ui.fontFixed
+          font.pointSize: textSize
+          font.weight: Style.fontWeightMedium
+          Layout.alignment: Qt.AlignCenter
+          horizontalAlignment: Text.AlignHCenter
+          verticalAlignment: Text.AlignVCenter
+          color: Color.mPrimary
+          Layout.row: isVertical ? 0 : 0
+          Layout.column: isVertical ? 0 : 1
+        }
 
-          NText {
-            text: `${SystemStatService.diskPercent}%`
-            font.family: Settings.data.ui.fontFixed
-            font.pointSize: Style.fontSizeXS * scaling
-            font.weight: Style.fontWeightMedium
-            Layout.alignment: Qt.AlignVCenter
-            verticalAlignment: Text.AlignVCenter
-            color: Color.mPrimary
-          }
+        NIcon {
+          icon: "storage"
+          font.pointSize: iconSize
+          Layout.alignment: Qt.AlignCenter
+          Layout.row: isVertical ? 1 : 0
+          Layout.column: 0
         }
       }
     }

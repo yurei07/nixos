@@ -232,9 +232,7 @@ NBox {
             return 0
           return Math.max(0, Math.min(1, r))
         }
-        property real effectiveRatio: (MediaService.isSeeking
-                                       && localSeekRatio >= 0) ? Math.max(0, Math.min(1,
-                                                                                      localSeekRatio)) : progressRatio
+        property real effectiveRatio: (MediaService.isSeeking && localSeekRatio >= 0) ? Math.max(0, Math.min(1, localSeekRatio)) : progressRatio
 
         // Debounced backend seek during drag
         Timer {
@@ -244,8 +242,7 @@ NBox {
           onTriggered: {
             if (MediaService.isSeeking && progressWrapper.localSeekRatio >= 0) {
               const next = Math.max(0, Math.min(1, progressWrapper.localSeekRatio))
-              if (progressWrapper.lastSentSeekRatio < 0 || Math.abs(
-                    next - progressWrapper.lastSentSeekRatio) >= progressWrapper.seekEpsilon) {
+              if (progressWrapper.lastSentSeekRatio < 0 || Math.abs(next - progressWrapper.lastSentSeekRatio) >= progressWrapper.seekEpsilon) {
                 MediaService.seekByRatio(next)
                 progressWrapper.lastSentSeekRatio = next
               }
@@ -261,7 +258,6 @@ NBox {
           stepSize: 0
           snapAlways: false
           enabled: MediaService.trackLength > 0 && MediaService.canSeek
-          cutoutColor: Color.mSurface
           heightRatio: 0.65
 
           onMoved: {

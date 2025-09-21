@@ -14,6 +14,8 @@ NBox {
   property var widgetModel: []
   property var availableWidgets: []
 
+  readonly property real miniButtonSize: Style.baseWidgetSize * 0.65
+
   signal addWidget(string widgetId, string section)
   signal removeWidget(string section, int index)
   signal reorderWidget(string section, int fromIndex, int toIndex)
@@ -41,17 +43,19 @@ NBox {
     const totalSum = JSON.stringify(widget).split('').reduce((acc, character) => {
                                                                return acc + character.charCodeAt(0)
                                                              }, 0)
-    switch (totalSum % 5) {
+    switch (totalSum % 6) {
     case 0:
-      return Color.mPrimary
+      return [Color.mPrimary, Color.mOnPrimary]
     case 1:
-      return Color.mSecondary
+      return [Color.mSecondary, Color.mOnSecondary]
     case 2:
-      return Color.mTertiary
+      return [Color.mTertiary, Color.mOnTertiary]
     case 3:
-      return Color.mError
+      return [Color.mError, Color.mOnError]
     case 4:
-      return Color.mOnSurface
+      return [Color.mOnSurface, Color.mSurface]
+    case 5:
+      return [Color.mOnSurfaceVariant, Color.mSurfaceVariant]
     }
   }
 
@@ -129,7 +133,7 @@ NBox {
             width: widgetContent.implicitWidth + Style.marginL * scaling
             height: Style.baseWidgetSize * 1.15 * scaling
             radius: Style.radiusL * scaling
-            color: root.getWidgetColor(modelData)
+            color: root.getWidgetColor(modelData)[0]
             border.color: Color.mOutline
             border.width: Math.max(1, Style.borderS * scaling)
 
@@ -162,7 +166,7 @@ NBox {
               NText {
                 text: modelData.id
                 font.pointSize: Style.fontSizeS * scaling
-                color: Color.mOnPrimary
+                color: root.getWidgetColor(modelData)[1]
                 horizontalAlignment: Text.AlignHCenter
                 elide: Text.ElideRight
                 Layout.preferredWidth: 80 * scaling
@@ -176,7 +180,7 @@ NBox {
                   active: BarWidgetRegistry.widgetHasUserSettings(modelData.id)
                   sourceComponent: NIconButton {
                     icon: "settings"
-                    sizeRatio: 0.6
+                    baseSize: miniButtonSize
                     colorBorder: Qt.alpha(Color.mOutline, Style.opacityLight)
                     colorBg: Color.mOnSurface
                     colorFg: Color.mOnPrimary
@@ -216,7 +220,7 @@ NBox {
 
                 NIconButton {
                   icon: "close"
-                  sizeRatio: 0.6
+                  baseSize: miniButtonSize
                   colorBorder: Qt.alpha(Color.mOutline, Style.opacityLight)
                   colorBg: Color.mOnSurface
                   colorFg: Color.mOnPrimary
@@ -238,7 +242,7 @@ NBox {
         width: 0
         height: Style.baseWidgetSize * 1.15 * scaling
         radius: Style.radiusL * scaling
-        color: "transparent"
+        color: Color.transparent
         border.color: Color.mOutline
         border.width: Math.max(1, Style.borderS * scaling)
         opacity: 0.7
@@ -303,7 +307,7 @@ NBox {
 
         acceptedButtons: Qt.LeftButton
         preventStealing: false
-        propagateComposedEvents: !dragStarted
+        propagateComposedEvents: false
         hoverEnabled: true // Always track mouse for drag operations
 
         property point startPos: Qt.point(0, 0)
@@ -337,12 +341,10 @@ NBox {
               continue
 
             // Check distance to left edge (insert before)
-            const leftDist = Math.sqrt(Math.pow(mouseX - widget.x,
-                                                2) + Math.pow(mouseY - (widget.y + widget.height / 2), 2))
+            const leftDist = Math.sqrt(Math.pow(mouseX - widget.x, 2) + Math.pow(mouseY - (widget.y + widget.height / 2), 2))
 
             // Check distance to right edge (insert after)
-            const rightDist = Math.sqrt(Math.pow(mouseX - (widget.x + widget.width),
-                                                 2) + Math.pow(mouseY - (widget.y + widget.height / 2), 2))
+            const rightDist = Math.sqrt(Math.pow(mouseX - (widget.x + widget.width), 2) + Math.pow(mouseY - (widget.y + widget.height / 2), 2))
 
             if (leftDist < minDistance) {
               minDistance = leftDist
@@ -353,8 +355,7 @@ NBox {
             if (rightDist < minDistance) {
               minDistance = rightDist
               bestIndex = i + 1
-              bestPosition = Qt.point(widget.x + widget.width + Style.marginXS * scaling - dropIndicator.width / 2,
-                                      widget.y)
+              bestPosition = Qt.point(widget.x + widget.width + Style.marginXS * scaling - dropIndicator.width / 2, widget.y)
             }
           }
 
@@ -366,8 +367,7 @@ NBox {
               if (dist < minDistance && mouseX < firstWidget.x + firstWidget.width / 2) {
                 minDistance = dist
                 bestIndex = 0
-                bestPosition = Qt.point(Math.max(0, firstWidget.x - dropIndicator.width - Style.marginS * scaling),
-                                        firstWidget.y)
+                bestPosition = Qt.point(Math.max(0, firstWidget.x - dropIndicator.width - Style.marginS * scaling), firstWidget.y)
               }
             }
           }
@@ -417,8 +417,7 @@ NBox {
                      for (var i = 0; i < widgetModel.length; i++) {
                        const widget = widgetFlow.children[i]
                        if (widget && widget.widgetIndex !== undefined) {
-                         if (mouse.x >= widget.x && mouse.x <= widget.x + widget.width && mouse.y >= widget.y
-                             && mouse.y <= widget.y + widget.height) {
+                         if (mouse.x >= widget.x && mouse.x <= widget.x + widget.width && mouse.y >= widget.y && mouse.y <= widget.y + widget.height) {
 
                            const localX = mouse.x - widget.x
                            const buttonsStartX = widget.width - (widget.buttonsCount * widget.buttonsWidth)
@@ -456,7 +455,7 @@ NBox {
                                  // Setup ghost widget
                                  if (draggedWidget) {
                                    dragGhost.width = draggedWidget.width
-                                   dragGhost.color = root.getWidgetColor(draggedModelData)
+                                   dragGhost.color = root.getWidgetColor(draggedModelData)[0]
                                    ghostText.text = draggedModelData.id
                                  }
                                }

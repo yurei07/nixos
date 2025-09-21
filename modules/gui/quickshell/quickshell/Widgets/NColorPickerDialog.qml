@@ -110,12 +110,12 @@ Popup {
     border.width: Math.max(1, Style.borderM * scaling)
   }
 
-  ScrollView {
+  NScrollView {
     id: scrollView
     anchors.fill: parent
 
-    ScrollBar.vertical.policy: ScrollBar.AlwaysOff
-    ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+    verticalPolicy: ScrollBar.AlwaysOff
+    horizontalPolicy: ScrollBar.AlwaysOff
     clip: true
 
     ColumnLayout {
@@ -180,8 +180,7 @@ Popup {
           }
 
           NText {
-            text: "RGB(" + Math.round(root.selectedColor.r * 255) + ", " + Math.round(
-                    root.selectedColor.g * 255) + ", " + Math.round(root.selectedColor.b * 255) + ")"
+            text: "RGB(" + Math.round(root.selectedColor.r * 255) + ", " + Math.round(root.selectedColor.g * 255) + ", " + Math.round(root.selectedColor.b * 255) + ")"
             font.family: Settings.data.ui.fontFixed
             font.pointSize: Style.fontSizeM * scaling
             color: root.selectedColor.r + root.selectedColor.g + root.selectedColor.b > 1.5 ? "#000000" : "#FFFFFF"
@@ -244,25 +243,19 @@ Popup {
               Layout.preferredWidth: 20 * scaling
             }
 
-            NSlider {
+            NValueSlider {
               id: redSlider
               Layout.fillWidth: true
               from: 0
               to: 255
               value: Math.round(root.selectedColor.r * 255)
-              onMoved: {
-                root.selectedColor = Qt.rgba(value / 255, root.selectedColor.g, root.selectedColor.b, 1)
-                var hsv = root.rgbToHsv(root.selectedColor.r * 255, root.selectedColor.g * 255,
-                                        root.selectedColor.b * 255)
-                root.currentHue = hsv[0]
-                root.currentSaturation = hsv[1]
-              }
-            }
-
-            NText {
-              text: Math.round(redSlider.value)
-              font.family: Settings.data.ui.fontFixed
-              Layout.preferredWidth: 30 * scaling
+              onMoved: value => {
+                         root.selectedColor = Qt.rgba(value / 255, root.selectedColor.g, root.selectedColor.b, 1)
+                         var hsv = root.rgbToHsv(root.selectedColor.r * 255, root.selectedColor.g * 255, root.selectedColor.b * 255)
+                         root.currentHue = hsv[0]
+                         root.currentSaturation = hsv[1]
+                       }
+              text: Math.round(value)
             }
           }
 
@@ -276,26 +269,20 @@ Popup {
               Layout.preferredWidth: 20 * scaling
             }
 
-            NSlider {
+            NValueSlider {
               id: greenSlider
               Layout.fillWidth: true
               from: 0
               to: 255
               value: Math.round(root.selectedColor.g * 255)
-              onMoved: {
-                root.selectedColor = Qt.rgba(root.selectedColor.r, value / 255, root.selectedColor.b, 1)
-                // Update stored hue and saturation when RGB changes
-                var hsv = root.rgbToHsv(root.selectedColor.r * 255, root.selectedColor.g * 255,
-                                        root.selectedColor.b * 255)
-                root.currentHue = hsv[0]
-                root.currentSaturation = hsv[1]
-              }
-            }
-
-            NText {
-              text: Math.round(greenSlider.value)
-              font.family: Settings.data.ui.fontFixed
-              Layout.preferredWidth: 30 * scaling
+              onMoved: value => {
+                         root.selectedColor = Qt.rgba(root.selectedColor.r, value / 255, root.selectedColor.b, 1)
+                         // Update stored hue and saturation when RGB changes
+                         var hsv = root.rgbToHsv(root.selectedColor.r * 255, root.selectedColor.g * 255, root.selectedColor.b * 255)
+                         root.currentHue = hsv[0]
+                         root.currentSaturation = hsv[1]
+                       }
+              text: Math.round(value)
             }
           }
 
@@ -309,26 +296,20 @@ Popup {
               Layout.preferredWidth: 20 * scaling
             }
 
-            NSlider {
+            NValueSlider {
               id: blueSlider
               Layout.fillWidth: true
               from: 0
               to: 255
               value: Math.round(root.selectedColor.b * 255)
-              onMoved: {
-                root.selectedColor = Qt.rgba(root.selectedColor.r, root.selectedColor.g, value / 255, 1)
-                // Update stored hue and saturation when RGB changes
-                var hsv = root.rgbToHsv(root.selectedColor.r * 255, root.selectedColor.g * 255,
-                                        root.selectedColor.b * 255)
-                root.currentHue = hsv[0]
-                root.currentSaturation = hsv[1]
-              }
-            }
-
-            NText {
-              text: Math.round(blueSlider.value)
-              font.family: Settings.data.ui.fontFixed
-              Layout.preferredWidth: 30 * scaling
+              onMoved: value => {
+                         root.selectedColor = Qt.rgba(root.selectedColor.r, root.selectedColor.g, value / 255, 1)
+                         // Update stored hue and saturation when RGB changes
+                         var hsv = root.rgbToHsv(root.selectedColor.r * 255, root.selectedColor.g * 255, root.selectedColor.b * 255)
+                         root.currentHue = hsv[0]
+                         root.currentSaturation = hsv[1]
+                       }
+              text: Math.round(value)
             }
           }
 
@@ -342,38 +323,31 @@ Popup {
               Layout.preferredWidth: 80 * scaling
             }
 
-            NSlider {
+            NValueSlider {
               id: brightnessSlider
               Layout.fillWidth: true
               from: 0
               to: 100
               value: {
-                var hsv = root.rgbToHsv(root.selectedColor.r * 255, root.selectedColor.g * 255,
-                                        root.selectedColor.b * 255)
+                var hsv = root.rgbToHsv(root.selectedColor.r * 255, root.selectedColor.g * 255, root.selectedColor.b * 255)
                 return hsv[2]
               }
-              onMoved: {
-                var hue = root.currentHue
-                var saturation = root.currentSaturation
+              onMoved: value => {
+                         var hue = root.currentHue
+                         var saturation = root.currentSaturation
 
-                if (hue === 0 && saturation === 0) {
-                  var hsv = root.rgbToHsv(root.selectedColor.r * 255, root.selectedColor.g * 255,
-                                          root.selectedColor.b * 255)
-                  hue = hsv[0]
-                  saturation = hsv[1]
-                  root.currentHue = hue
-                  root.currentSaturation = saturation
-                }
+                         if (hue === 0 && saturation === 0) {
+                           var hsv = root.rgbToHsv(root.selectedColor.r * 255, root.selectedColor.g * 255, root.selectedColor.b * 255)
+                           hue = hsv[0]
+                           saturation = hsv[1]
+                           root.currentHue = hue
+                           root.currentSaturation = saturation
+                         }
 
-                var rgb = root.hsvToRgb(hue, saturation, value)
-                root.selectedColor = Qt.rgba(rgb[0] / 255, rgb[1] / 255, rgb[2] / 255, 1)
-              }
-            }
-
-            NText {
+                         var rgb = root.hsvToRgb(hue, saturation, value)
+                         root.selectedColor = Qt.rgba(rgb[0] / 255, rgb[1] / 255, rgb[2] / 255, 1)
+                       }
               text: Math.round(brightnessSlider.value) + "%"
-              font.family: Settings.data.ui.fontFixed
-              Layout.preferredWidth: 40 * scaling
             }
           }
         }
@@ -416,8 +390,7 @@ Popup {
                   cursorShape: Qt.PointingHandCursor
                   onClicked: {
                     root.selectedColor = modelData
-                    var hsv = root.rgbToHsv(root.selectedColor.r * 255, root.selectedColor.g * 255,
-                                            root.selectedColor.b * 255)
+                    var hsv = root.rgbToHsv(root.selectedColor.r * 255, root.selectedColor.g * 255, root.selectedColor.b * 255)
                     root.currentHue = hsv[0]
                     root.currentSaturation = hsv[1]
                   }
@@ -459,16 +432,14 @@ Popup {
                 radius: Style.radiusXXS * scaling
                 color: modelData
                 border.color: root.selectedColor === modelData ? Color.mPrimary : Color.mOutline
-                border.width: Math.max(
-                                1, root.selectedColor === modelData ? Style.borderM * scaling : Style.borderS * scaling)
+                border.width: Math.max(1, root.selectedColor === modelData ? Style.borderM * scaling : Style.borderS * scaling)
 
                 MouseArea {
                   anchors.fill: parent
                   cursorShape: Qt.PointingHandCursor
                   onClicked: {
                     root.selectedColor = modelData
-                    var hsv = root.rgbToHsv(root.selectedColor.r * 255, root.selectedColor.g * 255,
-                                            root.selectedColor.b * 255)
+                    var hsv = root.rgbToHsv(root.selectedColor.r * 255, root.selectedColor.g * 255, root.selectedColor.b * 255)
                     root.currentHue = hsv[0]
                     root.currentSaturation = hsv[1]
                   }

@@ -11,7 +11,7 @@ RowLayout {
   property string description: ""
   property bool checked: false
   property bool hovering: false
-  property int baseSize: Style.baseWidgetSize
+  property int baseSize: Math.round(Style.baseWidgetSize * 0.8)
 
   signal toggled(bool checked)
   signal entered
@@ -27,12 +27,12 @@ RowLayout {
   Rectangle {
     id: switcher
 
-    implicitWidth: root.baseSize * 1.625 * scaling
-    implicitHeight: root.baseSize * scaling
+    implicitWidth: Math.round(root.baseSize * 1.625 * scaling)
+    implicitHeight: Math.round(root.baseSize * scaling)
     radius: height * 0.5
     color: root.checked ? Color.mPrimary : Color.mSurface
-    border.color: root.checked ? Color.mPrimary : Color.mOutline
-    border.width: Math.max(1, Style.borderM * scaling)
+    border.color: Color.mOutline
+    border.width: Math.max(1, Style.borderS * scaling)
 
     Behavior on color {
       ColorAnimation {
@@ -47,14 +47,15 @@ RowLayout {
     }
 
     Rectangle {
-      implicitWidth: (root.baseSize - 5) * scaling
-      implicitHeight: (root.baseSize - 5) * scaling
+      implicitWidth: Math.round((root.baseSize * 0.8) * scaling)
+      implicitHeight: Math.round((root.baseSize * 0.8) * scaling)
       radius: height * 0.5
       color: root.checked ? Color.mOnPrimary : Color.mPrimary
       border.color: root.checked ? Color.mSurface : Color.mSurface
       border.width: Math.max(1, Style.borderM * scaling)
-      y: 2 * scaling
-      x: root.checked ? switcher.width - width - 2 * scaling : 2 * scaling
+      anchors.verticalCenter: parent.verticalCenter
+      anchors.verticalCenterOffset: 0
+      x: root.checked ? switcher.width - width - 3 * scaling : 3 * scaling
 
       Behavior on x {
         NumberAnimation {

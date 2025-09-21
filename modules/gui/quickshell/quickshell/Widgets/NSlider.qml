@@ -7,14 +7,13 @@ import qs.Services
 Slider {
   id: root
 
-  // Optional color to cut the track beneath the knob (should match surrounding background)
-  property var cutoutColor
+  property var cutoutColor: Color.mSurface
   property bool snapAlways: true
   property real heightRatio: 0.75
 
-  readonly property real knobDiameter: Style.baseWidgetSize * heightRatio * scaling
-  readonly property real trackHeight: knobDiameter * 0.5
-  readonly property real cutoutExtra: Style.baseWidgetSize * 0.1 * scaling
+  readonly property real knobDiameter: Math.round(Style.baseWidgetSize * heightRatio * scaling)
+  readonly property real trackHeight: knobDiameter * 0.4
+  readonly property real cutoutExtra: Math.round(Style.baseWidgetSize * 0.1 * scaling)
 
   snapMode: snapAlways ? Slider.SnapAlways : Slider.SnapOnRelease
   implicitHeight: Math.max(trackHeight, knobDiameter)
@@ -26,15 +25,54 @@ Slider {
     implicitHeight: trackHeight
     width: root.availableWidth
     height: implicitHeight
-    radius: height / 2
-    color: Color.mSurface
+    radius: 0
+    color: Qt.alpha(Color.mSurface, 0.5)
+    border.color: Qt.alpha(Color.mOutline, 0.5)
+    border.width: Math.max(1, Style.borderS * scaling)
 
+    // Animated gradient active track
     Rectangle {
       id: activeTrack
       width: root.visualPosition * parent.width
       height: parent.height
-      color: Color.mPrimary
       radius: parent.radius
+
+      // Animated gradient fill
+      gradient: Gradient {
+        orientation: Gradient.Horizontal
+        GradientStop {
+          position: 0.0
+          color: Qt.darker(Color.mPrimary, 1.2)
+          Behavior on color {
+            ColorAnimation {
+              duration: 300
+            }
+          }
+        }
+        GradientStop {
+          position: 0.5
+          color: Color.mPrimary
+          SequentialAnimation on position {
+            loops: Animation.Infinite
+            NumberAnimation {
+              from: 0.3
+              to: 0.7
+              duration: 2000
+              easing.type: Easing.InOutSine
+            }
+            NumberAnimation {
+              from: 0.7
+              to: 0.3
+              duration: 2000
+              easing.type: Easing.InOutSine
+            }
+          }
+        }
+        GradientStop {
+          position: 1.0
+          color: Qt.lighter(Color.mPrimary, 1.2)
+        }
+      }
     }
 
     // Circular cutout
@@ -44,53 +82,31 @@ Slider {
       height: knobDiameter + cutoutExtra
       radius: width / 2
       color: root.cutoutColor !== undefined ? root.cutoutColor : Color.mSurface
-      x: Math.max(0, Math.min(parent.width - width,
-                              root.visualPosition * (parent.width - root.knobDiameter) - cutoutExtra / 2))
-      y: (parent.height - height) / 2
+      x: root.leftPadding + root.visualPosition * (root.availableWidth - root.knobDiameter) - cutoutExtra / 2
+      anchors.verticalCenter: parent.verticalCenter
     }
   }
 
   handle: Item {
     width: knob.implicitWidth
     height: knob.implicitHeight
-    x: root.leftPadding + root.visualPosition * (root.availableWidth - width)
+    x: root.leftPadding + Math.round(root.visualPosition * (root.availableWidth - width))
     y: root.topPadding + root.availableHeight / 2 - height / 2
-
-    // Subtle shadow for a more polished look
-    MultiEffect {
-      anchors.fill: knob
-      source: knob
-      shadowEnabled: true
-      shadowColor: Color.mShadow
-      shadowOpacity: 0.25
-      shadowHorizontalOffset: 0
-      shadowVerticalOffset: 1
-      shadowBlur: 8
-    }
 
     Rectangle {
       id: knob
       implicitWidth: knobDiameter
       implicitHeight: knobDiameter
       radius: width * 0.5
-      color: root.pressed ? Color.mSurfaceVariant : Color.mSurface
+      color: root.pressed ? Color.mTertiary : Color.mSurface
       border.color: Color.mPrimary
       border.width: Math.max(1, Style.borderL * scaling)
+      anchors.centerIn: parent
 
       Behavior on color {
         ColorAnimation {
           duration: Style.animationFast
         }
-      }
-
-      // Press feedback halo (using accent color, low opacity)
-      Rectangle {
-        anchors.centerIn: parent
-        width: parent.width + 8 * scaling
-        height: parent.height + 8 * scaling
-        radius: width / 2
-        color: Color.mPrimary
-        opacity: root.pressed ? 0.16 : 0.0
       }
     }
   }

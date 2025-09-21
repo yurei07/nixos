@@ -38,6 +38,7 @@ Loader {
   readonly property real originalOpacity: 0.0
   property real scaleValue: originalScale
   property real opacityValue: originalOpacity
+  property real dimmingOpacity: 0
 
   property alias isClosing: hideTimer.running
 
@@ -108,9 +109,11 @@ Loader {
 
   // -----------------------------------------
   function close() {
+    dimmingOpacity = 0
     scaleValue = originalScale
     opacityValue = originalOpacity
     hideTimer.start()
+    PanelService.willClosePanel(root)
   }
 
   // -----------------------------------------
@@ -140,16 +143,22 @@ Loader {
 
       // PanelWindow has its own screen property inherited of QsWindow
       property real scaling: ScalingService.getScreenScale(screen)
-      readonly property real barHeight: Math.round(Style.barHeight * scaling)
-      readonly property bool barAtBottom: Settings.data.bar.position === "bottom"
-      readonly property bool barIsVisible: (screen !== null) && (Settings.data.bar.monitors.includes(screen.name)
-                                                                 || (Settings.data.bar.monitors.length === 0))
+
+      readonly property string barPosition: Settings.data.bar.position
+      readonly property bool isVertical: barPosition === "left" || barPosition === "right"
+      readonly property bool barIsVisible: (screen !== null) && (Settings.data.bar.monitors.includes(screen.name) || (Settings.data.bar.monitors.length === 0))
+      readonly property real verticalBarWidth: Math.round(Style.barHeight * scaling)
+
+      Component.onCompleted: {
+        Logger.log("NPanel", "Opened", root.objectName)
+        dimmingOpacity = Style.opacityHeavy
+      }
 
       Connections {
         target: ScalingService
         function onScaleChanged(screenName, scale) {
           if ((screen !== null) && (screenName === screen.name)) {
-            root.scaling = scale
+            root.scaling = scaling = scale
           }
         }
       }
@@ -158,7 +167,7 @@ Loader {
         target: panelWindow
         function onScreenChanged() {
           root.screen = screen
-          root.scaling = ScalingService.getScreenScale(screen)
+          root.scaling = scaling = ScalingService.getScreenScale(screen)
 
           // It's mandatory to force refresh the subloader to ensure the scaling is properly dispatched
           panelContentLoader.active = false
@@ -168,17 +177,14 @@ Loader {
 
       visible: true
 
-      // Dim desktop if required
-      color: (root.active && !root.isClosing
-              && Settings.data.general.dimDesktop) ? Qt.alpha(Color.mShadow, Style.opacityHeavy) : Color.transparent
-
+      color: Settings.data.general.dimDesktop ? Qt.alpha(Color.mShadow, dimmingOpacity) : Color.transparent
       WlrLayershell.exclusionMode: ExclusionMode.Ignore
       WlrLayershell.namespace: "noctalia-panel"
       WlrLayershell.keyboardFocus: root.panelKeyboardFocus ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
       Behavior on color {
         ColorAnimation {
-          duration: Style.animationNormal
+          duration: Style.animationSlow
         }
       }
 
@@ -186,8 +192,6 @@ Loader {
       anchors.left: true
       anchors.right: true
       anchors.bottom: true
-      margins.top: (barIsVisible && !barAtBottom) ? barHeight : 0
-      margins.bottom: (barIsVisible && barAtBottom) ? barHeight : 0
 
       // Close any panel with Esc without requiring focus
       Shortcut {
@@ -204,6 +208,7 @@ Loader {
         onClicked: root.close()
       }
 
+      // The actual panel's content
       Rectangle {
         id: panelBackground
         color: panelBackgroundColor
@@ -234,42 +239,131 @@ Loader {
 
         scale: root.scaleValue
         opacity: root.opacityValue
-
         x: calculatedX
         y: calculatedY
 
-        property int calculatedX: {
-          if (root.useButtonPosition) {
-            // Position panel relative to button
-            var targetX = root.buttonPosition.x + (root.buttonWidth / 2) - (preferredWidth / 2)
-
-            // Keep panel within screen bounds
-            var maxX = panelWindow.width - panelBackground.width - (Style.marginS * scaling)
-            var minX = Style.marginS * scaling
-
-            return Math.round(Math.max(minX, Math.min(targetX, maxX)))
-          } else if (!panelAnchorHorizontalCenter && panelAnchorLeft) {
-            return Math.round(Style.marginS * scaling)
-          } else if (!panelAnchorHorizontalCenter && panelAnchorRight) {
-            return Math.round(panelWindow.width - panelBackground.width - (Style.marginS * scaling))
-          } else {
-            return Math.round((panelWindow.width - panelBackground.width) / 2)
+        // ---------------------------------------------
+        // Does not account for corners are they are negligible and helps keep the code clean.
+        // ---------------------------------------------
+        property real marginTop: {
+          if (!barIsVisible) {
+            return 0
+          }
+          switch (barPosition || panelAnchorVerticalCenter) {
+          case "top":
+            return (Style.barHeight + Style.marginS) * scaling + (Settings.data.bar.floating ? Settings.data.bar.marginVertical * 2 * Style.marginXL * scaling : 0)
+          default:
+            return Style.marginS * scaling
           }
         }
 
+        property real marginBottom: {
+          if (!barIsVisible || panelAnchorVerticalCenter) {
+            return 0
+          }
+          switch (barPosition) {
+          case "bottom":
+            return (Style.barHeight + Style.marginS) * scaling + (Settings.data.bar.floating ? Settings.data.bar.marginVertical * 2 * Style.marginXL * scaling : 0)
+          default:
+            return Style.marginS * scaling
+          }
+        }
+
+        property real marginLeft: {
+          if (!barIsVisible || panelAnchorHorizontalCenter) {
+            return 0
+          }
+          switch (barPosition) {
+          case "left":
+            return (Style.barHeight + Style.marginS) * scaling + (Settings.data.bar.floating ? Settings.data.bar.marginHorizontal * 2 * Style.marginXL * scaling : 0)
+          default:
+            return Style.marginS * scaling
+          }
+        }
+
+        property real marginRight: {
+          if (!barIsVisible || panelAnchorHorizontalCenter) {
+            return 0
+          }
+          switch (barPosition) {
+          case "right":
+            return (Style.barHeight + Style.marginS) * scaling + (Settings.data.bar.floating ? Settings.data.bar.marginHorizontal * 2 * Style.marginXL * scaling : 0)
+          default:
+            return Style.marginS * scaling
+          }
+        }
+
+        // ---------------------------------------------
+        property int calculatedX: {
+          // Priority to fixed anchoring
+          if (panelAnchorHorizontalCenter) {
+            return Math.round((panelWindow.width - panelBackground.width) / 2)
+          } else if (panelAnchorLeft) {
+            return marginLeft
+          } else if (panelAnchorRight) {
+            return Math.round(panelWindow.width - panelBackground.width - marginRight)
+          }
+
+          // No fixed anchoring
+          if (isVertical) {
+            // Vertical bar
+            if (barPosition === "right") {
+              // To the left of the right bar
+              return Math.round(panelWindow.width - panelBackground.width - marginRight)
+            } else {
+              // To the right of the left bar
+              return marginLeft
+            }
+          } else {
+            // Horizontal bar
+            if (root.useButtonPosition) {
+              // Position panel relative to button
+              var targetX = buttonPosition.x + (buttonWidth / 2) - (panelBackground.width / 2)
+              // Keep panel within screen bounds
+              var maxX = panelWindow.width - panelBackground.width - marginRight
+              var minX = marginLeft
+              return Math.round(Math.max(minX, Math.min(targetX, maxX)))
+            } else {
+              // Fallback to center horizontally
+              return Math.round((panelWindow.width - panelBackground.width) / 2)
+            }
+          }
+        }
+
+        // ---------------------------------------------
         property int calculatedY: {
+          // Priority to fixed anchoring
           if (panelAnchorVerticalCenter) {
             return Math.round((panelWindow.height - panelBackground.height) / 2)
-          } else if (panelAnchorBottom) {
-            return Math.round(panelWindow.height - panelBackground.height - (Style.marginS * scaling))
           } else if (panelAnchorTop) {
-            return Math.round(Style.marginS * scaling)
-          } else if (!barAtBottom) {
-            // Below the top bar
-            return Math.round(Style.marginS * scaling)
+            return marginTop
+          } else if (panelAnchorBottom) {
+            return Math.round(panelWindow.height - panelBackground.height - marginBottom)
+          }
+
+          // No fixed anchoring
+          if (isVertical) {
+            // Vertical bar
+            if (useButtonPosition) {
+              // Position panel relative to button
+              var targetY = buttonPosition.y + (buttonHeight / 2) - (panelBackground.height / 2)
+              // Keep panel within screen bounds
+              var maxY = panelWindow.height - panelBackground.height - marginBottom
+              var minY = marginTop
+              return Math.round(Math.max(minY, Math.min(targetY, maxY)))
+            } else {
+              // Fallback to center vertically
+              return Math.round((panelWindow.height - panelBackground.height) / 2)
+            }
           } else {
-            // Above the bottom bar
-            return Math.round(panelWindow.height - panelBackground.height - (Style.marginS * scaling))
+            // Horizontal bar
+            if (barPosition === "bottom") {
+              // Above the bottom bar
+              return Math.round(panelWindow.height - panelBackground.height - marginBottom)
+            } else {
+              // Below the top bar
+              return marginTop
+            }
           }
         }
 

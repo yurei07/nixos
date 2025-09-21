@@ -13,8 +13,7 @@ Singleton {
   property real currentPosition: 0
   property bool isSeeking: false
   property int selectedPlayerIndex: 0
-  property bool isPlaying: currentPlayer ? (currentPlayer.playbackState === MprisPlaybackState.Playing
-                                            || currentPlayer.isPlaying) : false
+  property bool isPlaying: currentPlayer ? (currentPlayer.playbackState === MprisPlaybackState.Playing || currentPlayer.isPlaying) : false
   property string trackTitle: currentPlayer ? (currentPlayer.trackTitle || "") : ""
   property string trackArtist: currentPlayer ? (currentPlayer.trackArtist || "") : ""
   property string trackAlbum: currentPlayer ? (currentPlayer.trackAlbum || "") : ""
@@ -40,8 +39,7 @@ Singleton {
     let controllablePlayers = []
 
     // Apply blacklist and controllable filter
-    const blacklist = (Settings.data.audio
-                       && Settings.data.audio.mprisBlacklist) ? Settings.data.audio.mprisBlacklist : []
+    const blacklist = (Settings.data.audio && Settings.data.audio.mprisBlacklist) ? Settings.data.audio.mprisBlacklist : []
     for (var i = 0; i < allPlayers.length; i++) {
       let player = allPlayers[i]
       if (!player)
@@ -52,8 +50,7 @@ Singleton {
       const idKey = identity.toLowerCase()
       const match = blacklist.find(b => {
                                      const s = String(b || "").toLowerCase()
-                                     return s && (idKey.includes(s) || busName.toLowerCase().includes(s)
-                                                  || desktop.toLowerCase().includes(s))
+                                     return s && (idKey.includes(s) || busName.toLowerCase().includes(s) || desktop.toLowerCase().includes(s))
                                    })
       if (match)
         continue
@@ -159,12 +156,10 @@ Singleton {
   Timer {
     id: positionTimer
     interval: 1000
-    running: currentPlayer && !root.isSeeking && currentPlayer.isPlaying && currentPlayer.length > 0
-             && currentPlayer.playbackState === MprisPlaybackState.Playing
+    running: currentPlayer && !root.isSeeking && currentPlayer.isPlaying && currentPlayer.length > 0 && currentPlayer.playbackState === MprisPlaybackState.Playing
     repeat: true
     onTriggered: {
-      if (currentPlayer && !root.isSeeking && currentPlayer.isPlaying
-          && currentPlayer.playbackState === MprisPlaybackState.Playing) {
+      if (currentPlayer && !root.isSeeking && currentPlayer.isPlaying && currentPlayer.playbackState === MprisPlaybackState.Playing) {
         currentPosition = currentPlayer.position
       } else {
         running = false

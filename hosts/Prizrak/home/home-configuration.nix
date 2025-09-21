@@ -6,7 +6,6 @@
 }:
 {
   imports = [
-    ./development
     # windows manager
     ../../../modules/wm/hyprland
     # gui
@@ -63,6 +62,7 @@
       gpu-screen-recorder
       prismlauncher
       foliate
+      chromium
 
       #themes
       gnome-themes-extra

@@ -9,6 +9,12 @@ import qs.Widgets
 
 ColumnLayout {
   id: root
+  spacing: Style.marginL * scaling
+
+  NHeader {
+    label: "Wallpaper Settings"
+    description: "Control how wallpapers are managed and displayed."
+  }
 
   NToggle {
     label: "Enable Wallpaper Management"
@@ -22,6 +28,7 @@ ColumnLayout {
     visible: Settings.data.wallpaper.enabled
     spacing: Style.marginL * scaling
     Layout.fillWidth: true
+
     NTextInput {
       label: "Wallpaper Directory"
       description: "Path to your common wallpaper directory."
@@ -61,7 +68,7 @@ ColumnLayout {
           delegate: RowLayout {
             NText {
               text: (modelData.name || "Unknown")
-              color: Color.mSecondary
+              color: Color.mPrimary
               font.weight: Style.fontWeightBold
               Layout.preferredWidth: 90 * scaling
             }
@@ -89,11 +96,8 @@ ColumnLayout {
     spacing: Style.marginL * scaling
     Layout.fillWidth: true
 
-    NText {
-      text: "Look & Feel"
-      font.pointSize: Style.fontSizeXXL * scaling
-      font.weight: Style.fontWeightBold
-      color: Color.mSecondary
+    NHeader {
+      label: "Look & Feel"
     }
 
     // Fill Mode
@@ -134,21 +138,14 @@ ColumnLayout {
         description: "Duration of transition animations in seconds."
       }
 
-      RowLayout {
-        spacing: Style.marginL * scaling
-        NSlider {
-          Layout.fillWidth: true
-          from: 500
-          to: 10000
-          stepSize: 100
-          value: Settings.data.wallpaper.transitionDuration
-          onMoved: Settings.data.wallpaper.transitionDuration = value
-          cutoutColor: Color.mSurface
-        }
-        NText {
-          text: (Settings.data.wallpaper.transitionDuration / 1000).toFixed(2) + "s"
-          Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-        }
+      NValueSlider {
+        Layout.fillWidth: true
+        from: 500
+        to: 10000
+        stepSize: 100
+        value: Settings.data.wallpaper.transitionDuration
+        onMoved: value => Settings.data.wallpaper.transitionDuration = value
+        text: (Settings.data.wallpaper.transitionDuration / 1000).toFixed(1) + "s"
       }
     }
 
@@ -159,20 +156,13 @@ ColumnLayout {
         description: "Duration of transition animations in seconds."
       }
 
-      RowLayout {
-        spacing: Style.marginL * scaling
-        NSlider {
-          Layout.fillWidth: true
-          from: 0.0
-          to: 1.0
-          value: Settings.data.wallpaper.transitionEdgeSmoothness
-          onMoved: Settings.data.wallpaper.transitionEdgeSmoothness = value
-          cutoutColor: Color.mSurface
-        }
-        NText {
-          text: Math.round(Settings.data.wallpaper.transitionEdgeSmoothness * 100) + "%"
-          Layout.alignment: Qt.AlignVCenter | Qt.AlignRight
-        }
+      NValueSlider {
+        Layout.fillWidth: true
+        from: 0.0
+        to: 1.0
+        value: Settings.data.wallpaper.transitionEdgeSmoothness
+        onMoved: value => Settings.data.wallpaper.transitionEdgeSmoothness = value
+        text: Math.round(Settings.data.wallpaper.transitionEdgeSmoothness * 100) + "%"
       }
     }
   }
@@ -189,11 +179,8 @@ ColumnLayout {
     spacing: Style.marginL * scaling
     Layout.fillWidth: true
 
-    NText {
-      text: "Automation"
-      font.pointSize: Style.fontSizeXXL * scaling
-      font.weight: Style.fontWeightBold
-      color: Color.mSecondary
+    NHeader {
+      label: "Automation"
     }
 
     // Random Wallpaper

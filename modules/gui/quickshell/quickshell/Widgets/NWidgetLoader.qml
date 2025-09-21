@@ -49,7 +49,7 @@ Item {
         item.onLoaded()
       }
 
-      //Logger.log("NWidgetLoader", "Loaded", widgetId, "on screen", item.screen.name)
+      Logger.log("NWidgetLoader", "Loaded", widgetId, "on screen", item.screen.name)
     }
   }
 

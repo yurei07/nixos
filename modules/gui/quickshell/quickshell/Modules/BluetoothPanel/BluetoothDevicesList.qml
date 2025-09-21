@@ -116,8 +116,7 @@ ColumnLayout {
 
             NText {
               visible: modelData.signalStrength > 0 && !modelData.pairing && !modelData.blocked
-              text: (modelData.signalStrength !== undefined
-                     && modelData.signalStrength > 0) ? modelData.signalStrength + "%" : ""
+              text: (modelData.signalStrength !== undefined && modelData.signalStrength > 0) ? modelData.signalStrength + "%" : ""
               font.pointSize: Style.fontSizeXS * scaling
               color: getContentColor(Color.mOnSurface)
             }

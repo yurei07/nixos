@@ -57,8 +57,7 @@ Singleton {
   property int maxHistory: 100
 
   // Cached history file path
-  property string historyFile: Quickshell.env("NOCTALIA_NOTIF_HISTORY_FILE")
-                               || (Settings.cacheDir + "notifications.json")
+  property string historyFile: Quickshell.env("NOCTALIA_NOTIF_HISTORY_FILE") || (Settings.cacheDir + "notifications.json")
 
   // Persisted storage for history
   property FileView historyFileView: FileView {
@@ -88,9 +87,26 @@ Singleton {
   // Maximum visible notifications
   property int maxVisible: 5
 
+  // Function to get duration based on urgency
+  function getDurationForUrgency(urgency) {
+    switch (urgency) {
+    case 0:
+      // Low urgency
+      return (Settings.data.notifications.lowUrgencyDuration || 3) * 1000
+    case 1:
+      // Normal urgency
+      return (Settings.data.notifications.normalUrgencyDuration || 8) * 1000
+    case 2:
+      // Critical urgency
+      return (Settings.data.notifications.criticalUrgencyDuration || 15) * 1000
+    default:
+      return (Settings.data.notifications.normalUrgencyDuration || 8) * 1000
+    }
+  }
+
   // Auto-hide timer
   property Timer hideTimer: Timer {
-    interval: 8000 // 8 seconds - longer display time
+    interval: 1000 // Check every second
     repeat: true
     running: notificationModel.count > 0
 
@@ -99,11 +115,26 @@ Singleton {
         return
       }
 
-      // Remove the oldest notification (last in the list)
-      let oldestNotification = notificationModel.get(notificationModel.count - 1).rawNotification
-      if (oldestNotification) {
-        // Trigger animation signal instead of direct dismiss
-        animateAndRemove(oldestNotification, notificationModel.count - 1)
+      // Check each notification for expiration
+      for (var i = notificationModel.count - 1; i >= 0; i--) {
+        let notificationData = notificationModel.get(i)
+        if (notificationData && notificationData.rawNotification) {
+          let notification = notificationData.rawNotification
+          let urgency = notificationData.urgency
+          let timestamp = notificationData.timestamp
+
+          // Calculate if this notification should be removed
+          let duration = getDurationForUrgency(urgency)
+          let now = new Date()
+          let elapsed = now.getTime() - timestamp.getTime()
+
+          if (elapsed >= duration) {
+            // Trigger animation signal instead of direct dismiss
+            animateAndRemove(notification, i)
+            break
+            // Only remove one notification per check to avoid conflicts
+          }
+        }
       }
     }
   }
@@ -280,9 +311,7 @@ Singleton {
                    "appIcon": n.appIcon,
                    "urgency": n.urgency,
                    "timestamp"// Always persist in milliseconds
-                   : (n.timestamp instanceof Date) ? n.timestamp.getTime(
-                                                       ) : (typeof n.timestamp === "number"
-                                                            && n.timestamp < 1e12 ? n.timestamp * 1000 : n.timestamp)
+                   : (n.timestamp instanceof Date) ? n.timestamp.getTime() : (typeof n.timestamp === "number" && n.timestamp < 1e12 ? n.timestamp * 1000 : n.timestamp)
                  })
       }
       historyAdapter.history = arr

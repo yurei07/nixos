@@ -13,6 +13,8 @@ Window {
   property bool positionLeft: false
   property bool positionRight: false
 
+  readonly property string barPosition: Settings.data.bar.position
+
   flags: Qt.ToolTip | Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint
   color: Color.transparent
   visible: false
@@ -46,17 +48,34 @@ Window {
       return
     }
 
-    if (positionLeft) {
+    // Auto-detect positioning based on bar position if not explicitly set
+    var shouldPositionLeft = positionLeft
+    var shouldPositionRight = positionRight
+    var shouldPositionAbove = positionAbove
+
+    // If no explicit positioning is set, auto-detect based on bar position
+    if (!positionLeft && !positionRight && !positionAbove) {
+      if (barPosition === "left") {
+        shouldPositionRight = true
+      } else if (barPosition === "right") {
+        shouldPositionLeft = true
+      } else if (barPosition === "bottom") {
+        shouldPositionAbove = true
+      }
+      // For "top" bar, default to below (no change needed)
+    }
+
+    if (shouldPositionLeft) {
       // Position tooltip to the left of the target
       var pos = target.mapToGlobal(0, 0)
       x = pos.x - width - 12 // 12 px margin to the left
       y = pos.y - height / 2 + target.height / 2
-    } else if (positionRight) {
+    } else if (shouldPositionRight) {
       // Position tooltip to the right of the target
       var pos = target.mapToGlobal(target.width, 0)
       x = pos.x + 12 // 12 px margin to the right
       y = pos.y - height / 2 + target.height / 2
-    } else if (positionAbove) {
+    } else if (shouldPositionAbove) {
       // Position tooltip above the target
       var pos = target.mapToGlobal(0, 0)
       x = pos.x - width / 2 + target.width / 2

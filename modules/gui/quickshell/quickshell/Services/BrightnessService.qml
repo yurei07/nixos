@@ -84,8 +84,7 @@ Singleton {
                                              var ddcModel = ddcModelMatc ? ddcModelMatc.length > 0 : false
                                              var model = modelMatch ? modelMatch[1] : "Unknown"
                                              var bus = busMatch ? busMatch[1] : "Unknown"
-                                             Logger.log("Detected DDC Monitor:", model, "on bus", bus, "is DDC:",
-                                                        !ddcModel)
+                                             Logger.log("Detected DDC Monitor:", model, "on bus", bus, "is DDC:", !ddcModel)
                                              return {
                                                "model": model,
                                                "busNum": bus,
@@ -198,9 +197,11 @@ Singleton {
       }
     }
 
+    readonly property real stepSize: Settings.data.brightness.brightnessStep / 100.0
+
     // Timer for debouncing rapid changes
     readonly property Timer timer: Timer {
-      interval: 200
+      interval: 100
       onTriggered: {
         if (!isNaN(monitor.queuedBrightness)) {
           monitor.setBrightness(monitor.queuedBrightness)
@@ -209,14 +210,19 @@ Singleton {
       }
     }
 
+    function setBrightnessDebounced(value: real): void {
+      monitor.queuedBrightness = value
+      timer.start()
+    }
+
     function increaseBrightness(): void {
-      var stepSize = Settings.data.brightness.brightnessStep / 100.0
-      setBrightnessDebounced(monitor.brightness + stepSize)
+      const value = !isNaN(monitor.queuedBrightness) ? monitor.queuedBrightness : monitor.brightness
+      setBrightnessDebounced(value + stepSize)
     }
 
     function decreaseBrightness(): void {
-      var stepSize = Settings.data.brightness.brightnessStep / 100.0
-      setBrightnessDebounced(monitor.brightness - stepSize)
+      const value = !isNaN(monitor.queuedBrightness) ? monitor.queuedBrightness : monitor.brightness
+      setBrightnessDebounced(value - stepSize)
     }
 
     function setBrightness(value: real): void {
@@ -226,7 +232,7 @@ Singleton {
       if (Math.round(monitor.brightness * 100) === rounded)
         return
 
-      if (isDdc && timer.running) {
+      if (timer.running) {
         monitor.queuedBrightness = value
         return
       }
@@ -248,11 +254,6 @@ Singleton {
       }
     }
 
-    function setBrightnessDebounced(value: real): void {
-      monitor.queuedBrightness = value
-      timer.restart()
-    }
-
     function initBrightness(): void {
       if (isAppleDisplay) {
         initProc.command = ["asdbctl", "get"]
@@ -261,9 +262,7 @@ Singleton {
       } else {
         // Internal backlight - find the first available backlight device and get its info
         // This now returns: device_path, current_brightness, max_brightness (on separate lines)
-        initProc.command = ["sh", "-c", "for dev in /sys/class/backlight/*; do "
-                            + "  if [ -f \"$dev/brightness\" ] && [ -f \"$dev/max_brightness\" ]; then " + "    echo \"$dev\"; "
-                            + "    cat \"$dev/brightness\"; " + "    cat \"$dev/max_brightness\"; " + "    break; " + "  fi; " + "done"]
+        initProc.command = ["sh", "-c", "for dev in /sys/class/backlight/*; do " + "  if [ -f \"$dev/brightness\" ] && [ -f \"$dev/max_brightness\" ]; then " + "    echo \"$dev\"; " + "    cat \"$dev/brightness\"; " + "    cat \"$dev/max_brightness\"; " + "    break; " + "  fi; " + "done"]
       }
       initProc.running = true
     }

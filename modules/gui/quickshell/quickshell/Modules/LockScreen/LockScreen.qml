@@ -62,8 +62,7 @@ Loader {
 
           Item {
             id: keyboardLayout
-            property string currentLayout: (typeof KeyboardLayoutService !== 'undefined'
-                                            && KeyboardLayoutService.currentLayout) ? KeyboardLayoutService.currentLayout : "Unknown"
+            property string currentLayout: (typeof KeyboardLayoutService !== 'undefined' && KeyboardLayoutService.currentLayout) ? KeyboardLayoutService.currentLayout : "Unknown"
           }
 
           Image {
@@ -227,12 +226,10 @@ Loader {
                       Repeater {
                         model: CavaService.values.length * 2
                         Rectangle {
-                          property int mirroredValueIndex: index < CavaService.values.length ? index : (CavaService.values.length
-                                                                                                        * 2 - 1 - index)
+                          property int mirroredValueIndex: index < CavaService.values.length ? index : (CavaService.values.length * 2 - 1 - index)
                           property real mirroredAngle: (index / (CavaService.values.length * 2)) * 2 * Math.PI
                           property real mirroredRadius: 70 * scaling
-                          property real mirroredBarLength: Math.max(
-                                                             2, CavaService.values[mirroredValueIndex] * 30 * scaling)
+                          property real mirroredBarLength: Math.max(2, CavaService.values[mirroredValueIndex] * 30 * scaling)
                           property real mirroredBarWidth: 3 * scaling
                           width: mirroredBarWidth
                           height: mirroredBarLength
@@ -428,8 +425,7 @@ Loader {
                       spacing: Style.marginS * scaling
                       visible: batteryIndicator.batteryVisible
                       NIcon {
-                        icon: BatteryService.getIcon(batteryIndicator.percent, batteryIndicator.charging,
-                                                     batteryIndicator.isReady)
+                        icon: BatteryService.getIcon(batteryIndicator.percent, batteryIndicator.charging, batteryIndicator.isReady)
                         font.pointSize: Style.fontSizeM * scaling
                         color: batteryIndicator.charging ? Color.mPrimary : Color.mOnSurface
                         rotation: -90
@@ -515,6 +511,7 @@ Loader {
                       width: 0
                       height: 0
                       visible: false
+                      enabled: !lockContext.unlockInProgress
                       font.family: Settings.data.ui.fontFixed
                       font.pointSize: Style.fontSizeL * scaling
                       color: Color.mOnSurface
@@ -544,7 +541,7 @@ Loader {
                       color: Color.mOnSurface
                       font.family: Settings.data.ui.fontFixed
                       font.pointSize: Style.fontSizeL * scaling
-                      visible: passwordInput.activeFocus
+                      visible: passwordInput.activeFocus && !lockContext.unlockInProgress
 
                       SequentialAnimation {
                         id: typingEffect
@@ -588,7 +585,7 @@ Loader {
                   NText {
                     text: {
                       if (lockContext.unlockInProgress)
-                        return "Authenticating..."
+                        return lockContext.infoMessage || "Authenticating..."
                       if (lockContext.showFailure && lockContext.errorMessage)
                         return lockContext.errorMessage
                       if (lockContext.showFailure)
@@ -750,7 +747,7 @@ Loader {
                     id: shutdownTooltipText
                     anchors.margins: Style.marginM * scaling
                     anchors.fill: parent
-                    text: "Shut down the computer."
+                    text: "Shut down."
                     font.pointSize: Style.fontSizeM * scaling
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -801,7 +798,7 @@ Loader {
                     id: restartTooltipText
                     anchors.margins: Style.marginM * scaling
                     anchors.fill: parent
-                    text: "Restart the computer."
+                    text: "Restart."
                     font.pointSize: Style.fontSizeM * scaling
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -853,7 +850,7 @@ Loader {
                     id: suspendTooltipText
                     anchors.margins: Style.marginM * scaling
                     anchors.fill: parent
-                    text: "Suspend the system."
+                    text: "Suspend."
                     font.pointSize: Style.fontSizeM * scaling
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter

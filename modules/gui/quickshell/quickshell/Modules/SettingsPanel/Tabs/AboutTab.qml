@@ -10,107 +10,108 @@ import qs.Widgets
 
 ColumnLayout {
   id: root
+  spacing: Style.marginL * scaling
 
   property string latestVersion: GitHubService.latestVersion
   property string currentVersion: UpdateService.currentVersion
   property var contributors: GitHubService.contributors
 
-  NText {
-    text: "Noctalia Shell"
-    font.pointSize: Style.fontSizeXXXL * scaling
-    font.weight: Style.fontWeightBold
-    color: Color.mOnSurface
-    Layout.alignment: Qt.AlignCenter
-    Layout.bottomMargin: Style.marginS * scaling
+  NHeader {
+    label: "Noctalia Shell"
+    description: "A sleek and minimal desktop shell thoughtfully crafted for Wayland, built with Quickshell."
   }
 
-  // Versions
-  GridLayout {
-    Layout.alignment: Qt.AlignCenter
-    columns: 2
-    rowSpacing: Style.marginXS * scaling
-    columnSpacing: Style.marginS * scaling
+  RowLayout {
+    spacing: Style.marginL * scaling
 
-    NText {
-      text: "Latest Version:"
-      color: Color.mOnSurface
-      Layout.alignment: Qt.AlignRight
-    }
+    // Versions
+    GridLayout {
+      columns: 2
+      rowSpacing: Style.marginXS * scaling
+      columnSpacing: Style.marginS * scaling
 
-    NText {
-      text: root.latestVersion
-      color: Color.mOnSurface
-      font.weight: Style.fontWeightBold
-    }
-
-    NText {
-      text: "Installed Version:"
-      color: Color.mOnSurface
-      Layout.alignment: Qt.AlignRight
-    }
-
-    NText {
-      text: root.currentVersion
-      color: Color.mOnSurface
-      font.weight: Style.fontWeightBold
-    }
-  }
-
-  // Updater
-  Rectangle {
-    Layout.alignment: Qt.AlignCenter
-    Layout.topMargin: Style.marginS * scaling
-    Layout.preferredWidth: Math.round(updateRow.implicitWidth + (Style.marginL * scaling * 2))
-    Layout.preferredHeight: Math.round(Style.barHeight * scaling)
-    radius: Style.radiusL * scaling
-    color: updateArea.containsMouse ? Color.mPrimary : Color.transparent
-    border.color: Color.mPrimary
-    border.width: Math.max(1, Style.borderS * scaling)
-    visible: {
-      if (root.latestVersion === "Unknown")
-        return false
-
-      const latest = root.latestVersion.replace("v", "").split(".")
-      const current = root.currentVersion.replace("v", "").split(".")
-      for (var i = 0; i < Math.max(latest.length, current.length); i++) {
-        const l = parseInt(latest[i] || "0")
-        const c = parseInt(current[i] || "0")
-        if (l > c)
-          return true
-
-        if (l < c)
-          return false
-      }
-      return false
-    }
-
-    RowLayout {
-      id: updateRow
-      anchors.centerIn: parent
-      spacing: Style.marginS * scaling
-
-      NIcon {
-        icon: "download"
-        font.pointSize: Style.fontSizeXXL * scaling
-        color: updateArea.containsMouse ? Color.mSurface : Color.mPrimary
+      NText {
+        text: "Latest Version:"
+        color: Color.mOnSurface
       }
 
       NText {
-        id: updateText
-        text: "Download latest release"
-        font.pointSize: Style.fontSizeL * scaling
-        color: updateArea.containsMouse ? Color.mSurface : Color.mPrimary
+        text: root.latestVersion
+        color: Color.mOnSurface
+        font.weight: Style.fontWeightBold
+      }
+
+      NText {
+        text: "Installed Version:"
+        color: Color.mOnSurface
+      }
+
+      NText {
+        text: root.currentVersion
+        color: Color.mOnSurface
+        font.weight: Style.fontWeightBold
       }
     }
 
-    MouseArea {
-      id: updateArea
+    Item {
+      Layout.fillWidth: true
+    }
 
-      anchors.fill: parent
-      hoverEnabled: true
-      cursorShape: Qt.PointingHandCursor
-      onClicked: {
-        Quickshell.execDetached(["xdg-open", "https://github.com/Ly-sec/Noctalia/releases/latest"])
+    // Update button
+    Rectangle {
+      Layout.alignment: Qt.AlignRight
+      Layout.preferredWidth: Math.round(updateRow.implicitWidth + (Style.marginL * scaling * 2))
+      Layout.preferredHeight: Math.round(Style.barHeight * scaling)
+      radius: Style.radiusL * scaling
+      color: updateArea.containsMouse ? Color.mPrimary : Color.transparent
+      border.color: Color.mPrimary
+      border.width: Math.max(1, Style.borderS * scaling)
+      visible: {
+        if (root.latestVersion === "Unknown")
+          return false
+
+        const latest = root.latestVersion.replace("v", "").split(".")
+        const current = root.currentVersion.replace("v", "").split(".")
+        for (var i = 0; i < Math.max(latest.length, current.length); i++) {
+          const l = parseInt(latest[i] || "0")
+          const c = parseInt(current[i] || "0")
+          if (l > c)
+            return true
+
+          if (l < c)
+            return false
+        }
+        return false
+      }
+
+      RowLayout {
+        id: updateRow
+        anchors.centerIn: parent
+        spacing: Style.marginS * scaling
+
+        NIcon {
+          icon: "download"
+          font.pointSize: Style.fontSizeXXL * scaling
+          color: updateArea.containsMouse ? Color.mSurface : Color.mPrimary
+        }
+
+        NText {
+          id: updateText
+          text: "Download latest release"
+          font.pointSize: Style.fontSizeL * scaling
+          color: updateArea.containsMouse ? Color.mSurface : Color.mPrimary
+        }
+      }
+
+      MouseArea {
+        id: updateArea
+
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: {
+          Quickshell.execDetached(["xdg-open", "https://github.com/Ly-sec/Noctalia/releases/latest"])
+        }
       }
     }
   }
@@ -121,17 +122,13 @@ ColumnLayout {
     Layout.bottomMargin: Style.marginXL * scaling
   }
 
-  NText {
-    text: `Shout-out to our ${root.contributors.length} <b>awesome</b> contributors!`
-    font.pointSize: Style.fontSizeL * scaling
-    color: Color.mOnSurface
-    Layout.alignment: Qt.AlignCenter
+  NHeader {
+    label: "Contributors"
+    description: `Shout-out to our ${root.contributors.length} <b>awesome</b> contributors!`
   }
 
   GridView {
     id: contributorsGrid
-
-    Layout.topMargin: Style.marginL * scaling
     Layout.alignment: Qt.AlignHCenter
     Layout.preferredWidth: cellWidth * 3 // Fixed 3 columns
     Layout.preferredHeight: {
@@ -192,7 +189,7 @@ ColumnLayout {
           NText {
             text: modelData.login || "Unknown"
             font.weight: Style.fontWeightBold
-            color: contributorArea.containsMouse ? Color.mSurface : Color.mOnSurface
+            color: contributorArea.containsMouse ? Color.mOnTertiary : Color.mOnSurface
             elide: Text.ElideRight
             Layout.fillWidth: true
           }
@@ -200,7 +197,7 @@ ColumnLayout {
           NText {
             text: (modelData.contributions || 0) + " " + ((modelData.contributions || 0) === 1 ? "commit" : "commits")
             font.pointSize: Style.fontSizeXS * scaling
-            color: contributorArea.containsMouse ? Color.mSurface : Color.mOnSurface
+            color: contributorArea.containsMouse ? Color.mOnTertiary : Color.mOnSurface
           }
         }
       }

@@ -16,6 +16,9 @@ Singleton {
 
   property var registeredPanels: ({})
 
+  signal willOpen
+  signal willClose
+
   // Register this panel
   function registerPanel(panel) {
     registeredPanels[panel.objectName] = panel
@@ -38,6 +41,14 @@ Singleton {
       openedPanel.close()
     }
     openedPanel = panel
+
+    // emit signal
+    willOpen()
+  }
+
+  function willClosePanel(panel) {
+    // emit signal
+    willClose()
   }
 
   function closedPanel(panel) {

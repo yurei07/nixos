@@ -99,7 +99,7 @@ Item {
       AudioService.decreaseVolume()
     }
     function muteOutput() {
-      AudioService.setMuted(!AudioService.muted)
+      AudioService.setOutputMuted(!AudioService.muted)
     }
     function muteInput() {
       if (AudioService.source?.ready && AudioService.source?.audio) {

@@ -62,7 +62,6 @@ Singleton {
     function onMutedChanged() {
       root._muted = (sink?.audio.muted ?? true)
       Logger.log("AudioService", "OnMuteChanged:", root._muted)
-      // Toast: audio output mute toggle
       ToastService.showNotice("Audio Output", root._muted ? "Muted" : "Unmuted")
     }
   }
@@ -81,7 +80,6 @@ Singleton {
     function onMutedChanged() {
       root._inputMuted = (source?.audio.muted ?? true)
       Logger.log("AudioService", "OnInputMuteChanged:", root._inputMuted)
-      // Toast: microphone mute toggle
       ToastService.showNotice("Microphone", root._inputMuted ? "Muted" : "Unmuted")
     }
   }
@@ -105,7 +103,7 @@ Singleton {
     }
   }
 
-  function setMuted(muted: bool) {
+  function setOutputMuted(muted: bool) {
     if (sink?.ready && sink?.audio) {
       sink.audio.muted = muted
     } else {

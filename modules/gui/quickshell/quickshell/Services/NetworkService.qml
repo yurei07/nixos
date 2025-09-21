@@ -491,7 +491,8 @@ Singleton {
 
         root.connecting = false
         root.connectingTo = ""
-        Logger.log("Network", `Connected to network: "${connectProcess.ssid}"`)
+        Logger.log("Network", `Connected to network: '${connectProcess.ssid}'`)
+        ToastService.showNotice("Wi-Fi", `Connected to '${connectProcess.ssid}'`)
 
         // Still do a scan to get accurate signal and security info
         delayedScanTimer.interval = 5000
@@ -531,7 +532,8 @@ Singleton {
 
     stdout: StdioCollector {
       onStreamFinished: {
-        Logger.log("Network", `Disconnected from network: "${disconnectProcess.ssid}"`)
+        Logger.log("Network", `Disconnected from network: '${disconnectProcess.ssid}'`)
+        ToastService.showNotice("Wi-Fi", `Disconnected from '${disconnectProcess.ssid}'`)
 
         // Immediately update UI on successful disconnect
         root.updateNetworkStatus(disconnectProcess.ssid, false)

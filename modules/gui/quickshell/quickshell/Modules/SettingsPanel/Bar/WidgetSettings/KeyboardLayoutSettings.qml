@@ -14,18 +14,33 @@ ColumnLayout {
   property var widgetMetadata: null
 
   // Local state
-  property bool valueForceOpen: widgetData.forceOpen !== undefined ? widgetData.forceOpen : widgetMetadata.forceOpen
+  property string valueDisplayMode: widgetData.displayMode !== undefined ? widgetData.displayMode : widgetMetadata.displayMode
 
   function saveSettings() {
     var settings = Object.assign({}, widgetData || {})
-    settings.forceOpen = valueForceOpen
+    settings.displayMode = valueDisplayMode
     return settings
   }
 
-  NToggle {
-    label: "Force open"
-    description: "Keep the keyboard layout widget always expanded."
-    checked: valueForceOpen
-    onToggled: checked => valueForceOpen = checked
+  NComboBox {
+    label: "Display mode"
+    description: "Choose how you'd like this value to appear."
+    minimumWidth: 134 * scaling
+    model: ListModel {
+      ListElement {
+        key: "onhover"
+        name: "On Hover"
+      }
+      ListElement {
+        key: "forceOpen"
+        name: "Force Open"
+      }
+      ListElement {
+        key: "alwaysHide"
+        name: "Always Hide"
+      }
+    }
+    currentKey: valueDisplayMode
+    onSelected: key => valueDisplayMode = key
   }
 }

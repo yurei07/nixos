@@ -19,6 +19,8 @@ ColumnLayout {
     settings.leftClickExec = leftClickExecInput.text
     settings.rightClickExec = rightClickExecInput.text
     settings.middleClickExec = middleClickExecInput.text
+    settings.textCommand = textCommandInput.text
+    settings.textIntervalMs = parseInt(textIntervalInput.text || textIntervalInput.placeholderText, 10)
     return settings
   }
 
@@ -115,10 +117,12 @@ ColumnLayout {
       }
 
       // Icon grid
-      ScrollView {
+      NScrollView {
         Layout.fillWidth: true
         Layout.fillHeight: true
         clip: true
+        horizontalPolicy: ScrollBar.AlwaysOff
+        verticalPolicy: ScrollBar.AlwaysOn
 
         GridView {
           id: grid
@@ -225,5 +229,34 @@ ColumnLayout {
     label: "Middle Click Command"
     placeholderText: "Enter command to execute (app or custom script)"
     text: widgetData.middleClickExec || widgetMetadata.middleClickExec
+  }
+
+  NDivider {
+    Layout.fillWidth: true
+  }
+
+  NText {
+    text: "Dynamic Text"
+    font.pointSize: Style.fontSizeM * scaling
+    font.weight: Style.fontWeightBold
+    color: Color.mPrimary
+  }
+
+  NTextInput {
+    id: textCommandInput
+    Layout.fillWidth: true
+    label: "Text Command"
+    description: "Shell command to run periodically (first line becomes the text)."
+    placeholderText: "echo \"Hello World\""
+    text: widgetData?.textCommand || widgetMetadata.textCommand
+  }
+
+  NTextInput {
+    id: textIntervalInput
+    Layout.fillWidth: true
+    label: "Refresh Interval"
+    description: "Interval in milliseconds."
+    placeholderText: String(widgetMetadata.textIntervalMs || 3000)
+    text: widgetData && widgetData.textIntervalMs !== undefined ? String(widgetData.textIntervalMs) : ""
   }
 }

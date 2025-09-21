@@ -281,8 +281,11 @@ NPanel {
       }
 
       // Results list
-      ListView {
+      NListView {
         id: resultsList
+
+        horizontalPolicy: ScrollBar.AlwaysOff
+        verticalPolicy: ScrollBar.AsNeeded
 
         Layout.fillWidth: true
         Layout.fillHeight: true
@@ -298,10 +301,6 @@ NPanel {
           if (currentIndex >= 0) {
             positionViewAtIndex(currentIndex, ListView.Contain)
           }
-        }
-
-        ScrollBar.vertical: ScrollBar {
-          policy: ScrollBar.AsNeeded
         }
 
         delegate: Rectangle {

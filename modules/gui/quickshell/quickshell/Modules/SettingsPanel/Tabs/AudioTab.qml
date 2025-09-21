@@ -2,12 +2,18 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import Quickshell.Services.Pipewire
-import qs.Widgets
 import qs.Commons
 import qs.Services
+import qs.Widgets
 
 ColumnLayout {
   id: root
+  spacing: Style.marginL * scaling
+
+  NHeader {
+    label: "Volumes"
+    description: "Configure volume controls and audio levels."
+  }
 
   property real localVolume: AudioService.volume
 
@@ -20,7 +26,7 @@ ColumnLayout {
 
   // Master Volume
   ColumnLayout {
-    spacing: Style.marginS * scaling
+    spacing: Style.marginXXS * scaling
     Layout.fillWidth: true
 
     NLabel {
@@ -28,37 +34,29 @@ ColumnLayout {
       description: "System-wide volume level."
     }
 
-    RowLayout {
-      // Pipewire seems a bit finicky, if we spam too many volume changes it breaks easily
-      // Probably because they have some quick fades in and out to avoid clipping
-      // We use a timer to space out the updates, to avoid lock up
-      Timer {
-        interval: Style.animationFast
-        running: true
-        repeat: true
-        onTriggered: {
-          if (Math.abs(localVolume - AudioService.volume) >= 0.01) {
-            AudioService.setVolume(localVolume)
-          }
+    // Pipewire seems a bit finicky, if we spam too many volume changes it breaks easily
+    // Probably because they have some quick fades in and out to avoid clipping
+    // We use a timer to space out the updates, to avoid lock up
+    Timer {
+      interval: Style.animationFast
+      running: true
+      repeat: true
+      onTriggered: {
+        if (Math.abs(localVolume - AudioService.volume) >= 0.01) {
+          AudioService.setVolume(localVolume)
         }
       }
+    }
 
-      NSlider {
-        Layout.fillWidth: true
-        from: 0
-        to: Settings.data.audio.volumeOverdrive ? 2.0 : 1.0
-        value: localVolume
-        stepSize: 0.01
-        onMoved: {
-          localVolume = value
-        }
-      }
-
-      NText {
-        text: Math.floor(AudioService.volume * 100) + "%"
-        Layout.alignment: Qt.AlignVCenter
-        Layout.leftMargin: Style.marginS * scaling
-        color: Color.mOnSurface
+    NValueSlider {
+      Layout.fillWidth: true
+      from: 0
+      to: Settings.data.audio.volumeOverdrive ? 2.0 : 1.0
+      value: localVolume
+      stepSize: 0.01
+      text: Math.floor(AudioService.volume * 100) + "%"
+      onMoved: {
+        localVolume = value
       }
     }
   }
@@ -67,7 +65,6 @@ ColumnLayout {
   ColumnLayout {
     spacing: Style.marginS * scaling
     Layout.fillWidth: true
-    Layout.topMargin: Style.marginM * scaling
 
     NToggle {
       label: "Mute Audio Output"
@@ -83,33 +80,22 @@ ColumnLayout {
 
   // Input Volume
   ColumnLayout {
-    spacing: Style.marginS * scaling
+    spacing: Style.marginXS * scaling
     Layout.fillWidth: true
-    Layout.topMargin: Style.marginM * scaling
 
     NLabel {
       label: "Input Volume"
       description: "Microphone input volume level."
     }
 
-    RowLayout {
-      NSlider {
-        Layout.fillWidth: true
-        from: 0
-        to: 1.0
-        value: AudioService.inputVolume
-        stepSize: 0.01
-        onMoved: {
-          AudioService.setInputVolume(value)
-        }
-      }
-
-      NText {
-        text: Math.floor(AudioService.inputVolume * 100) + "%"
-        Layout.alignment: Qt.AlignVCenter
-        Layout.leftMargin: Style.marginS * scaling
-        color: Color.mOnSurface
-      }
+    NValueSlider {
+      Layout.fillWidth: true
+      from: 0
+      to: 1.0
+      value: AudioService.inputVolume
+      stepSize: 0.01
+      text: Math.floor(AudioService.inputVolume * 100) + "%"
+      onMoved: value => AudioService.setInputVolume(value)
     }
   }
 
@@ -117,7 +103,6 @@ ColumnLayout {
   ColumnLayout {
     spacing: Style.marginS * scaling
     Layout.fillWidth: true
-    Layout.topMargin: Style.marginM * scaling
 
     NToggle {
       label: "Mute Audio Input"
@@ -131,7 +116,6 @@ ColumnLayout {
   ColumnLayout {
     spacing: Style.marginS * scaling
     Layout.fillWidth: true
-    Layout.topMargin: Style.marginM * scaling
 
     NSpinBox {
       Layout.fillWidth: true
@@ -142,9 +126,7 @@ ColumnLayout {
       value: Settings.data.audio.volumeStep
       stepSize: 1
       suffix: "%"
-      onValueChanged: {
-        Settings.data.audio.volumeStep = value
-      }
+      onValueChanged: Settings.data.audio.volumeStep = value
     }
   }
 
@@ -158,12 +140,9 @@ ColumnLayout {
   ColumnLayout {
     spacing: Style.marginS * scaling
 
-    NText {
-      text: "Audio Devices"
-      font.pointSize: Style.fontSizeXXL * scaling
-      font.weight: Style.fontWeightBold
-      color: Color.mSecondary
-      Layout.bottomMargin: Style.marginS * scaling
+    NHeader {
+      label: "Audio Devices"
+      description: "Configure audio input and output devices."
     }
 
     // -------------------------------
@@ -203,7 +182,6 @@ ColumnLayout {
     ColumnLayout {
       spacing: Style.marginXS * scaling
       Layout.fillWidth: true
-      Layout.bottomMargin: Style.marginL * scaling
 
       NLabel {
         label: "Input Device"
@@ -234,12 +212,9 @@ ColumnLayout {
   ColumnLayout {
     spacing: Style.marginL * scaling
 
-    NText {
-      text: "Media Player"
-      font.pointSize: Style.fontSizeXXL * scaling
-      font.weight: Style.fontWeightBold
-      color: Color.mSecondary
-      Layout.bottomMargin: Style.marginS * scaling
+    NHeader {
+      label: "Media Player"
+      description: "Configure your favorite media players."
     }
 
     // Preferred player
@@ -323,7 +298,7 @@ ColumnLayout {
 
               NIconButton {
                 icon: "close"
-                sizeRatio: 0.8
+                baseSize: Style.baseWidgetSize * 0.8
                 Layout.alignment: Qt.AlignVCenter
                 Layout.rightMargin: Style.marginXS * scaling
                 onClicked: {
@@ -360,12 +335,9 @@ ColumnLayout {
     spacing: Style.marginS * scaling
     Layout.fillWidth: true
 
-    NText {
-      text: "Audio Visualizer"
-      font.pointSize: Style.fontSizeXXL * scaling
-      font.weight: Style.fontWeightBold
-      color: Color.mSecondary
-      Layout.bottomMargin: Style.marginS * scaling
+    NHeader {
+      label: "Audio Visualizer"
+      description: "Customize visual effects that respond to audio playback."
     }
 
     // AudioService Visualizer section

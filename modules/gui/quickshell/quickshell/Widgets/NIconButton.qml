@@ -7,20 +7,19 @@ import qs.Services
 Rectangle {
   id: root
 
-  // Multiplier to control how large the button container is relative to Style.baseWidgetSize
-  property real sizeRatio: 1.0
-  readonly property real size: Style.baseWidgetSize * sizeRatio * scaling
+  property real baseSize: Style.baseWidgetSize
 
   property string icon
   property string tooltipText
   property bool enabled: true
   property bool allowClickWhenDisabled: false
   property bool hovering: false
+  property bool compact: false
 
   property color colorBg: Color.mSurfaceVariant
   property color colorFg: Color.mPrimary
-  property color colorBgHover: Color.mPrimary
-  property color colorFgHover: Color.mOnPrimary
+  property color colorBgHover: Color.mTertiary
+  property color colorFgHover: Color.mOnTertiary
   property color colorBorder: Color.mOutline
   property color colorBorderHover: Color.mOutline
 
@@ -30,8 +29,8 @@ Rectangle {
   signal rightClicked
   signal middleClicked
 
-  implicitWidth: size
-  implicitHeight: size
+  implicitWidth: Math.round(baseSize * scaling)
+  implicitHeight: Math.round(baseSize * scaling)
 
   opacity: root.enabled ? Style.opacityFull : Style.opacityMedium
   color: root.enabled && root.hovering ? colorBgHover : colorBg
@@ -48,7 +47,7 @@ Rectangle {
 
   NIcon {
     icon: root.icon
-    font.pointSize: Math.max(1, root.width * 0.47)
+    font.pointSize: Math.max(1, root.compact ? root.width * 0.65 : root.width * 0.48)
     color: root.enabled && root.hovering ? colorFgHover : colorFg
     // Center horizontally
     x: (root.width - width) / 2

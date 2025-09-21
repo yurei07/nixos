@@ -15,13 +15,12 @@ NIconButton {
 
   // Widget properties passed from Bar.qml for per-instance settings
   property string widgetId: ""
-  property string barSection: ""
+  property string section: ""
   property int sectionWidgetIndex: -1
   property int sectionWidgetsCount: 0
 
   property var widgetMetadata: BarWidgetRegistry.widgetMetadata[widgetId]
   property var widgetSettings: {
-    var section = barSection.replace("Section", "").toLowerCase()
     if (section && sectionWidgetIndex >= 0) {
       var widgets = Settings.data.bar.widgets[section]
       if (widgets && sectionWidgetIndex < widgets.length) {
@@ -30,10 +29,8 @@ NIconButton {
     }
     return {}
   }
-  readonly property bool showUnreadBadge: (widgetSettings.showUnreadBadge
-                                           !== undefined) ? widgetSettings.showUnreadBadge : widgetMetadata.showUnreadBadge
-  readonly property bool hideWhenZero: (widgetSettings.hideWhenZero
-                                        !== undefined) ? widgetSettings.hideWhenZero : widgetMetadata.hideWhenZero
+  readonly property bool showUnreadBadge: (widgetSettings.showUnreadBadge !== undefined) ? widgetSettings.showUnreadBadge : widgetMetadata.showUnreadBadge
+  readonly property bool hideWhenZero: (widgetSettings.hideWhenZero !== undefined) ? widgetSettings.hideWhenZero : widgetMetadata.hideWhenZero
 
   function lastSeenTs() {
     return Settings.data.notifications?.lastSeenTs || 0
@@ -52,10 +49,11 @@ NIconButton {
     return count
   }
 
-  sizeRatio: 0.8
+  baseSize: Style.capsuleHeight
+  compact: (Settings.data.bar.density === "compact")
   icon: Settings.data.notifications.doNotDisturb ? "bell-off" : "bell"
   tooltipText: Settings.data.notifications.doNotDisturb ? "Notification history.\nRight-click to disable 'Do Not Disturb'." : "Notification history.\nRight-click to enable 'Do Not Disturb'."
-  colorBg: Color.mSurfaceVariant
+  colorBg: (Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent)
   colorFg: Color.mOnSurface
   colorBorder: Color.transparent
   colorBorderHover: Color.transparent
@@ -71,29 +69,20 @@ NIconButton {
   Loader {
     anchors.right: parent.right
     anchors.top: parent.top
-    anchors.rightMargin: -4 * scaling
-    anchors.topMargin: -4 * scaling
+    anchors.rightMargin: 2 * scaling
+    anchors.topMargin: 1 * scaling
     z: 2
     active: showUnreadBadge && (!hideWhenZero || computeUnreadCount() > 0)
     sourceComponent: Rectangle {
       id: badge
       readonly property int count: computeUnreadCount()
-      readonly property string label: count <= 99 ? String(count) : "99+"
-      readonly property real pad: 8 * scaling
-      height: 16 * scaling
-      width: Math.max(height, textNode.implicitWidth + pad)
+      height: 8 * scaling
+      width: height
       radius: height / 2
       color: Color.mError
       border.color: Color.mSurface
       border.width: 1
       visible: count > 0 || !hideWhenZero
-      NText {
-        id: textNode
-        anchors.centerIn: parent
-        text: badge.label
-        font.pointSize: Style.fontSizeXXS * scaling
-        color: Color.mOnError
-      }
     }
   }
 }

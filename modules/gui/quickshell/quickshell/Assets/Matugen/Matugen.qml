@@ -51,27 +51,30 @@ Singleton {
       lines.push("\n[templates.ghostty]")
       lines.push('input_path = "' + Quickshell.shellDir + '/Assets/Matugen/templates/ghostty.conf"')
       lines.push('output_path = "~/.config/ghostty/themes/noctalia"')
-      lines.push(
-            "post_hook = \"grep -q '^theme *= *' ~/.config/ghostty/config; and sed -i 's/^theme *= *.*/theme = noctalia/' ~/.config/ghostty/config; or echo 'theme = noctalia' >> ~/.config/ghostty/config\"")
+      lines.push("post_hook = \"grep -q '^theme *= *' ~/.config/ghostty/config; and sed -i 's/^theme *= *.*/theme = noctalia/' ~/.config/ghostty/config; or echo 'theme = noctalia' >> ~/.config/ghostty/config\"")
     }
     if (Settings.data.matugen.foot) {
       lines.push("\n[templates.foot]")
       lines.push('input_path = "' + Quickshell.shellDir + '/Assets/Matugen/templates/foot.conf"')
       lines.push('output_path = "~/.config/foot/themes/noctalia"')
-      lines.push(
-            'post_hook = "sed -i /themes/d ~/.config/foot/foot.ini && echo include=~/.config/foot/themes/noctalia >> ~/.config/foot/foot.ini"')
+      lines.push('post_hook = "sed -i /themes/d ~/.config/foot/foot.ini && echo include=~/.config/foot/themes/noctalia >> ~/.config/foot/foot.ini"')
     }
     if (Settings.data.matugen.fuzzel) {
       lines.push("\n[templates.fuzzel]")
       lines.push('input_path = "' + Quickshell.shellDir + '/Assets/Matugen/templates/fuzzel.conf"')
       lines.push('output_path = "~/.config/fuzzel/themes/noctalia"')
-      lines.push(
-            'post_hook = "sed -i /themes/d ~/.config/fuzzel/fuzzel.ini && echo include=~/.config/fuzzel/themes/noctalia >> ~/.config/fuzzel/fuzzel.ini"')
+      lines.push('post_hook = "sed -i /themes/d ~/.config/fuzzel/fuzzel.ini && echo include=~/.config/fuzzel/themes/noctalia >> ~/.config/fuzzel/fuzzel.ini"')
     }
     if (Settings.data.matugen.vesktop) {
       lines.push("\n[templates.vesktop]")
       lines.push('input_path = "' + Quickshell.shellDir + '/Assets/Matugen/templates/vesktop.css"')
       lines.push('output_path = "~/.config/vesktop/themes/noctalia.theme.css"')
+    }
+    if (Settings.data.matugen.pywalfox) {
+      lines.push("\n[templates.pywalfox]")
+      lines.push('input_path = "' + Quickshell.shellDir + '/Assets/Matugen/templates/pywalfox.json"')
+      lines.push('output_path = "~/.cache/wal/colors.json"')
+      lines.push('post_hook = "pywalfox update"')
     }
 
     return lines.join("\n") + "\n"

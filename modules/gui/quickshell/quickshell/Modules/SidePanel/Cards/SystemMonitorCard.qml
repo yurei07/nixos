@@ -8,8 +8,6 @@ import qs.Widgets
 NBox {
   id: root
 
-  Layout.preferredWidth: Style.baseWidgetSize * 2.625 * scaling
-
   ColumnLayout {
     id: content
     anchors.left: parent.left

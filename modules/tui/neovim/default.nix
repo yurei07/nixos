@@ -2,6 +2,7 @@
 {
   imports = [
     ./nvim
+    ./development
   ];
 
   programs.neovim = {

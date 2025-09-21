@@ -11,7 +11,8 @@ NPanel {
   id: root
 
   preferredWidth: 460
-  preferredHeight: 730
+  preferredHeight: 734
+  panelKeyboardFocus: true
 
   panelContent: Item {
     id: content
@@ -29,10 +30,12 @@ NPanel {
       // Cards (consistent inter-card spacing via ColumnLayout spacing)
       ProfileCard {
         Layout.fillWidth: true
+        Layout.preferredHeight: Math.max(64 * scaling)
       }
 
       WeatherCard {
         Layout.fillWidth: true
+        Layout.preferredHeight: Math.max(220 * scaling)
       }
 
       // Middle section: media + stats column
@@ -49,6 +52,7 @@ NPanel {
 
         // System monitors combined in one card
         SystemMonitorCard {
+          Layout.preferredWidth: Style.baseWidgetSize * 2.625 * scaling
           Layout.fillHeight: true
         }
       }
@@ -61,14 +65,16 @@ NPanel {
 
         // Power Profiles switcher
         PowerProfilesCard {
-          spacing: content.cardSpacing
           Layout.fillWidth: true
+          Layout.fillHeight: true
+          spacing: content.cardSpacing
         }
 
         // Utilities buttons
         UtilitiesCard {
-          spacing: content.cardSpacing
           Layout.fillWidth: true
+          Layout.fillHeight: true
+          spacing: content.cardSpacing
         }
       }
     }

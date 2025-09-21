@@ -12,7 +12,6 @@ NPanel {
 
   preferredWidth: 340
   preferredHeight: 320
-  panelAnchorRight: true
 
   // Main Column
   panelContent: ColumnLayout {

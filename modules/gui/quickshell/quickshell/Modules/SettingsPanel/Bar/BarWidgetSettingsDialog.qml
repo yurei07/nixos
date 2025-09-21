@@ -19,7 +19,7 @@ Popup {
   x: (parent.width - width) * 0.5
   y: (parent.height - height) * 0.5
 
-  width: 420 * scaling
+  width: 500 * scaling
   height: content.implicitHeight + padding * 2
   padding: Style.marginXL * scaling
   modal: true

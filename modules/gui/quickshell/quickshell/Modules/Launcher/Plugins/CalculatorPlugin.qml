@@ -8,8 +8,7 @@ Item {
 
   function handleCommand(query) {
     // Handle >calc command or direct math expressions after >
-    return query.startsWith(">calc") || (query.startsWith(">") && query.length > 1 && isMathExpression(
-                                           query.substring(1)))
+    return query.startsWith(">calc") || (query.startsWith(">") && query.length > 1 && isMathExpression(query.substring(1)))
   }
 
   function commands() {

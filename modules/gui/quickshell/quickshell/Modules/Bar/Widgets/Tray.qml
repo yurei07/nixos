@@ -16,37 +16,39 @@ Rectangle {
   property ShellScreen screen
   property real scaling: 1.0
 
-  readonly property real itemSize: 24 * scaling
+  readonly property string barPosition: Settings.data.bar.position
+  readonly property bool isVertical: barPosition === "left" || barPosition === "right"
+  readonly property bool compact: (Settings.data.bar.density === "compact")
+  readonly property real itemSize: isVertical ? width * 0.75 : height * 0.85
 
   function onLoaded() {
-    // When the widget is fully initialized with its props
-    // set the screen for the trayMenu
+    // When the widget is fully initialized with its props set the screen for the trayMenu
     if (trayMenu.item) {
       trayMenu.item.screen = screen
     }
   }
 
   visible: SystemTray.items.values.length > 0
-  implicitWidth: trayLayout.implicitWidth + Style.marginM * scaling * 2
-  implicitHeight: Math.round(Style.capsuleHeight * scaling)
+  implicitWidth: isVertical ? Math.round(Style.capsuleHeight * scaling) : (trayFlow.implicitWidth + Style.marginS * scaling * 2)
+  implicitHeight: isVertical ? (trayFlow.implicitHeight + Style.marginS * scaling * 2) : Math.round(Style.capsuleHeight * scaling)
   radius: Math.round(Style.radiusM * scaling)
-  color: Color.mSurfaceVariant
+  color: Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent
 
   Layout.alignment: Qt.AlignVCenter
 
-  RowLayout {
-    id: trayLayout
+  Flow {
+    id: trayFlow
     anchors.centerIn: parent
     spacing: Style.marginS * scaling
+    flow: isVertical ? Flow.TopToBottom : Flow.LeftToRight
 
     Repeater {
       id: repeater
       model: SystemTray.items
 
       delegate: Item {
-        Layout.preferredWidth: itemSize
-        Layout.preferredHeight: itemSize
-        Layout.alignment: Qt.AlignCenter
+        width: itemSize
+        height: itemSize
         visible: modelData
 
         IconImage {
@@ -111,9 +113,21 @@ Rectangle {
                          if (modelData.hasMenu && modelData.menu && trayMenu.item) {
                            trayPanel.open()
 
-                           // Anchor the menu to the tray icon item (parent) and position it below the icon
-                           const menuX = (width / 2) - (trayMenu.item.width / 2)
-                           const menuY = Math.round(Style.barHeight * scaling)
+                           // Position menu based on bar position
+                           let menuX, menuY
+                           if (barPosition === "left") {
+                             // For left bar: position menu to the right of the bar
+                             menuX = width + Style.marginM * scaling
+                             menuY = 0
+                           } else if (barPosition === "right") {
+                             // For right bar: position menu to the left of the bar
+                             menuX = -trayMenu.item.width - Style.marginM * scaling
+                             menuY = 0
+                           } else {
+                             // For horizontal bars: center horizontally and position below
+                             menuX = (width / 2) - (trayMenu.item.width / 2)
+                             menuY = Math.round(Style.barHeight * scaling)
+                           }
                            trayMenu.item.menu = modelData.menu
                            trayMenu.item.showAt(parent, menuX, menuY)
                          } else {

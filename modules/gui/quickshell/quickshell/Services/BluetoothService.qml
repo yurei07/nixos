@@ -91,8 +91,7 @@ Singleton {
 
     var name = (device.name || device.deviceName || "").toLowerCase()
     var icon = (device.icon || "").toLowerCase()
-    if (icon.includes("headset") || icon.includes("audio") || name.includes("headphone") || name.includes("airpod")
-        || name.includes("headset") || name.includes("arctis")) {
+    if (icon.includes("headset") || icon.includes("audio") || name.includes("headphone") || name.includes("airpod") || name.includes("headset") || name.includes("arctis")) {
       return "bt-device-headphones"
     }
 
@@ -102,8 +101,7 @@ Singleton {
     if (icon.includes("keyboard") || name.includes("keyboard")) {
       return "bt-device-keyboard"
     }
-    if (icon.includes("phone") || name.includes("phone") || name.includes("iphone") || name.includes("android")
-        || name.includes("samsung")) {
+    if (icon.includes("phone") || name.includes("phone") || name.includes("iphone") || name.includes("android") || name.includes("samsung")) {
       return "bt-device-phone"
     }
     if (icon.includes("watch") || name.includes("watch")) {
@@ -204,8 +202,7 @@ Singleton {
       return false
     }
 
-    return device.pairing || device.state === BluetoothDeviceState.Disconnecting
-        || device.state === BluetoothDeviceState.Connecting
+    return device.pairing || device.state === BluetoothDeviceState.Disconnecting || device.state === BluetoothDeviceState.Connecting
   }
 
   function connectDeviceWithTrust(device) {

@@ -12,6 +12,7 @@ Scope {
   property bool unlockInProgress: false
   property bool showFailure: false
   property string errorMessage: ""
+  property string infoMessage: ""
   property bool pamAvailable: typeof PamContext !== "undefined"
 
   onCurrentTextChanged: {
@@ -24,12 +25,6 @@ Scope {
   function tryUnlock() {
     if (!pamAvailable) {
       errorMessage = "PAM not available"
-      showFailure = true
-      return
-    }
-
-    if (currentText === "") {
-      errorMessage = "Password required"
       showFailure = true
       return
     }
@@ -48,11 +43,12 @@ Scope {
     user: Quickshell.env("USER")
 
     onPamMessage: {
-      Logger.log("LockContext", "PAM message:", message, "isError:", messageIsError, "responseRequired:",
-                 responseRequired)
+      Logger.log("LockContext", "PAM message:", message, "isError:", messageIsError, "responseRequired:", responseRequired)
 
       if (messageIsError) {
         errorMessage = message
+      } else {
+        infoMessage = message
       }
 
       if (responseRequired) {

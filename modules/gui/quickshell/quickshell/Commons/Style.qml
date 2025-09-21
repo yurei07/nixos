@@ -35,6 +35,9 @@ Singleton {
   property int radiusM: 16 * Settings.data.general.radiusRatio
   property int radiusL: 20 * Settings.data.general.radiusRatio
 
+  //screen Radii
+  property int screenRadius: 20 * Settings.data.general.screenRadiusRatio
+
   // Border
   property int borderS: 1
   property int borderM: 2
@@ -62,14 +65,36 @@ Singleton {
   property int animationSlow: Math.round(450 / Settings.data.general.animationSpeed)
   property int animationSlowest: Math.round(750 / Settings.data.general.animationSpeed)
 
-  // Dimensions
-  property int barHeight: 36
-  property int capsuleHeight: (barHeight * 0.73)
-  property int baseWidgetSize: 32
-  property int sliderWidth: 200
-
   // Delays
   property int tooltipDelay: 300
   property int tooltipDelayLong: 1200
   property int pillDelay: 500
+
+  // Settings widgets base size
+  property real baseWidgetSize: 33
+  property real sliderWidth: 200
+
+  // Bar Dimensions
+  property real barHeight: {
+    if (Settings.data.bar.density === "compact") {
+      return (Settings.data.bar.position === "left" || Settings.data.bar.position === "right") ? 27 : 25
+    }
+    if (Settings.data.bar.density === "default") {
+      return (Settings.data.bar.position === "left" || Settings.data.bar.position === "right") ? 33 : 31
+    }
+    if (Settings.data.bar.density === "comfortable") {
+      return (Settings.data.bar.position === "left" || Settings.data.bar.position === "right") ? 39 : 37
+    }
+  }
+  property real capsuleHeight: {
+    if (Settings.data.bar.density === "compact") {
+      return barHeight * 0.85
+    }
+    if (Settings.data.bar.density === "default") {
+      return barHeight * 0.82
+    }
+    if (Settings.data.bar.density === "comfortable") {
+      return barHeight * 0.73
+    }
+  }
 }

@@ -3,6 +3,7 @@ pragma Singleton
 import QtQuick
 import QtQuick.Controls
 import Quickshell
+import Quickshell.Io
 import qs.Commons
 
 Singleton {
@@ -12,11 +13,17 @@ Singleton {
   property ListModel monospaceFonts: ListModel {}
   property ListModel displayFonts: ListModel {}
   property bool fontsLoaded: false
+  property var fontconfigMonospaceFonts: []
 
   // -------------------------------------------
   function init() {
     Logger.log("Font", "Service started")
-    loadSystemFonts()
+    loadFontconfigMonospaceFonts()
+  }
+
+  function loadFontconfigMonospaceFonts() {
+    fontconfigProcess.command = ["fc-list", ":mono", "family"]
+    fontconfigProcess.running = true
   }
 
   function loadSystemFonts() {
@@ -57,48 +64,42 @@ Singleton {
     sortModel(displayFonts)
 
     if (monospaceFonts.count === 0) {
-      Logger.log("Font", "No monospace fonts detected, adding fallbacks")
-      addFallbackFonts(
-            monospaceFonts,
-            ["DejaVu Sans Mono", "Liberation Mono", "Courier New", "Courier", "Monaco", "Consolas", "Lucida Console", "Monaco", "Andale Mono"])
+      addFallbackFonts(monospaceFonts, ["DejaVu Sans Mono"])
     }
 
     if (displayFonts.count === 0) {
-      Logger.log("Font", "No display fonts detected, adding fallbacks")
-      addFallbackFonts(
-            displayFonts,
-            ["Inter", "Roboto", "Open Sans", "Arial", "Helvetica", "Verdana", "Segoe UI", "SF Pro Display", "Ubuntu", "Noto Sans"])
+      addFallbackFonts(displayFonts, ["Inter", "Roboto", "DejaVu Sans"])
     }
 
     fontsLoaded = true
-    Logger.log("Font", "Loaded", availableFonts.count, "fonts:", monospaceFonts.count, "monospace,",
-               displayFonts.count, "display")
+    Logger.log("Font", "Loaded", availableFonts.count, "fonts:", monospaceFonts.count, "monospace,", displayFonts.count, "display")
   }
 
   function isMonospaceFont(fontName) {
-    var patterns = ["mono", "monospace", "fixed", "console", "terminal", "typewriter", "courier", "dejavu", "liberation", "source code", "fira code", "jetbrains", "cascadia", "hack", "inconsolata", "roboto mono", "ubuntu mono", "menlo", "consolas", "monaco", "andale mono"]
-    var lowerFontName = fontName.toLowerCase()
-
-    for (var i = 0; i < patterns.length; i++) {
-      if (lowerFontName.includes(patterns[i]))
-        return true
+    // First, check if fontconfig detected this as monospace
+    if (fontconfigMonospaceFonts.indexOf(fontName) !== -1) {
+      return true
     }
 
-    var commonFonts = ["DejaVu Sans Mono", "Liberation Mono", "Source Code Pro", "Fira Code", "JetBrains Mono", "Cascadia Code", "Hack", "Inconsolata", "Roboto Mono", "Ubuntu Mono", "Menlo", "Consolas", "Monaco", "Andale Mono", "Courier New", "Courier", "Lucida Console", "Monaco", "MS Gothic", "MS Mincho"]
-    return commonFonts.includes(fontName)
+    // Minimal fallback: only check for basic monospace patterns
+    var lowerFontName = fontName.toLowerCase()
+    if (lowerFontName.includes("mono") || lowerFontName.includes("monospace")) {
+      return true
+    }
+
+    return false
   }
 
   function isDisplayFont(fontName) {
-    var patterns = ["display", "headline", "title", "hero", "showcase", "brand", "inter", "roboto", "open sans", "lato", "montserrat", "poppins", "raleway", "nunito", "source sans", "ubuntu", "noto sans", "work sans", "dm sans", "manrope", "plus jakarta", "figtree"]
+    // Minimal fallback: only check for basic display patterns
     var lowerFontName = fontName.toLowerCase()
-
-    for (var i = 0; i < patterns.length; i++) {
-      if (lowerFontName.includes(patterns[i]))
-        return true
+    if (lowerFontName.includes("display") || lowerFontName.includes("headline") || lowerFontName.includes("title")) {
+      return true
     }
 
-    var commonFonts = ["Inter", "Roboto", "Open Sans", "Lato", "Montserrat", "Poppins", "Raleway", "Nunito", "Source Sans Pro", "Ubuntu", "Noto Sans", "Work Sans", "DM Sans", "Manrope", "Plus Jakarta Sans", "Figtree", "SF Pro Display", "Segoe UI", "Arial", "Helvetica", "Verdana"]
-    return commonFonts.includes(fontName)
+    // Essential fallback fonts only
+    var essentialFonts = ["Inter", "Roboto", "DejaVu Sans"]
+    return essentialFonts.includes(fontName)
   }
 
   function sortModel(model) {
@@ -157,5 +158,37 @@ Singleton {
     }
 
     return results
+  }
+
+  // Process for fontconfig commands
+  Process {
+    id: fontconfigProcess
+    running: false
+
+    stdout: StdioCollector {
+      onStreamFinished: {
+        if (this.text !== "") {
+          var lines = this.text.split('\n')
+          fontconfigMonospaceFonts = []
+
+          for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trim()
+            if (line && line !== "") {
+              if (fontconfigMonospaceFonts.indexOf(line) === -1) {
+                fontconfigMonospaceFonts.push(line)
+              }
+            }
+          }
+        }
+        loadSystemFonts()
+      }
+    }
+
+    onExited: function (exitCode, exitStatus) {
+      if (exitCode !== 0) {
+        fontconfigMonospaceFonts = []
+      }
+      loadSystemFonts()
+    }
   }
 }

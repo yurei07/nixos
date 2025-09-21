@@ -61,10 +61,8 @@ Singleton {
     var extraUser = (Settings.configDir + "matugen.d").replace(/'/g, "'\\''")
 
     // Build the main script
-    var script = "cat > '" + pathEsc + "' << 'EOF'\n" + content + "EOF\n" + "for d in '" + extraRepo + "' '" + extraUser
-        + "'; do\n" + "  if [ -d \"$d\" ]; then\n"
-        + "    for f in \"$d\"/*.toml; do\n" + "      [ -f \"$f\" ] && { echo; echo \"# extra: $f\"; cat \"$f\"; } >> '"
-        + pathEsc + "'\n" + "    done\n" + "  fi\n" + "done\n" + "matugen image '" + wp + "' --config '" + pathEsc + "' --mode " + mode
+    var script = "cat > '" + pathEsc + "' << 'EOF'\n" + content + "EOF\n" + "for d in '" + extraRepo + "' '" + extraUser + "'; do\n" + "  if [ -d \"$d\" ]; then\n" + "    for f in \"$d\"/*.toml; do\n" + "      [ -f \"$f\" ] && { echo; echo \"# extra: $f\"; cat \"$f\"; } >> '" + pathEsc + "'\n" + "    done\n" + "  fi\n" + "done\n" + "matugen image '"
+        + wp + "' --config '" + pathEsc + "' --mode " + mode
 
     // Add user config execution if enabled
     if (Settings.data.matugen.enableUserTemplates) {

@@ -13,17 +13,40 @@ Singleton {
   readonly property bool available: powerProfiles && powerProfiles.hasPerformanceProfile
   property int profile: powerProfiles ? powerProfiles.profile : PowerProfile.Balanced
 
-  function profileName(p) {
-    const prof = (p !== undefined) ? p : profile
+  function getName(p) {
     if (!available)
       return "Unknown"
-    if (prof === PowerProfile.Performance)
+
+    const prof = (p !== undefined) ? p : profile
+
+    switch (prof) {
+    case PowerProfile.Performance:
       return "Performance"
-    if (prof === PowerProfile.Balanced)
+    case PowerProfile.Balanced:
       return "Balanced"
-    if (prof === PowerProfile.PowerSaver)
+    case PowerProfile.PowerSaver:
       return "Power Saver"
-    return "Unknown"
+    default:
+      return "Unknown"
+    }
+  }
+
+  function getIcon(p) {
+    if (!available)
+      return "balanced"
+
+    const prof = (p !== undefined) ? p : profile
+
+    switch (prof) {
+    case PowerProfile.Performance:
+      return "performance"
+    case PowerProfile.Balanced:
+      return "balanced"
+    case PowerProfile.PowerSaver:
+      return "powersaver"
+    default:
+      return "balanced"
+    }
   }
 
   function setProfile(p) {
@@ -53,9 +76,9 @@ Singleton {
     function onProfileChanged() {
       root.profile = powerProfiles.profile
       // Only show toast if we have a valid profile name (not "Unknown")
-      const profileName = root.profileName()
+      const profileName = root.getName()
       if (profileName !== "Unknown") {
-        ToastService.showNotice("Power Profile", profileName)
+        ToastService.showNotice("Power Profile Changed", `"${profileName}"`)
       }
     }
   }

@@ -9,7 +9,6 @@ import qs.Widgets
 ColumnLayout {
   id: root
   width: parent.width
-
   spacing: Style.marginL * scaling
 
   property list<string> wallpapersList: []
@@ -42,11 +41,9 @@ ColumnLayout {
   }
 
   // Current wallpaper display
-  NText {
-    text: "Current Wallpaper"
-    font.pointSize: Style.fontSizeXXL * scaling
-    font.weight: Style.fontWeightBold
-    color: Color.mSecondary
+  NHeader {
+    label: "Current Wallpaper"
+    description: "Preview and manage your desktop background."
   }
 
   Rectangle {
@@ -80,18 +77,9 @@ ColumnLayout {
       Layout.fillWidth: true
 
       // Wallpaper grid
-      NText {
-        text: "Wallpaper Selector"
-        font.pointSize: Style.fontSizeXXL * scaling
-        font.weight: Style.fontWeightBold
-        color: Color.mSecondary
-      }
-
-      NText {
-        text: "Click on a wallpaper to set it as your current wallpaper."
-        color: Color.mOnSurfaceVariant
-        wrapMode: Text.WordWrap
-        Layout.fillWidth: true
+      NHeader {
+        label: "Wallpaper Selector"
+        description: "Click on a wallpaper to set it as your current wallpaper."
       }
     }
 

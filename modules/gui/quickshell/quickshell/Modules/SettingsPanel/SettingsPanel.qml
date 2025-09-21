@@ -26,13 +26,14 @@ NPanel {
     About,
     Audio,
     Bar,
+    Dock,
     Hooks,
     Launcher,
-    Brightness,
     ColorScheme,
     Display,
     General,
     Network,
+    Notification,
     ScreenRecorder,
     Weather,
     Wallpaper,
@@ -67,14 +68,9 @@ NPanel {
     id: barTab
     Tabs.BarTab {}
   }
-
   Component {
     id: audioTab
     Tabs.AudioTab {}
-  }
-  Component {
-    id: brightnessTab
-    Tabs.BrightnessTab {}
   }
   Component {
     id: displayTab
@@ -112,6 +108,14 @@ NPanel {
     id: hooksTab
     Tabs.HooksTab {}
   }
+  Component {
+    id: dockTab
+    Tabs.DockTab {}
+  }
+  Component {
+    id: notificationTab
+    Tabs.NotificationTab {}
+  }
 
   // Order *DOES* matter
   function updateTabsModel() {
@@ -125,6 +129,11 @@ NPanel {
                      "label": "Bar",
                      "icon": "settings-bar",
                      "source": barTab
+                   }, {
+                     "id": SettingsPanel.Tab.Dock,
+                     "label": "Dock",
+                     "icon": "settings-dock",
+                     "source": dockTab
                    }, {
                      "id": SettingsPanel.Tab.Launcher,
                      "label": "Launcher",
@@ -141,15 +150,15 @@ NPanel {
                      "icon": "settings-display",
                      "source": displayTab
                    }, {
+                     "id": SettingsPanel.Tab.Notification,
+                     "label": "Notification",
+                     "icon": "settings-notification",
+                     "source": notificationTab
+                   }, {
                      "id": SettingsPanel.Tab.Network,
                      "label": "Network",
                      "icon": "settings-network",
                      "source": networkTab
-                   }, {
-                     "id": SettingsPanel.Tab.Brightness,
-                     "label": "Brightness",
-                     "icon": "settings-brightness",
-                     "source": brightnessTab
                    }, {
                      "id": SettingsPanel.Tab.Weather,
                      "label": "Weather",
@@ -218,8 +227,7 @@ NPanel {
     if (activeScrollView && activeScrollView.ScrollBar.vertical) {
       const scrollBar = activeScrollView.ScrollBar.vertical
       const stepSize = activeScrollView.height * 0.1 // Scroll 10% of viewport
-      scrollBar.position = Math.min(scrollBar.position + stepSize / activeScrollView.contentHeight,
-                                    1.0 - scrollBar.size)
+      scrollBar.position = Math.min(scrollBar.position + stepSize / activeScrollView.contentHeight, 1.0 - scrollBar.size)
     }
   }
 
@@ -235,8 +243,7 @@ NPanel {
     if (activeScrollView && activeScrollView.ScrollBar.vertical) {
       const scrollBar = activeScrollView.ScrollBar.vertical
       const pageSize = activeScrollView.height * 0.9 // Scroll 90% of viewport
-      scrollBar.position = Math.min(scrollBar.position + pageSize / activeScrollView.contentHeight,
-                                    1.0 - scrollBar.size)
+      scrollBar.position = Math.min(scrollBar.position + pageSize / activeScrollView.contentHeight, 1.0 - scrollBar.size)
     }
   }
 
@@ -461,7 +468,7 @@ NPanel {
               NIcon {
                 icon: root.tabsModel[currentTabIndex]?.icon
                 color: Color.mPrimary
-                font.pointSize: Style.fontSizeXL * scaling
+                font.pointSize: Style.fontSizeXXL * scaling
               }
 
               // Main title
@@ -477,7 +484,7 @@ NPanel {
               // Close button
               NIconButton {
                 icon: "close"
-                tooltipText: "Close"
+                tooltipText: "Close."
                 Layout.alignment: Qt.AlignVCenter
                 onClicked: root.close()
               }
@@ -517,11 +524,11 @@ NPanel {
                     anchors.fill: parent
                     pressDelay: 200
 
-                    ScrollView {
+                    NScrollView {
                       id: scrollView
                       anchors.fill: parent
-                      ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-                      ScrollBar.vertical.policy: ScrollBar.AsNeeded
+                      horizontalPolicy: ScrollBar.AlwaysOff
+                      verticalPolicy: ScrollBar.AsNeeded
                       padding: Style.marginL * scaling
                       clip: true
 

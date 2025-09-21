@@ -119,9 +119,7 @@ Singleton {
       return
     }
 
-    if ((adapter.weatherLastFetch === "") || (adapter.weather === null) || (adapter.latitude === "")
-        || (adapter.longitude === "") || (adapter.name !== Settings.data.location.name)
-        || (Time.timestamp >= adapter.weatherLastFetch + weatherUpdateFrequency)) {
+    if ((adapter.weatherLastFetch === "") || (adapter.weather === null) || (adapter.latitude === "") || (adapter.longitude === "") || (adapter.name !== Settings.data.location.name) || (Time.timestamp >= adapter.weatherLastFetch + weatherUpdateFrequency)) {
       getFreshWeather()
     }
   }
@@ -161,8 +159,7 @@ Singleton {
   // --------------------------------
   function _geocodeLocation(locationName, callback, errorCallback) {
     Logger.log("Location", "Geocoding location name")
-    var geoUrl = "https://assets.noctalia.dev/geocode.php?city=" + encodeURIComponent(
-          locationName) + "&language=en&format=json"
+    var geoUrl = "https://assets.noctalia.dev/geocode.php?city=" + encodeURIComponent(locationName) + "&language=en&format=json"
     var xhr = new XMLHttpRequest()
     xhr.onreadystatechange = function () {
       if (xhr.readyState === XMLHttpRequest.DONE) {
@@ -189,8 +186,7 @@ Singleton {
   // --------------------------------
   function _fetchWeather(latitude, longitude, errorCallback) {
     Logger.log("Location", "Fetching weather from api.open-meteo.com")
-    var url = "https://api.open-meteo.com/v1/forecast?latitude=" + latitude + "&longitude=" + longitude
-        + "&current_weather=true&current=relativehumidity_2m,surface_pressure&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=auto"
+    var url = "https://api.open-meteo.com/v1/forecast?latitude=" + latitude + "&longitude=" + longitude + "&current_weather=true&current=relativehumidity_2m,surface_pressure&daily=temperature_2m_max,temperature_2m_min,weathercode&timezone=auto"
     var xhr = new XMLHttpRequest()
     xhr.onreadystatechange = function () {
       if (xhr.readyState === XMLHttpRequest.DONE) {

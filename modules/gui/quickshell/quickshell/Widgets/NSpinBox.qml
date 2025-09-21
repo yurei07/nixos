@@ -173,6 +173,7 @@ RowLayout {
         NText {
           anchors.centerIn: parent
           text: root.prefix + spinBox.value + root.suffix
+          font.family: Settings.data.ui.fontFixed
           font.pointSize: Style.fontSizeM * scaling
           font.weight: Style.fontWeightMedium
           color: Color.mOnSurface

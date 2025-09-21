@@ -97,8 +97,7 @@ Singleton {
   // All transition keys but filter out "none" and "random" so we are left with the real transitions
   readonly property var allTransitions: Array.from({
                                                      "length": transitionsModel.count
-                                                   }, (_, i) => transitionsModel.get(i).key).filter(
-                                          key => key !== "random" && key != "none")
+                                                   }, (_, i) => transitionsModel.get(i).key).filter(key => key !== "random" && key != "none")
 
   property var wallpaperLists: ({})
   property int scanningCount: 0

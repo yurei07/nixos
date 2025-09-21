@@ -37,8 +37,7 @@ Item {
 
     if (!query || query.trim() === "") {
       // Return all apps alphabetically
-      return entries.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())).map(
-            app => createResultEntry(app))
+      return entries.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())).map(app => createResultEntry(app))
     }
 
     // Use fuzzy search if available, fallback to simple search
@@ -57,8 +56,7 @@ Item {
                               const name = (app.name || "").toLowerCase()
                               const comment = (app.comment || "").toLowerCase()
                               const generic = (app.genericName || "").toLowerCase()
-                              return name.includes(searchTerm) || comment.includes(searchTerm) || generic.includes(
-                                searchTerm)
+                              return name.includes(searchTerm) || comment.includes(searchTerm) || generic.includes(searchTerm)
                             }).sort((a, b) => {
                                       // Prioritize name matches
                                       const aName = a.name.toLowerCase()
@@ -81,18 +79,22 @@ Item {
       "icon": app.icon || "application-x-executable",
       "isImage": false,
       "onActivate": function () {
-        Logger.log("ApplicationsPlugin", `Launching: ${app.name}`)
+        // Close the launcher/NPanel immediately without any animations.
+        // Ensures we are not preventing the future focusing of the app
+        launcher.closeCompleted()
 
+        Logger.log("ApplicationsPlugin", `Launching: ${app.name}`)
         if (Settings.data.appLauncher.useApp2Unit && app.id) {
           Logger.log("ApplicationsPlugin", `Using app2unit for: ${app.id}`)
-          Quickshell.execDetached(["app2unit", "--", app.id + ".desktop"])
+          if (app.runInTerminal)
+            Quickshell.execDetached(["app2unit", "--", app.id + ".desktop"])
+          else
+            Quickshell.execDetached(["app2unit", "--"].concat(app.command))
         } else if (app.execute) {
           app.execute()
-        } else if (app.exec) {
-          // Fallback to manual execution
-          Process.execute(app.exec)
+        } else {
+          Logger.log("ApplicationsPlugin", `Could not launch: ${app.name}`)
         }
-        launcher.close()
       }
     }
   }

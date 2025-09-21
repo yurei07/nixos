@@ -14,7 +14,7 @@ NPanel {
 
   preferredWidth: 380
   preferredHeight: 500
-  panelAnchorRight: true
+  panelKeyboardFocus: true
 
   panelContent: Rectangle {
     id: notificationRect
@@ -47,22 +47,25 @@ NPanel {
         NIconButton {
           icon: Settings.data.notifications.doNotDisturb ? "bell-off" : "bell"
           tooltipText: Settings.data.notifications.doNotDisturb ? "'Do Not Disturb' is enabled." : "'Do Not Disturb' is disabled."
-          sizeRatio: 0.8
+          baseSize: Style.baseWidgetSize * 0.8
           onClicked: Settings.data.notifications.doNotDisturb = !Settings.data.notifications.doNotDisturb
           onRightClicked: Settings.data.notifications.doNotDisturb = !Settings.data.notifications.doNotDisturb
         }
 
         NIconButton {
           icon: "trash"
-          tooltipText: "Clear history"
-          sizeRatio: 0.8
-          onClicked: NotificationService.clearHistory()
+          tooltipText: "Clear history."
+          baseSize: Style.baseWidgetSize * 0.8
+          onClicked: {
+            NotificationService.clearHistory()
+            root.close()
+          }
         }
 
         NIconButton {
           icon: "close"
-          tooltipText: "Close"
-          sizeRatio: 0.8
+          tooltipText: "Close."
+          baseSize: Style.baseWidgetSize * 0.8
           onClicked: {
             root.close()
           }
@@ -115,10 +118,13 @@ NPanel {
       }
 
       // Notification list
-      ListView {
+      NListView {
         id: notificationList
         Layout.fillWidth: true
         Layout.fillHeight: true
+        horizontalPolicy: ScrollBar.AlwaysOff
+        verticalPolicy: ScrollBar.AsNeeded
+
         model: NotificationService.historyModel
         spacing: Style.marginM * scaling
         clip: true
@@ -129,7 +135,7 @@ NPanel {
           width: notificationList.width
           height: notificationLayout.implicitHeight + (Style.marginM * scaling * 2)
           radius: Style.radiusM * scaling
-          color: notificationMouseArea.containsMouse ? Color.mSecondary : Color.mSurfaceVariant
+          color: Color.mSurfaceVariant
           border.color: Qt.alpha(Color.mOutline, Style.opacityMedium)
           border.width: Math.max(1, Style.borderS * scaling)
 
@@ -145,13 +151,7 @@ NPanel {
               Layout.preferredHeight: 28 * scaling
               Layout.alignment: Qt.AlignVCenter
               // Prefer stable themed icons over transient image paths
-              imagePath: (appIcon
-                          && appIcon !== "") ? (AppIcons.iconFromName(appIcon, "application-x-executable")
-                                                || appIcon) : ((AppIcons.iconForAppId(desktopEntry
-                                                                                      || appName, "application-x-executable")
-                                                                || (image && image
-                                                                    !== "" ? image : AppIcons.iconFromName("application-x-executable",
-                                                                                                           "application-x-executable"))))
+              imagePath: (appIcon && appIcon !== "") ? (AppIcons.iconFromName(appIcon, "application-x-executable") || appIcon) : ((AppIcons.iconForAppId(desktopEntry || appName, "application-x-executable") || (image && image !== "" ? image : AppIcons.iconFromName("application-x-executable", "application-x-executable"))))
               borderColor: Color.transparent
               borderWidth: 0
               visible: true
@@ -168,7 +168,8 @@ NPanel {
                 text: (summary || "No summary").substring(0, 100)
                 font.pointSize: Style.fontSizeM * scaling
                 font.weight: Font.Medium
-                color: notificationMouseArea.containsMouse ? Color.mSurface : Color.mPrimary
+                color: Color.mPrimary
+                textFormat: Text.PlainText
                 wrapMode: Text.Wrap
                 Layout.fillWidth: true
                 maximumLineCount: 2
@@ -178,7 +179,8 @@ NPanel {
               NText {
                 text: (body || "").substring(0, 150)
                 font.pointSize: Style.fontSizeXS * scaling
-                color: notificationMouseArea.containsMouse ? Color.mSurface : Color.mOnSurface
+                color: Color.mOnSurface
+                textFormat: Text.PlainText
                 wrapMode: Text.Wrap
                 Layout.fillWidth: true
                 maximumLineCount: 3
@@ -189,7 +191,7 @@ NPanel {
               NText {
                 text: NotificationService.formatTimestamp(timestamp)
                 font.pointSize: Style.fontSizeXS * scaling
-                color: notificationMouseArea.containsMouse ? Color.mSurface : Color.mOnSurface
+                color: Color.mOnSurface
                 Layout.fillWidth: true
               }
             }
@@ -197,8 +199,8 @@ NPanel {
             // Delete button
             NIconButton {
               icon: "trash"
-              tooltipText: "Delete notification"
-              sizeRatio: 0.7
+              tooltipText: "Delete notification."
+              baseSize: Style.baseWidgetSize * 0.7
               Layout.alignment: Qt.AlignTop
 
               onClicked: {

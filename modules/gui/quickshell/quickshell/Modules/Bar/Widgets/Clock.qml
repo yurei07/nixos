@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Layouts
 import Quickshell
 import qs.Commons
 import qs.Services
@@ -12,13 +13,12 @@ Rectangle {
 
   // Widget properties passed from Bar.qml for per-instance settings
   property string widgetId: ""
-  property string barSection: ""
+  property string section: ""
   property int sectionWidgetIndex: -1
   property int sectionWidgetsCount: 0
 
   property var widgetMetadata: BarWidgetRegistry.widgetMetadata[widgetId]
   property var widgetSettings: {
-    var section = barSection.replace("Section", "").toLowerCase()
     if (section && sectionWidgetIndex >= 0) {
       var widgets = Settings.data.bar.widgets[section]
       if (widgets && sectionWidgetIndex < widgets.length) {
@@ -28,96 +28,179 @@ Rectangle {
     return {}
   }
 
+  readonly property string barPosition: Settings.data.bar.position
+  readonly property bool compact: (Settings.data.bar.density === "compact")
+
   // Resolve settings: try user settings or defaults from BarWidgetRegistry
-  readonly property bool showDate: widgetSettings.showDate !== undefined ? widgetSettings.showDate : widgetMetadata.showDate
   readonly property bool use12h: widgetSettings.use12HourClock !== undefined ? widgetSettings.use12HourClock : widgetMetadata.use12HourClock
-  readonly property bool showSeconds: widgetSettings.showSeconds !== undefined ? widgetSettings.showSeconds : widgetMetadata.showSeconds
-  readonly property bool reverseDayMonth: widgetSettings.reverseDayMonth
-                                          !== undefined ? widgetSettings.reverseDayMonth : widgetMetadata.reverseDayMonth
-  readonly property bool compactMode: widgetSettings.compactMode !== undefined ? widgetSettings.compactMode : widgetMetadata.compactMode
+  readonly property bool reverseDayMonth: widgetSettings.reverseDayMonth !== undefined ? widgetSettings.reverseDayMonth : widgetMetadata.reverseDayMonth
+  readonly property string displayFormat: widgetSettings.displayFormat !== undefined ? widgetSettings.displayFormat : widgetMetadata.displayFormat
 
-  implicitWidth: (compactMode ? Math.max(timeText.implicitWidth,
-                                         dateText.implicitWidth) : clock.width) + Style.marginM * 2 * scaling
-  implicitHeight: compactMode ? (timeText.implicitHeight + dateText.implicitHeight + Math.round(
-                                   Style.marginXS * scaling) + Math.round(Style.marginM * 2 * scaling)) : Math.round(
-                                  Style.capsuleHeight * scaling)
-  radius: Math.round(implicitHeight / 2)
-  color: Color.mSurfaceVariant
+  // Use compact mode for vertical bars
+  readonly property bool verticalMode: barPosition === "left" || barPosition === "right"
 
-  // Clock with optional compact layout & attached calendar
+  implicitWidth: verticalMode ? Math.round(Style.capsuleHeight * scaling) : Math.round(layout.implicitWidth + Style.marginM * 2 * scaling)
+  implicitHeight: verticalMode ? Math.round(Style.capsuleHeight * 2.5 * scaling) : Math.round(Style.capsuleHeight * scaling) // Match BarPill
+
+  radius: Math.round(Style.radiusS * scaling)
+  color: Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent
+
   Item {
     id: clockContainer
     anchors.fill: parent
-    anchors.margins: 0
+    anchors.margins: compact ? 0 : Style.marginXS * scaling
 
-    Column {
-      id: compactColumn
+    ColumnLayout {
+      id: layout
       anchors.centerIn: parent
-      spacing: compactMode ? 0 : Math.round(Style.marginXXS * scaling)
-      visible: compactMode
+      spacing: verticalMode ? -2 * scaling : -3 * scaling
 
-      NText {
-        id: timeText
-        text: {
-          const now = Time.date
-          const timeFormat = use12h ? (showSeconds ? "h:mm:ss AP" : "h:mm AP") : (showSeconds ? "HH:mm:ss" : "HH:mm")
-          return Qt.formatDateTime(now, timeFormat)
+      // Compact mode for vertical bars - Time section (HH, MM)
+      Repeater {
+        model: verticalMode ? 2 : 1
+        NText {
+          readonly property bool showSeconds: (displayFormat === "time-seconds")
+          readonly property bool inlineDate: (displayFormat === "time-date")
+          readonly property var now: Time.date
+
+          text: {
+            if (verticalMode) {
+              // Compact mode: time section (first 2 lines)
+              switch (index) {
+              case 0:
+                // Hours
+                if (use12h) {
+                  const hours = now.getHours()
+                  const displayHours = hours === 0 ? 12 : (hours > 12 ? hours - 12 : hours)
+                  return displayHours.toString().padStart(2, '0')
+                } else {
+                  return now.getHours().toString().padStart(2, '0')
+                }
+              case 1:
+                // Minutes
+                return now.getMinutes().toString().padStart(2, '0')
+              default:
+                return ""
+              }
+            } else {
+              // Normal mode: single line with time
+              let timeStr = ""
+
+              if (use12h) {
+                // 12-hour format with proper padding and consistent spacing
+                const hours = now.getHours()
+                const displayHours = hours === 0 ? 12 : (hours > 12 ? hours - 12 : hours)
+                const paddedHours = displayHours.toString().padStart(2, '0')
+                const minutes = now.getMinutes().toString().padStart(2, '0')
+                const ampm = hours < 12 ? 'AM' : 'PM'
+
+                if (showSeconds) {
+                  const seconds = now.getSeconds().toString().padStart(2, '0')
+                  timeStr = `${paddedHours}:${minutes}:${seconds} ${ampm}`
+                } else {
+                  timeStr = `${paddedHours}:${minutes} ${ampm}`
+                }
+              } else {
+                // 24-hour format with padding
+                const hours = now.getHours().toString().padStart(2, '0')
+                const minutes = now.getMinutes().toString().padStart(2, '0')
+
+                if (showSeconds) {
+                  const seconds = now.getSeconds().toString().padStart(2, '0')
+                  timeStr = `${hours}:${minutes}:${seconds}`
+                } else {
+                  timeStr = `${hours}:${minutes}`
+                }
+              }
+
+              // Add inline date if needed
+              if (inlineDate) {
+                let dayName = now.toLocaleDateString(Qt.locale(), "ddd")
+                dayName = dayName.charAt(0).toUpperCase() + dayName.slice(1)
+                const day = now.getDate().toString().padStart(2, '0')
+                let month = now.toLocaleDateString(Qt.locale(), "MMM")
+                timeStr += " - " + (reverseDayMonth ? `${dayName}, ${month} ${day}` : `${dayName}, ${day} ${month}`)
+              }
+
+              return timeStr
+            }
+          }
+
+          font.family: Settings.data.ui.fontFixed
+          font.pointSize: verticalMode ? Style.fontSizeXXS * scaling : Style.fontSizeXS * scaling
+          font.weight: Style.fontWeightBold
+          color: Color.mPrimary
+          Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
         }
-        font.pointSize: Style.fontSizeS * scaling
-        font.weight: Style.fontWeightBold
-        color: Color.mPrimary
-        horizontalAlignment: Text.AlignHCenter
-        anchors.horizontalCenter: parent.horizontalCenter
       }
 
+      // Separator line for compact mode (between time and date)
+      Rectangle {
+        visible: verticalMode
+        Layout.preferredWidth: 20 * scaling
+        Layout.preferredHeight: 2 * scaling
+        Layout.alignment: Qt.AlignHCenter
+        Layout.topMargin: 3 * scaling
+        Layout.bottomMargin: 3 * scaling
+        color: Color.mPrimary
+        opacity: 0.3
+        radius: 1 * scaling
+      }
+
+      // Compact mode for vertical bars - Date section (DD, MM)
+      Repeater {
+        model: verticalMode ? 2 : 0
+        NText {
+          readonly property var now: Time.date
+
+          text: {
+            if (verticalMode) {
+              // Compact mode: date section (last 2 lines)
+              switch (index) {
+              case 0:
+                // Day
+                return now.getDate().toString().padStart(2, '0')
+              case 1:
+                // Month
+                return (now.getMonth() + 1).toString().padStart(2, '0')
+              default:
+                return ""
+              }
+            }
+            return ""
+          }
+
+          font.pointSize: Style.fontSizeXXS * scaling
+          font.weight: Style.fontWeightBold
+          color: Color.mPrimary
+          Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+        }
+      }
+
+      // Second line for normal mode (date)
       NText {
-        id: dateText
-        visible: compactMode || showDate
+        visible: !verticalMode && (displayFormat === "time-date-short")
         text: {
           const now = Time.date
-          const day = now.getDate()
-          const month = now.getMonth() + 1
-          const dd = (day < 10 ? "0" + day : "" + day)
-          const mm = (month < 10 ? "0" + month : "" + month)
-          return reverseDayMonth ? `${mm}/${dd}` : `${dd}/${mm}`
+          const day = now.getDate().toString().padStart(2, '0')
+          const month = (now.getMonth() + 1).toString().padStart(2, '0')
+          return reverseDayMonth ? `${month}/${day}` : `${day}/${month}`
         }
-        font.pointSize: Math.max(Style.fontSizeXXS, Style.fontSizeXXS * scaling)
+
+        // Enable fixed-width font for consistent spacing
+        font.family: Settings.data.ui.fontFixed
+        font.pointSize: Style.fontSizeXXS * scaling
         font.weight: Style.fontWeightRegular
         color: Color.mPrimary
-        horizontalAlignment: Text.AlignHCenter
-        anchors.horizontalCenter: parent.horizontalCenter
+        Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
       }
-    }
-
-    // Non-compact single-line text
-    NText {
-      id: clock
-      visible: !compactMode
-      text: {
-        const now = Time.date
-        const timeFormat = use12h ? (showSeconds ? "h:mm:ss AP" : "h:mm AP") : (showSeconds ? "HH:mm:ss" : "HH:mm")
-        const timeString = Qt.formatDateTime(now, timeFormat)
-
-        if (showDate) {
-          let dayName = now.toLocaleDateString(Qt.locale(), "ddd")
-          dayName = dayName.charAt(0).toUpperCase() + dayName.slice(1)
-          let day = now.getDate()
-          let month = now.toLocaleDateString(Qt.locale(), "MMM")
-          return timeString + " - " + (reverseDayMonth ? `${dayName}, ${month} ${day}` : `${dayName}, ${day} ${month}`)
-        }
-        return timeString
-      }
-      anchors.centerIn: parent
-      font.pointSize: Style.fontSizeS * scaling
-      font.weight: Style.fontWeightBold
-      color: Color.mPrimary
     }
   }
 
   NTooltip {
     id: tooltip
     text: `${Time.formatDate(reverseDayMonth)}.`
-    target: clock
+    target: clockContainer
     positionAbove: Settings.data.bar.position === "bottom"
   }
 

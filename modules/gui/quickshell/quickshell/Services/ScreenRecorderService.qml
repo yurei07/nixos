@@ -13,16 +13,13 @@ Singleton {
   property bool isRecording: false
   property bool isPending: false
   property string outputPath: ""
-  property bool isAvailable: false
+  property bool isAvailable: ProgramCheckerService.gpuScreenRecorderAvailable
 
-  Component.onCompleted: {
-    checkAvailability()
-  }
-
-  function checkAvailability() {
-    // Detect native or Flatpak gpu-screen-recorder
-    availabilityCheckProcess.command = ["sh", "-c", "command -v gpu-screen-recorder >/dev/null 2>&1 || (command -v flatpak >/dev/null 2>&1 && flatpak list --app | grep -q 'com.dec05eba.gpu_screen_recorder')"]
-    availabilityCheckProcess.running = true
+  // Update availability when ProgramCheckerService completes its checks
+  Connections {
+    target: ProgramCheckerService
+    function onChecksCompleted() {// Availability is now automatically updated via property binding
+    }
   }
 
   // Start or Stop recording
@@ -74,8 +71,7 @@ Singleton {
       return
     }
 
-    Quickshell.execDetached(
-          ["sh", "-c", "pkill -SIGINT -f 'gpu-screen-recorder' || pkill -SIGINT -f 'com.dec05eba.gpu_screen_recorder'"])
+    Quickshell.execDetached(["sh", "-c", "pkill -SIGINT -f 'gpu-screen-recorder' || pkill -SIGINT -f 'com.dec05eba.gpu_screen_recorder'"])
 
     isRecording = false
     isPending = false
@@ -100,18 +96,6 @@ Singleton {
         monitorTimer.running = false
       }
     }
-  }
-
-  // Availability check process
-  Process {
-    id: availabilityCheckProcess
-    command: ["sh", "-c", "true"]
-    onExited: function (exitCode, exitStatus) {
-      // exitCode 0 means available, non-zero means unavailable
-      root.isAvailable = (exitCode === 0)
-    }
-    stdout: StdioCollector {}
-    stderr: StdioCollector {}
   }
 
   Timer {
@@ -152,8 +136,7 @@ Singleton {
     running: false
     repeat: false
     onTriggered: {
-      Quickshell.execDetached(
-        ["sh", "-c", "pkill -9 -f 'gpu-screen-recorder' 2>/dev/null || pkill -9 -f 'com.dec05eba.gpu_screen_recorder' 2>/dev/null || true"])
+      Quickshell.execDetached(["sh", "-c", "pkill -9 -f 'gpu-screen-recorder' 2>/dev/null || pkill -9 -f 'com.dec05eba.gpu_screen_recorder' 2>/dev/null || true"])
     }
   }
 }

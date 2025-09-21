@@ -43,9 +43,7 @@ Variants {
 
       // Fillmode default is "crop"
       property real fillMode: 1.0
-      property vector4d fillColor: Qt.vector4d(Settings.data.wallpaper.fillColor.r,
-                                               Settings.data.wallpaper.fillColor.g,
-                                               Settings.data.wallpaper.fillColor.b, 1.0)
+      property vector4d fillColor: Qt.vector4d(Settings.data.wallpaper.fillColor.r, Settings.data.wallpaper.fillColor.g, Settings.data.wallpaper.fillColor.b, 1.0)
 
       // On startup assign wallpaper immediately
       Component.onCompleted: {
@@ -229,8 +227,7 @@ Variants {
         from: 0.0
         to: 1.0
         // The stripes shader feels faster visually, we make it a bit slower here.
-        duration: transitionType == "stripes" ? Settings.data.wallpaper.transitionDuration
-                                                * 1.6 : Settings.data.wallpaper.transitionDuration
+        duration: transitionType == "stripes" ? Settings.data.wallpaper.transitionDuration * 1.6 : Settings.data.wallpaper.transitionDuration
         easing.type: Easing.InOutCubic
         onFinished: {
           // Swap images after transition completes

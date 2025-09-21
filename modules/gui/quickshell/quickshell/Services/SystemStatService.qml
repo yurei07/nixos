@@ -333,6 +333,26 @@ Singleton {
     }
   }
 
+  // Compact speed formatter for vertical bar display
+  function formatCompactSpeed(bytesPerSecond) {
+    if (!bytesPerSecond || bytesPerSecond <= 0)
+      return "0"
+    const units = ["", "K", "M", "G"]
+    let value = bytesPerSecond
+    let unitIndex = 0
+    while (value >= 1024 && unitIndex < units.length - 1) {
+      value = value / 1024.0
+      unitIndex++
+    }
+    // Promote at ~100 of current unit (e.g., 100k -> ~0.1M shown as 0.1M or 0M if rounded)
+    if (unitIndex < units.length - 1 && value >= 100) {
+      value = value / 1024.0
+      unitIndex++
+    }
+    const display = Math.round(value).toString()
+    return display + units[unitIndex]
+  }
+
   // -------------------------------------------------------
   // Function to start fetching and computing the cpu temperature
   function updateCpuTemperature() {

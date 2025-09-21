@@ -10,6 +10,11 @@ ColumnLayout {
   spacing: Style.marginL * scaling
   width: root.width
 
+  NHeader {
+    label: "System Hooks"
+    description: "Configure commands to be executed when system events occur."
+  }
+
   // Enable/Disable Toggle
   NToggle {
     label: "Enable Hooks"

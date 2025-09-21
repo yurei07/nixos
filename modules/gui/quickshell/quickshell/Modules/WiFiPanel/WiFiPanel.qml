@@ -57,15 +57,15 @@ NPanel {
         NIconButton {
           icon: "refresh"
           tooltipText: "Refresh"
-          sizeRatio: 0.8
+          baseSize: Style.baseWidgetSize * 0.8
           enabled: Settings.data.network.wifiEnabled && !NetworkService.scanning
           onClicked: NetworkService.scan()
         }
 
         NIconButton {
           icon: "close"
-          tooltipText: "Close"
-          sizeRatio: 0.8
+          tooltipText: "Close."
+          baseSize: Style.baseWidgetSize * 0.8
           onClicked: root.close()
         }
       }
@@ -106,7 +106,7 @@ NPanel {
 
           NIconButton {
             icon: "close"
-            sizeRatio: 0.6
+            baseSize: Style.baseWidgetSize * 0.6
             onClicked: NetworkService.lastError = ""
           }
         }
@@ -156,8 +156,7 @@ NPanel {
 
         // Scanning state
         ColumnLayout {
-          visible: Settings.data.network.wifiEnabled && NetworkService.scanning && Object.keys(
-                     NetworkService.networks).length === 0
+          visible: Settings.data.network.wifiEnabled && NetworkService.scanning && Object.keys(NetworkService.networks).length === 0
           anchors.fill: parent
           spacing: Style.marginL * scaling
 
@@ -185,12 +184,11 @@ NPanel {
         }
 
         // Networks list container
-        ScrollView {
-          visible: Settings.data.network.wifiEnabled && (!NetworkService.scanning || Object.keys(
-                                                           NetworkService.networks).length > 0)
+        NScrollView {
+          visible: Settings.data.network.wifiEnabled && (!NetworkService.scanning || Object.keys(NetworkService.networks).length > 0)
           anchors.fill: parent
-          ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
-          ScrollBar.vertical.policy: ScrollBar.AsNeeded
+          horizontalPolicy: ScrollBar.AlwaysOff
+          verticalPolicy: ScrollBar.AsNeeded
           clip: true
 
           ColumnLayout {
@@ -217,11 +215,9 @@ NPanel {
                 radius: Style.radiusM * scaling
 
                 // Add opacity for operations in progress
-                opacity: (NetworkService.disconnectingFrom === modelData.ssid
-                          || NetworkService.forgettingNetwork === modelData.ssid) ? 0.6 : 1.0
+                opacity: (NetworkService.disconnectingFrom === modelData.ssid || NetworkService.forgettingNetwork === modelData.ssid) ? 0.6 : 1.0
 
-                color: modelData.connected ? Qt.rgba(Color.mPrimary.r, Color.mPrimary.g, Color.mPrimary.b,
-                                                     0.05) : Color.mSurface
+                color: modelData.connected ? Qt.rgba(Color.mPrimary.r, Color.mPrimary.g, Color.mPrimary.b, 0.05) : Color.mSurface
                 border.width: Math.max(1, Style.borderS * scaling)
                 border.color: modelData.connected ? Color.mPrimary : Color.mOutline
 
@@ -338,9 +334,7 @@ NPanel {
                         }
 
                         Rectangle {
-                          visible: modelData.cached && !modelData.connected
-                                   && NetworkService.forgettingNetwork !== modelData.ssid
-                                   && NetworkService.disconnectingFrom !== modelData.ssid
+                          visible: modelData.cached && !modelData.connected && NetworkService.forgettingNetwork !== modelData.ssid && NetworkService.disconnectingFrom !== modelData.ssid
                           color: Color.transparent
                           border.color: Color.mOutline
                           border.width: Math.max(1, Style.borderS * scaling)
@@ -364,30 +358,22 @@ NPanel {
                       spacing: Style.marginS * scaling
 
                       NBusyIndicator {
-                        visible: NetworkService.connectingTo === modelData.ssid
-                                 || NetworkService.disconnectingFrom === modelData.ssid
-                                 || NetworkService.forgettingNetwork === modelData.ssid
+                        visible: NetworkService.connectingTo === modelData.ssid || NetworkService.disconnectingFrom === modelData.ssid || NetworkService.forgettingNetwork === modelData.ssid
                         running: visible
                         color: Color.mPrimary
                         size: Style.baseWidgetSize * 0.5 * scaling
                       }
 
                       NIconButton {
-                        visible: (modelData.existing || modelData.cached) && !modelData.connected
-                                 && NetworkService.connectingTo !== modelData.ssid
-                                 && NetworkService.forgettingNetwork !== modelData.ssid
-                                 && NetworkService.disconnectingFrom !== modelData.ssid
+                        visible: (modelData.existing || modelData.cached) && !modelData.connected && NetworkService.connectingTo !== modelData.ssid && NetworkService.forgettingNetwork !== modelData.ssid && NetworkService.disconnectingFrom !== modelData.ssid
                         icon: "trash"
                         tooltipText: "Forget network"
-                        sizeRatio: 0.7
+                        baseSize: Style.baseWidgetSize * 0.8
                         onClicked: expandedSsid = expandedSsid === modelData.ssid ? "" : modelData.ssid
                       }
 
                       NButton {
-                        visible: !modelData.connected && NetworkService.connectingTo !== modelData.ssid
-                                 && passwordSsid !== modelData.ssid
-                                 && NetworkService.forgettingNetwork !== modelData.ssid
-                                 && NetworkService.disconnectingFrom !== modelData.ssid
+                        visible: !modelData.connected && NetworkService.connectingTo !== modelData.ssid && passwordSsid !== modelData.ssid && NetworkService.forgettingNetwork !== modelData.ssid && NetworkService.disconnectingFrom !== modelData.ssid
                         text: {
                           if (modelData.existing || modelData.cached)
                             return "Connect"
@@ -422,8 +408,7 @@ NPanel {
 
                   // Password input
                   Rectangle {
-                    visible: passwordSsid === modelData.ssid && NetworkService.disconnectingFrom !== modelData.ssid
-                             && NetworkService.forgettingNetwork !== modelData.ssid
+                    visible: passwordSsid === modelData.ssid && NetworkService.disconnectingFrom !== modelData.ssid && NetworkService.forgettingNetwork !== modelData.ssid
                     Layout.fillWidth: true
                     height: passwordRow.implicitHeight + Style.marginS * scaling * 2
                     color: Color.mSurfaceVariant
@@ -493,7 +478,7 @@ NPanel {
 
                       NIconButton {
                         icon: "close"
-                        sizeRatio: 0.8
+                        baseSize: Style.baseWidgetSize * 0.8
                         onClicked: {
                           passwordSsid = ""
                           passwordInput = ""
@@ -504,8 +489,7 @@ NPanel {
 
                   // Forget network
                   Rectangle {
-                    visible: expandedSsid === modelData.ssid && NetworkService.disconnectingFrom !== modelData.ssid
-                             && NetworkService.forgettingNetwork !== modelData.ssid
+                    visible: expandedSsid === modelData.ssid && NetworkService.disconnectingFrom !== modelData.ssid && NetworkService.forgettingNetwork !== modelData.ssid
                     Layout.fillWidth: true
                     height: forgetRow.implicitHeight + Style.marginS * 2 * scaling
                     color: Color.mSurfaceVariant
@@ -548,7 +532,7 @@ NPanel {
 
                       NIconButton {
                         icon: "close"
-                        sizeRatio: 0.8
+                        baseSize: Style.baseWidgetSize * 0.8
                         onClicked: expandedSsid = ""
                       }
                     }
@@ -561,8 +545,7 @@ NPanel {
 
         // Empty state when no networks
         ColumnLayout {
-          visible: Settings.data.network.wifiEnabled && !NetworkService.scanning && Object.keys(
-                     NetworkService.networks).length === 0
+          visible: Settings.data.network.wifiEnabled && !NetworkService.scanning && Object.keys(NetworkService.networks).length === 0
           anchors.fill: parent
           spacing: Style.marginL * scaling
 

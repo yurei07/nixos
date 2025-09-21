@@ -7,10 +7,15 @@
     hyprpolkitagent.url = "github:hyprwm/hyprpolkitagent";
     flake-utils.url = "github:numtide/flake-utils";
     nixcord.url = "github:kaylorben/nixcord";
-    stylix.url = "github:danth/stylix";
     lazyvim.url = "github:pfassina/lazyvim-nix";
     textfox.url = "github:adriankarlen/textfox";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+
+    noctalia = {
+      url = "github:noctalia-dev/noctalia-shell";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.quickshell.follows = "quickshell";
+    };
 
     spicetify-nix = {
       url = "github:Gerg-L/spicetify-nix";
@@ -18,7 +23,7 @@
     };
 
     quickshell = {
-      url = "git+https://git.outfoxxed.me/outfoxxed/quickshell";
+      url = "github:outfoxxed/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -44,7 +49,7 @@
   };
 
   outputs =
-    { self, nixpkgs, ... }@inputs:
+    { self, nixpkgs, ... }@inputs: 
     let
       system = "x86_64-linux";
       pkgs = nixpkgs.legacyPackages.${system};
@@ -60,9 +65,8 @@
           inherit system;
           modules = [
             ./hosts/Prizrak/configuration.nix
-            #./hosts/laptop_Prizrak/configuration.nix # Laptop user
-            #inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t480 Laptop model
             inputs.home-manager.nixosModules.home-manager
+            #inputs.noctalia.nixosModules.noctalia  # Import Noctalia module here
             {
               home-manager = {
                 extraSpecialArgs = {
@@ -70,7 +74,6 @@
                 };
                 useGlobalPkgs = true;
                 useUserPackages = true;
-
               };
             }
           ];
@@ -96,3 +99,4 @@
       };
     };
 }
+

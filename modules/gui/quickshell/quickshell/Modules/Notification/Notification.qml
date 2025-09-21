@@ -25,10 +25,7 @@ Variants {
     property var removingNotifications: ({})
 
     // If no notification display activated in settings, then show them all
-    active: Settings.isLoaded && modelData
-            && (NotificationService.notificationModel.count > 0) ? (Settings.data.notifications.monitors.includes(
-                                                                      modelData.name)
-                                                                    || (Settings.data.notifications.monitors.length === 0)) : false
+    active: Settings.isLoaded && modelData && (NotificationService.notificationModel.count > 0) ? (Settings.data.notifications.monitors.includes(modelData.name) || (Settings.data.notifications.monitors.length === 0)) : false
 
     visible: (NotificationService.notificationModel.count > 0)
 
@@ -36,13 +33,50 @@ Variants {
       screen: modelData
       color: Color.transparent
 
-      // Position based on bar location
-      anchors.top: Settings.data.bar.position === "top"
-      anchors.bottom: Settings.data.bar.position === "bottom"
-      anchors.right: true
-      margins.top: Settings.data.bar.position === "top" ? (Style.barHeight + Style.marginM) * scaling : 0
-      margins.bottom: Settings.data.bar.position === "bottom" ? (Style.barHeight + Style.marginM) * scaling : 0
-      margins.right: Style.marginM * scaling
+      // Position based on bar location - always at top
+      anchors.top: true
+      anchors.right: Settings.data.bar.position === "right" || Settings.data.bar.position === "top" || Settings.data.bar.position === "bottom"
+      anchors.left: Settings.data.bar.position === "left"
+
+      margins.top: {
+        switch (Settings.data.bar.position) {
+        case "top":
+          return (Style.barHeight + Style.marginM) * scaling + (Settings.data.bar.floating ? Settings.data.bar.marginVertical * Style.marginXL * scaling : 0)
+        default:
+          return Style.marginM * scaling
+        }
+      }
+
+      margins.bottom: {
+        switch (Settings.data.bar.position) {
+        case "bottom":
+          return (Style.barHeight + Style.marginM) * scaling + (Settings.data.bar.floating ? Settings.data.bar.marginVertical * Style.marginXL * scaling : 0)
+        default:
+          return 0
+        }
+      }
+
+      margins.left: {
+        switch (Settings.data.bar.position) {
+        case "left":
+          return (Style.barHeight + Style.marginM) * scaling + (Settings.data.bar.floating ? Settings.data.bar.marginHorizontal * Style.marginXL * scaling : 0)
+        default:
+          return 0
+        }
+      }
+
+      margins.right: {
+        switch (Settings.data.bar.position) {
+        case "right":
+          return (Style.barHeight + Style.marginM) * scaling + (Settings.data.bar.floating ? Settings.data.bar.marginHorizontal * Style.marginXL * scaling : 0)
+        case "top":
+        case "bottom":
+          return Style.marginM * scaling
+        default:
+          return 0
+        }
+      }
+
       implicitWidth: 360 * scaling
       implicitHeight: Math.min(notificationStack.implicitHeight, (NotificationService.maxVisible * 120) * scaling)
       //WlrLayershell.layer: WlrLayer.Overlay
@@ -80,10 +114,10 @@ Variants {
       // Main notification container
       ColumnLayout {
         id: notificationStack
-        // Position based on bar location
-        anchors.top: Settings.data.bar.position === "top" ? parent.top : undefined
-        anchors.bottom: Settings.data.bar.position === "bottom" ? parent.bottom : undefined
-        anchors.right: parent.right
+        // Position based on bar location - always at top
+        anchors.top: parent.top
+        anchors.right: (Settings.data.bar.position === "right" || Settings.data.bar.position === "top" || Settings.data.bar.position === "bottom") ? parent.right : undefined
+        anchors.left: Settings.data.bar.position === "left" ? parent.left : undefined
         spacing: Style.marginS * scaling
         width: 360 * scaling
         visible: true
@@ -181,8 +215,7 @@ Variants {
                 spacing: Style.marginS * scaling
 
                 NText {
-                  text: `${(model.appName || model.desktopEntry)
-                        || "Unknown App"} · ${NotificationService.formatTimestamp(model.timestamp)}`
+                  text: `${(model.appName || model.desktopEntry) || "Unknown App"} · ${NotificationService.formatTimestamp(model.timestamp)}`
                   color: Color.mSecondary
                   font.pointSize: Style.fontSizeXS * scaling
                 }
@@ -226,6 +259,7 @@ Variants {
                     font.pointSize: Style.fontSizeL * scaling
                     font.weight: Style.fontWeightMedium
                     color: Color.mOnSurface
+                    textFormat: Text.PlainText
                     wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                     Layout.fillWidth: true
                     maximumLineCount: 3
@@ -236,6 +270,7 @@ Variants {
                     text: model.body || ""
                     font.pointSize: Style.fontSizeM * scaling
                     color: Color.mOnSurface
+                    textFormat: Text.PlainText
                     wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                     Layout.fillWidth: true
                     maximumLineCount: 5
@@ -249,8 +284,7 @@ Variants {
               RowLayout {
                 Layout.fillWidth: true
                 spacing: Style.marginS * scaling
-                visible: model.rawNotification && model.rawNotification.actions
-                         && model.rawNotification.actions.length > 0
+                visible: model.rawNotification && model.rawNotification.actions && model.rawNotification.actions.length > 0
 
                 property var notificationActions: model.rawNotification ? model.rawNotification.actions : []
 
@@ -293,8 +327,8 @@ Variants {
             // Close button positioned absolutely
             NIconButton {
               icon: "close"
-              tooltipText: "Close"
-              sizeRatio: 0.6
+              tooltipText: "Close."
+              baseSize: Style.baseWidgetSize * 0.6
               anchors.top: parent.top
               anchors.topMargin: Style.marginM * scaling
               anchors.right: parent.right

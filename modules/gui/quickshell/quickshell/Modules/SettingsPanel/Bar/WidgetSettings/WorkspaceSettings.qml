@@ -16,6 +16,7 @@ ColumnLayout {
   function saveSettings() {
     var settings = Object.assign({}, widgetData || {})
     settings.labelMode = labelModeCombo.currentKey
+    settings.hideUnoccupied = hideUnoccupiedToggle.checked
     return settings
   }
 
@@ -40,5 +41,13 @@ ColumnLayout {
     currentKey: widgetData.labelMode || widgetMetadata.labelMode
     onSelected: key => labelModeCombo.currentKey = key
     minimumWidth: 200 * scaling
+  }
+
+  NToggle {
+    id: hideUnoccupiedToggle
+    label: "Hide unoccupied"
+    description: "Don't display workspaces without windows."
+    checked: widgetData.hideUnoccupied
+    onToggled: checked => hideUnoccupiedToggle.checked = checked
   }
 }

@@ -31,8 +31,7 @@ PopupWindow {
   implicitWidth: menuWidth * scaling
 
   // Use the content height of the Flickable for implicit height
-  implicitHeight: Math.min(screen ? screen.height * 0.9 : Screen.height * 0.9,
-                           flickable.contentHeight + (Style.marginS * 2 * scaling))
+  implicitHeight: Math.min(screen ? screen.height * 0.9 : Screen.height * 0.9, flickable.contentHeight + (Style.marginS * 2 * scaling))
   visible: false
   color: Color.transparent
   anchor.item: anchorItem
@@ -159,8 +158,7 @@ PopupWindow {
               NText {
                 id: text
                 Layout.fillWidth: true
-                color: (modelData?.enabled
-                        ?? true) ? (mouseArea.containsMouse ? Color.mOnTertiary : Color.mOnSurface) : Color.mOnSurfaceVariant
+                color: (modelData?.enabled ?? true) ? (mouseArea.containsMouse ? Color.mOnTertiary : Color.mOnSurface) : Color.mOnSurfaceVariant
                 text: modelData?.text !== "" ? modelData?.text.replace(/[\n\r]+/g, ' ') : "..."
                 font.pointSize: Style.fontSizeS * scaling
                 verticalAlignment: Text.AlignVCenter
@@ -180,7 +178,7 @@ PopupWindow {
                 font.pointSize: Style.fontSizeS * scaling
                 verticalAlignment: Text.AlignVCenter
                 visible: modelData?.hasChildren ?? false
-                color: Color.mOnSurface
+                color: (mouseArea.containsMouse ? Color.mOnTertiary : Color.mOnSurface)
               }
             }
 
@@ -222,9 +220,32 @@ PopupWindow {
                   const submenuWidth = menuWidth * scaling // Assuming a similar width as the parent
                   const overlap = 4 * scaling // A small overlap to bridge the mouse path
 
-                  // Check if there's enough space on the right
+                  // Determine submenu opening direction based on bar position and available space
+                  let openLeft = false
+
+                  // Check bar position first
+                  const barPosition = Settings.data.bar.position
                   const globalPos = entry.mapToGlobal(0, 0)
-                  const openLeft = (globalPos.x + entry.width + submenuWidth > (screen ? screen.width : Screen.width))
+
+                  if (barPosition === "right") {
+                    // Bar is on the right, prefer opening submenus to the left
+                    openLeft = true
+                  } else if (barPosition === "left") {
+                    // Bar is on the left, prefer opening submenus to the right
+                    openLeft = false
+                  } else {
+                    // Bar is horizontal (top/bottom) or undefined, use space-based logic
+                    openLeft = (globalPos.x + entry.width + submenuWidth > (screen ? screen.width : Screen.width))
+
+                    // Secondary check: ensure we don't open off-screen
+                    if (openLeft && globalPos.x - submenuWidth < 0) {
+                      // Would open off the left edge, force right opening
+                      openLeft = false
+                    } else if (!openLeft && globalPos.x + entry.width + submenuWidth > (screen ? screen.width : Screen.width)) {
+                      // Would open off the right edge, force left opening
+                      openLeft = true
+                    }
+                  }
 
                   // Position with overlap
                   const anchorX = openLeft ? -submenuWidth + overlap : entry.width - overlap

@@ -8,11 +8,14 @@ import qs.Widgets
 NIconButton {
   id: root
 
-  sizeRatio: 0.8
+  property ShellScreen screen
+  property real scaling: 1.0
 
+  compact: (Settings.data.bar.density === "compact")
+  baseSize: Style.capsuleHeight
   icon: "power"
   tooltipText: "Power Settings"
-  colorBg: Color.mSurfaceVariant
+  colorBg: (Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent)
   colorFg: Color.mError
   colorBorder: Color.transparent
   colorBorderHover: Color.transparent

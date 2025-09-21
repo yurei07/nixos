@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
+import Quickshell
 import qs.Commons
 import qs.Services
 import qs.Widgets
@@ -8,6 +9,20 @@ import qs.Modules.SettingsPanel.Bar
 
 ColumnLayout {
   id: root
+  spacing: Style.marginL * scaling
+
+  // Helper functions to update arrays immutably
+  function addMonitor(list, name) {
+    const arr = (list || []).slice()
+    if (!arr.includes(name))
+      arr.push(name)
+    return arr
+  }
+  function removeMonitor(list, name) {
+    return (list || []).filter(function (n) {
+      return n !== name
+    })
+  }
 
   // Handler for drag start - disables panel background clicks
   function handleDragStart() {
@@ -25,64 +40,147 @@ ColumnLayout {
     }
   }
 
-  ColumnLayout {
-    spacing: Style.marginL * scaling
+  NHeader {
+    label: "Appearance"
+    description: "Configure bar appearance and positioning."
+  }
 
-    RowLayout {
-      NComboBox {
-        Layout.fillWidth: true
-        label: "Bar Position"
-        description: "Choose where to place the bar on the screen."
-        model: ListModel {
-          ListElement {
-            key: "top"
-            name: "Top"
-          }
-          ListElement {
-            key: "bottom"
-            name: "Bottom"
-          }
-        }
-        currentKey: Settings.data.bar.position
-        onSelected: key => Settings.data.bar.position = key
+  NComboBox {
+    Layout.fillWidth: true
+    label: "Bar Position"
+    description: "Choose where to place the bar on the screen."
+    model: ListModel {
+      ListElement {
+        key: "top"
+        name: "Top"
+      }
+      ListElement {
+        key: "bottom"
+        name: "Bottom"
+      }
+      ListElement {
+        key: "left"
+        name: "Left"
+      }
+      ListElement {
+        key: "right"
+        name: "Right"
       }
     }
+    currentKey: Settings.data.bar.position
+    onSelected: key => Settings.data.bar.position = key
+  }
 
-    ColumnLayout {
-      spacing: Style.marginXXS * scaling
+  NComboBox {
+    Layout.fillWidth: true
+    label: "Bar Density"
+    description: "Choose the density of the bar."
+    model: ListModel {
+      ListElement {
+        key: "compact"
+        name: "Compact"
+      }
+      ListElement {
+        key: "default"
+        name: "Default"
+      }
+      ListElement {
+        key: "comfortable"
+        name: "Comfortable"
+      }
+    }
+    currentKey: Settings.data.bar.density
+    onSelected: key => Settings.data.bar.density = key
+  }
+
+  ColumnLayout {
+    spacing: Style.marginXXS * scaling
+    Layout.fillWidth: true
+
+    NLabel {
+      label: "Background Opacity"
+      description: "Adjust the background opacity of the bar."
+    }
+
+    NValueSlider {
       Layout.fillWidth: true
+      from: 0
+      to: 1
+      stepSize: 0.01
+      value: Settings.data.bar.backgroundOpacity
+      onMoved: value => Settings.data.bar.backgroundOpacity = value
+      text: Math.floor(Settings.data.bar.backgroundOpacity * 100) + "%"
+    }
+  }
 
-      NText {
-        text: "Background Opacity"
-        font.pointSize: Style.fontSizeL * scaling
-        font.weight: Style.fontWeightBold
-        color: Color.mOnSurface
-      }
+  NToggle {
+    Layout.fillWidth: true
+    label: "Show Capsule"
+    description: "Adds a capsule behind each widget to improve readability on transparent bars."
+    checked: Settings.data.bar.showCapsule
+    onToggled: checked => Settings.data.bar.showCapsule = checked
+  }
 
-      NText {
-        text: "Adjust the background opacity of the bar."
-        font.pointSize: Style.fontSizeXS * scaling
-        color: Color.mOnSurfaceVariant
-        wrapMode: Text.WordWrap
-        Layout.fillWidth: true
-      }
+  NToggle {
+    Layout.fillWidth: true
+    label: "Floating Bar"
+    description: "Make the bar float with rounded corners and margins. Screen corners will move to screen edges."
+    checked: Settings.data.bar.floating
+    onToggled: checked => Settings.data.bar.floating = checked
+  }
 
-      RowLayout {
-        NSlider {
+  // Floating bar options - only show when floating is enabled
+  ColumnLayout {
+    visible: Settings.data.bar.floating
+    spacing: Style.marginS * scaling
+    Layout.fillWidth: true
+
+    NLabel {
+      label: "Margins"
+      description: "Adjust the margins around the floating bar."
+    }
+
+    RowLayout {
+      Layout.fillWidth: true
+      spacing: Style.marginL * scaling
+
+      ColumnLayout {
+        spacing: Style.marginXXS * scaling
+
+        NText {
+          text: "Vertical"
+          font.pointSize: Style.fontSizeXS * scaling
+          color: Color.mOnSurfaceVariant
+        }
+
+        NValueSlider {
           Layout.fillWidth: true
           from: 0
           to: 1
           stepSize: 0.01
-          value: Settings.data.bar.backgroundOpacity
-          onMoved: Settings.data.bar.backgroundOpacity = value
-          cutoutColor: Color.mSurface
+          value: Settings.data.bar.marginVertical
+          onMoved: value => Settings.data.bar.marginVertical = value
+          text: Math.round(Settings.data.bar.marginVertical * 100) + "%"
         }
+      }
+
+      ColumnLayout {
+        spacing: Style.marginXXS * scaling
 
         NText {
-          text: Math.floor(Settings.data.bar.backgroundOpacity * 100) + "%"
-          Layout.alignment: Qt.AlignVCenter
-          Layout.leftMargin: Style.marginS * scaling
-          color: Color.mOnSurface
+          text: "Horizontal"
+          font.pointSize: Style.fontSizeXS * scaling
+          color: Color.mOnSurfaceVariant
+        }
+
+        NValueSlider {
+          Layout.fillWidth: true
+          from: 0
+          to: 1
+          stepSize: 0.01
+          value: Settings.data.bar.marginHorizontal
+          onMoved: value => Settings.data.bar.marginHorizontal = value
+          text: Math.round(Settings.data.bar.marginHorizontal * 100) + "%"
         }
       }
     }
@@ -99,20 +197,9 @@ ColumnLayout {
     spacing: Style.marginXXS * scaling
     Layout.fillWidth: true
 
-    NText {
-      text: "Widgets Positioning"
-      font.pointSize: Style.fontSizeXXL * scaling
-      font.weight: Style.fontWeightBold
-      color: Color.mSecondary
-      Layout.bottomMargin: Style.marginS * scaling
-    }
-
-    NText {
-      text: "Drag and drop widgets to reorder them within each section, or use the add/remove buttons to manage widgets."
-      font.pointSize: Style.fontSizeM * scaling
-      color: Color.mOnSurfaceVariant
-      wrapMode: Text.WordWrap
-      Layout.fillWidth: true
+    NHeader {
+      label: "Widgets Positioning"
+      description: "Drag and drop widgets to reorder them within each section, or use the add/remove buttons to manage widgets."
     }
 
     // Bar Sections
@@ -172,6 +259,40 @@ ColumnLayout {
     Layout.bottomMargin: Style.marginXL * scaling
   }
 
+  // Monitor Configuration
+  ColumnLayout {
+    spacing: Style.marginM * scaling
+    Layout.fillWidth: true
+
+    NHeader {
+      label: "Monitors Configuration"
+      description: "Show bar on specific monitors. Defaults to all if none are chosen."
+    }
+
+    Repeater {
+      model: Quickshell.screens || []
+      delegate: NCheckbox {
+        Layout.fillWidth: true
+        label: modelData.name || "Unknown"
+        description: `${modelData.model} - ${modelData.width}x${modelData.height} [x:${modelData.x} y:${modelData.y}]`
+        checked: (Settings.data.bar.monitors || []).indexOf(modelData.name) !== -1
+        onToggled: checked => {
+                     if (checked) {
+                       Settings.data.bar.monitors = addMonitor(Settings.data.bar.monitors, modelData.name)
+                     } else {
+                       Settings.data.bar.monitors = removeMonitor(Settings.data.bar.monitors, modelData.name)
+                     }
+                   }
+      }
+    }
+  }
+
+  NDivider {
+    Layout.fillWidth: true
+    Layout.topMargin: Style.marginXL * scaling
+    Layout.bottomMargin: Style.marginXL * scaling
+  }
+
   // ---------------------------------
   // Signal functions
   // ---------------------------------
@@ -201,8 +322,7 @@ ColumnLayout {
   }
 
   function _reorderWidgetInSection(section, fromIndex, toIndex) {
-    if (fromIndex >= 0 && fromIndex < Settings.data.bar.widgets[section].length && toIndex >= 0
-        && toIndex < Settings.data.bar.widgets[section].length) {
+    if (fromIndex >= 0 && fromIndex < Settings.data.bar.widgets[section].length && toIndex >= 0 && toIndex < Settings.data.bar.widgets[section].length) {
 
       // Create a new array to avoid modifying the original
       var newArray = Settings.data.bar.widgets[section].slice()

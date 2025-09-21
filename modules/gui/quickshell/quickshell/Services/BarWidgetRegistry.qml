@@ -43,31 +43,31 @@ Singleton {
                                   },
                                   "Battery": {
                                     "allowUserSettings": true,
-                                    "alwaysShowPercentage": false,
+                                    "displayMode": "onhover",
                                     "warningThreshold": 30
                                   },
                                   "Brightness": {
                                     "allowUserSettings": true,
-                                    "alwaysShowPercentage": false
+                                    "displayMode": "onhover"
                                   },
                                   "Clock": {
                                     "allowUserSettings": true,
-                                    "showDate": false,
+                                    "displayFormat": "time-date-short",
                                     "use12HourClock": false,
-                                    "showSeconds": false,
-                                    "reverseDayMonth": true,
-                                    "compactMode": false
+                                    "reverseDayMonth": true
                                   },
                                   "CustomButton": {
                                     "allowUserSettings": true,
                                     "icon": "heart",
                                     "leftClickExec": "",
                                     "rightClickExec": "",
-                                    "middleClickExec": ""
+                                    "middleClickExec": "",
+                                    "textCommand": "",
+                                    "textIntervalMs": 3000
                                   },
                                   "Microphone": {
                                     "allowUserSettings": true,
-                                    "alwaysShowPercentage": false
+                                    "displayMode": "onhover"
                                   },
                                   "NotificationHistory": {
                                     "allowUserSettings": true,
@@ -89,7 +89,8 @@ Singleton {
                                   },
                                   "Workspace": {
                                     "allowUserSettings": true,
-                                    "labelMode": "index"
+                                    "labelMode": "index",
+                                    "hideUnoccupied": false
                                   },
                                   "MediaMini": {
                                     "allowUserSettings": true,
@@ -103,11 +104,11 @@ Singleton {
                                   },
                                   "Volume": {
                                     "allowUserSettings": true,
-                                    "alwaysShowPercentage": false
+                                    "displayMode": "onhover"
                                   },
                                   "KeyboardLayout": {
                                     "allowUserSettings": true,
-                                    "forceOpen": false
+                                    "displayMode": "onhover"
                                   }
                                 })
 
@@ -206,11 +207,11 @@ Singleton {
     return (widgetMetadata[id] !== undefined) && (widgetMetadata[id].allowUserSettings === true)
   }
 
-  function getNPillDirection(widget) {
+  function getPillDirection(widget) {
     try {
-      if (widget.barSection === "leftSection") {
+      if (widget.section === "left") {
         return true
-      } else if (widget.barSection === "rightSection") {
+      } else if (widget.section === "right") {
         return false
       } else {
         // middle section

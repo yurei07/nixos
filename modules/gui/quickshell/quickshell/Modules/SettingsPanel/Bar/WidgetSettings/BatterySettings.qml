@@ -14,22 +14,36 @@ ColumnLayout {
   property var widgetMetadata: null
 
   // Local state
-  property bool valueAlwaysShowPercentage: widgetData.alwaysShowPercentage
-                                           !== undefined ? widgetData.alwaysShowPercentage : widgetMetadata.alwaysShowPercentage
-  property int valueWarningThreshold: widgetData.warningThreshold
-                                      !== undefined ? widgetData.warningThreshold : widgetMetadata.warningThreshold
+  property string valueDisplayMode: widgetData.displayMode !== undefined ? widgetData.displayMode : widgetMetadata.displayMode
+  property int valueWarningThreshold: widgetData.warningThreshold !== undefined ? widgetData.warningThreshold : widgetMetadata.warningThreshold
 
   function saveSettings() {
     var settings = Object.assign({}, widgetData || {})
-    settings.alwaysShowPercentage = valueAlwaysShowPercentage
+    settings.displayMode = valueDisplayMode
     settings.warningThreshold = valueWarningThreshold
     return settings
   }
 
-  NToggle {
-    label: "Always show percentage"
-    checked: root.valueAlwaysShowPercentage
-    onToggled: checked => root.valueAlwaysShowPercentage = checked
+  NComboBox {
+    label: "Display mode"
+    description: "Choose how you'd like this value to appear."
+    minimumWidth: 134 * scaling
+    model: ListModel {
+      ListElement {
+        key: "onhover"
+        name: "On Hover"
+      }
+      ListElement {
+        key: "alwaysShow"
+        name: "Always Show"
+      }
+      ListElement {
+        key: "alwaysHide"
+        name: "Always Hide"
+      }
+    }
+    currentKey: root.valueDisplayMode
+    onSelected: key => root.valueDisplayMode = key
   }
 
   NSpinBox {

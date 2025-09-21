@@ -17,10 +17,8 @@ ColumnLayout {
   property bool valueShowCpuUsage: widgetData.showCpuUsage !== undefined ? widgetData.showCpuUsage : widgetMetadata.showCpuUsage
   property bool valueShowCpuTemp: widgetData.showCpuTemp !== undefined ? widgetData.showCpuTemp : widgetMetadata.showCpuTemp
   property bool valueShowMemoryUsage: widgetData.showMemoryUsage !== undefined ? widgetData.showMemoryUsage : widgetMetadata.showMemoryUsage
-  property bool valueShowMemoryAsPercent: widgetData.showMemoryAsPercent
-                                          !== undefined ? widgetData.showMemoryAsPercent : widgetMetadata.showMemoryAsPercent
-  property bool valueShowNetworkStats: widgetData.showNetworkStats
-                                       !== undefined ? widgetData.showNetworkStats : widgetMetadata.showNetworkStats
+  property bool valueShowMemoryAsPercent: widgetData.showMemoryAsPercent !== undefined ? widgetData.showMemoryAsPercent : widgetMetadata.showMemoryAsPercent
+  property bool valueShowNetworkStats: widgetData.showNetworkStats !== undefined ? widgetData.showNetworkStats : widgetMetadata.showNetworkStats
   property bool valueShowDiskUsage: widgetData.showDiskUsage !== undefined ? widgetData.showDiskUsage : widgetMetadata.showDiskUsage
 
   function saveSettings() {

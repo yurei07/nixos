@@ -13,11 +13,8 @@ Singleton {
   // Default config directory: ~/.config/noctalia
   // Default cache directory: ~/.cache/noctalia
   property string shellName: "noctalia"
-  property string configDir: Quickshell.env("NOCTALIA_CONFIG_DIR") || (Quickshell.env("XDG_CONFIG_HOME")
-                                                                       || Quickshell.env(
-                                                                         "HOME") + "/.config") + "/" + shellName + "/"
-  property string cacheDir: Quickshell.env("NOCTALIA_CACHE_DIR") || (Quickshell.env("XDG_CACHE_HOME") || Quickshell.env(
-                                                                       "HOME") + "/.cache") + "/" + shellName + "/"
+  property string configDir: Quickshell.env("NOCTALIA_CONFIG_DIR") || (Quickshell.env("XDG_CONFIG_HOME") || Quickshell.env("HOME") + "/.config") + "/" + shellName + "/"
+  property string cacheDir: Quickshell.env("NOCTALIA_CACHE_DIR") || (Quickshell.env("XDG_CACHE_HOME") || Quickshell.env("HOME") + "/.cache") + "/" + shellName + "/"
   property string cacheDirImages: cacheDir + "images/"
 
   property string settingsFile: Quickshell.env("NOCTALIA_SETTINGS_FILE") || (configDir + "settings.json")
@@ -58,8 +55,7 @@ Singleton {
         }
       }
       if (!hasValidBarMonitor) {
-        Logger.warn("Settings",
-                    "No configured bar monitors found on system, clearing bar monitor list to show on all screens")
+        Logger.warn("Settings", "No configured bar monitors found on system, clearing bar monitor list to show on all screens")
         adapter.bar.monitors = []
       } else {
 
@@ -125,6 +121,12 @@ Singleton {
         }
       }
     }
+
+    // Upgrade the density of the bar so the look stay the same for people who upgrade.
+    if (adapter.settingsVersion == 2) {
+      adapter.bar.density = "comfortable"
+      adapter.settingsVersion++
+    }
   }
 
   // -----------------------------------------------------
@@ -138,13 +140,18 @@ Singleton {
       widget.showIcon = widget.showIcon !== undefined ? widget.showIcon : adapter.bar.showActiveWindowIcon
       break
     case "Battery":
-      widget.alwaysShowPercentage = widget.alwaysShowPercentage
-          !== undefined ? widget.alwaysShowPercentage : adapter.bar.alwaysShowBatteryPercentage
+      widget.alwaysShowPercentage = widget.alwaysShowPercentage !== undefined ? widget.alwaysShowPercentage : adapter.bar.alwaysShowBatteryPercentage
       break
     case "Clock":
-      widget.showDate = widget.showDate !== undefined ? widget.showDate : adapter.location.showDateWithClock
       widget.use12HourClock = widget.use12HourClock !== undefined ? widget.use12HourClock : adapter.location.use12HourClock
       widget.reverseDayMonth = widget.reverseDayMonth !== undefined ? widget.reverseDayMonth : adapter.location.reverseDayMonth
+      if (widget.showDate !== undefined) {
+        widget.displayFormat = "time-date"
+      } else if (widget.showSeconds) {
+        widget.displayFormat = "time-seconds"
+      }
+      delete widget.showDate
+      delete widget.showSeconds
       break
     case "MediaMini":
       widget.showAlbumArt = widget.showAlbumArt !== undefined ? widget.showAlbumArt : adapter.audio.showMiniplayerAlbumArt
@@ -174,7 +181,7 @@ Singleton {
       }
     }
 
-    // Backup the widget definition before altering
+    // Compare settings, to detect if something has been upgraded
     const widgetAfter = JSON.stringify(widget)
     return (widgetAfter !== widgetBefore)
   }
@@ -258,13 +265,20 @@ Singleton {
     JsonAdapter {
       id: adapter
 
-      property int settingsVersion: 1
+      property int settingsVersion: 3
 
       // bar
       property JsonObject bar: JsonObject {
-        property string position: "top" // "top" or "bottom"
+        property string position: "top" // "top", "bottom", "left", or "right"
         property real backgroundOpacity: 1.0
         property list<string> monitors: []
+        property string density: "default" // "compact", "default", "comfortable"
+        property bool showCapsule: true
+
+        // Floating bar settings
+        property bool floating: false
+        property real marginVertical: 0.25
+        property real marginHorizontal: 0.25
 
         property bool showActiveWindowIcon: true // TODO: delete
         property bool alwaysShowBatteryPercentage: false // TODO: delete
@@ -314,9 +328,11 @@ Singleton {
       // general
       property JsonObject general: JsonObject {
         property string avatarImage: defaultAvatar
-        property bool dimDesktop: false
+        property bool dimDesktop: true
         property bool showScreenCorners: false
+        property bool forceBlackScreenCorners: false
         property real radiusRatio: 1.0
+        property real screenRadiusRatio: 1.0
         // Animation speed multiplier (0.1x - 2.0x)
         property real animationSpeed: 1.0
       }
@@ -376,6 +392,7 @@ Singleton {
         property bool autoHide: false
         property bool exclusive: false
         property real backgroundOpacity: 1.0
+        property real floatingRatio: 1.0
         property list<string> monitors: []
       }
 
@@ -391,6 +408,10 @@ Singleton {
         property list<string> monitors: []
         // Last time the user opened the notification history (ms since epoch)
         property real lastSeenTs: 0
+        // Duration settings for different urgency levels (in seconds)
+        property int lowUrgencyDuration: 3
+        property int normalUrgencyDuration: 8
+        property int criticalUrgencyDuration: 15
       }
 
       // audio
@@ -437,6 +458,7 @@ Singleton {
         property bool foot: false
         property bool fuzzel: false
         property bool vesktop: false
+        property bool pywalfox: false
         property bool enableUserTemplates: false
       }
 
