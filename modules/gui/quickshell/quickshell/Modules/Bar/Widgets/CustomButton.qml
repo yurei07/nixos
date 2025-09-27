@@ -5,7 +5,7 @@ import Quickshell.Io
 import qs.Commons
 import qs.Services
 import qs.Widgets
-import qs.Modules.SettingsPanel
+import qs.Modules.Settings
 import qs.Modules.Bar.Extras
 
 Item {
@@ -47,7 +47,7 @@ Item {
   BarPill {
     id: pill
 
-    rightOpen: BarWidgetRegistry.getPillDirection(root)
+    rightOpen: BarService.getPillDirection(root)
     icon: customIcon
     text: _dynamicText
     compact: (Settings.data.bar.density === "compact")
@@ -57,7 +57,7 @@ Item {
     disableOpen: true
     tooltipText: {
       if (!hasExec) {
-        return "Custom Button - Configure in settings"
+        return "Custom button, configure in settings."
       } else {
         var lines = []
         if (leftClickExec !== "") {

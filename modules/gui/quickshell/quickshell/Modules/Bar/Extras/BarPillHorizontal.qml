@@ -20,7 +20,7 @@ Item {
   property bool compact: false
 
   // Effective shown state (true if hovered/animated open or forced)
-  readonly property bool revealed: forceOpen || showPill
+  readonly property bool revealed: !forceClose && (forceOpen || showPill)
 
   signal shown
   signal hidden
@@ -221,7 +221,7 @@ Item {
       hovered = true
       root.entered()
       tooltip.show()
-      if (disableOpen) {
+      if (disableOpen || forceClose) {
         return
       }
       if (!forceOpen) {
@@ -231,7 +231,7 @@ Item {
     onExited: {
       hovered = false
       root.exited()
-      if (!forceOpen) {
+      if (!forceOpen && !forceClose) {
         hide()
       }
       tooltip.hide()

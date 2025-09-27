@@ -15,8 +15,9 @@ Singleton {
                            "Bluetooth": bluetoothComponent,
                            "Brightness": brightnessComponent,
                            "Clock": clockComponent,
+                           "ControlCenter": controlCenterComponent,
                            "CustomButton": customButtonComponent,
-                           "DarkModeToggle": darkModeToggle,
+                           "DarkMode": darkMode,
                            "KeepAwake": keepAwakeComponent,
                            "KeyboardLayout": keyboardLayoutComponent,
                            "MediaMini": mediaMiniComponent,
@@ -24,22 +25,24 @@ Singleton {
                            "NightLight": nightLightComponent,
                            "NotificationHistory": notificationHistoryComponent,
                            "PowerProfile": powerProfileComponent,
-                           "PowerToggle": powerToggleComponent,
-                           "ScreenRecorderIndicator": screenRecorderIndicatorComponent,
-                           "SidePanelToggle": sidePanelToggleComponent,
+                           "ScreenRecorder": screenRecorderComponent,
+                           "SessionMenu": sessionMenuComponent,
                            "Spacer": spacerComponent,
                            "SystemMonitor": systemMonitorComponent,
                            "Taskbar": taskbarComponent,
                            "Tray": trayComponent,
                            "Volume": volumeComponent,
                            "WiFi": wiFiComponent,
+                           "WallpaperSelector": wallpaperSelectorComponent,
                            "Workspace": workspaceComponent
                          })
 
   property var widgetMetadata: ({
                                   "ActiveWindow": {
                                     "allowUserSettings": true,
-                                    "showIcon": true
+                                    "showIcon": true,
+                                    "autoHide": true,
+                                    "scrollingMode": "hover"
                                   },
                                   "Battery": {
                                     "allowUserSettings": true,
@@ -52,9 +55,16 @@ Singleton {
                                   },
                                   "Clock": {
                                     "allowUserSettings": true,
-                                    "displayFormat": "time-date-short",
-                                    "use12HourClock": false,
-                                    "reverseDayMonth": true
+                                    "usePrimaryColor": true,
+                                    "useMonospacedFont": true,
+                                    "formatHorizontal": "HH:mm ddd, MMM dd",
+                                    "formatVertical": "HH mm - dd MM"
+                                  },
+                                  "ControlCenter": {
+                                    "allowUserSettings": true,
+                                    "useDistroLogo": false,
+                                    "icon": "noctalia",
+                                    "customIconPath": ""
                                   },
                                   "CustomButton": {
                                     "allowUserSettings": true,
@@ -64,6 +74,18 @@ Singleton {
                                     "middleClickExec": "",
                                     "textCommand": "",
                                     "textIntervalMs": 3000
+                                  },
+                                  "KeyboardLayout": {
+                                    "allowUserSettings": true,
+                                    "displayMode": "onhover"
+                                  },
+                                  "MediaMini": {
+                                    "allowUserSettings": true,
+                                    "autoHide": true,
+                                    "scrollingMode": "hover",
+                                    "showAlbumArt": false,
+                                    "showVisualizer": false,
+                                    "visualizerType": "linear"
                                   },
                                   "Microphone": {
                                     "allowUserSettings": true,
@@ -92,21 +114,7 @@ Singleton {
                                     "labelMode": "index",
                                     "hideUnoccupied": false
                                   },
-                                  "MediaMini": {
-                                    "allowUserSettings": true,
-                                    "showAlbumArt": false,
-                                    "showVisualizer": false,
-                                    "visualizerType": "linear"
-                                  },
-                                  "SidePanelToggle": {
-                                    "allowUserSettings": true,
-                                    "useDistroLogo": false
-                                  },
                                   "Volume": {
-                                    "allowUserSettings": true,
-                                    "displayMode": "onhover"
-                                  },
-                                  "KeyboardLayout": {
                                     "allowUserSettings": true,
                                     "displayMode": "onhover"
                                   }
@@ -131,8 +139,8 @@ Singleton {
   property Component customButtonComponent: Component {
     CustomButton {}
   }
-  property Component darkModeToggle: Component {
-    DarkModeToggle {}
+  property Component darkMode: Component {
+    DarkMode {}
   }
   property Component keyboardLayoutComponent: Component {
     KeyboardLayout {}
@@ -155,14 +163,14 @@ Singleton {
   property Component powerProfileComponent: Component {
     PowerProfile {}
   }
-  property Component powerToggleComponent: Component {
-    PowerToggle {}
+  property Component sessionMenuComponent: Component {
+    SessionMenu {}
   }
-  property Component screenRecorderIndicatorComponent: Component {
-    ScreenRecorderIndicator {}
+  property Component screenRecorderComponent: Component {
+    ScreenRecorder {}
   }
-  property Component sidePanelToggleComponent: Component {
-    SidePanelToggle {}
+  property Component controlCenterComponent: Component {
+    ControlCenter {}
   }
   property Component spacerComponent: Component {
     Spacer {}
@@ -179,11 +187,18 @@ Singleton {
   property Component wiFiComponent: Component {
     WiFi {}
   }
+  property Component wallpaperSelectorComponent: Component {
+    WallpaperSelector {}
+  }
   property Component workspaceComponent: Component {
     Workspace {}
   }
   property Component taskbarComponent: Component {
     Taskbar {}
+  }
+
+  function init() {
+    Logger.log("BarWidgetRegistry", "Service started")
   }
 
   // ------------------------------
@@ -205,25 +220,5 @@ Singleton {
   // Helper function to check if widget has user settings
   function widgetHasUserSettings(id) {
     return (widgetMetadata[id] !== undefined) && (widgetMetadata[id].allowUserSettings === true)
-  }
-
-  function getPillDirection(widget) {
-    try {
-      if (widget.section === "left") {
-        return true
-      } else if (widget.section === "right") {
-        return false
-      } else {
-        // middle section
-        if (widget.sectionWidgetIndex < widget.sectionWidgetsCount / 2) {
-          return false
-        } else {
-          return true
-        }
-      }
-    } catch (e) {
-      Logger.error(e)
-    }
-    return false
   }
 }

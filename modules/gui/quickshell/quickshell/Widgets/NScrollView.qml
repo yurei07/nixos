@@ -14,9 +14,43 @@ T.ScrollView {
   property real handleRadius: Style.radiusM * scaling
   property int verticalPolicy: ScrollBar.AsNeeded
   property int horizontalPolicy: ScrollBar.AsNeeded
+  property bool preventHorizontalScroll: horizontalPolicy === ScrollBar.AlwaysOff
+  property int boundsBehavior: Flickable.StopAtBounds
+  property int flickableDirection: Flickable.VerticalFlick
 
   implicitWidth: Math.max(implicitBackgroundWidth + leftInset + rightInset, contentWidth + leftPadding + rightPadding)
   implicitHeight: Math.max(implicitBackgroundHeight + topInset + bottomInset, contentHeight + topPadding + bottomPadding)
+
+  // Configure the internal flickable when it becomes available
+  Component.onCompleted: {
+    configureFlickable()
+  }
+
+  // Function to configure the underlying Flickable
+  function configureFlickable() {
+    // Find the internal Flickable (it's usually the first child)
+    for (var i = 0; i < children.length; i++) {
+      var child = children[i]
+      if (child.toString().indexOf("Flickable") !== -1) {
+        // Configure the flickable to prevent horizontal scrolling
+        child.boundsBehavior = root.boundsBehavior
+
+        if (root.preventHorizontalScroll) {
+          child.flickableDirection = Flickable.VerticalFlick
+          child.contentWidth = Qt.binding(() => child.width)
+        } else {
+          child.flickableDirection = root.flickableDirection
+        }
+        break
+      }
+    }
+  }
+
+  // Watch for changes in horizontalPolicy
+  onHorizontalPolicyChanged: {
+    preventHorizontalScroll = (horizontalPolicy === ScrollBar.AlwaysOff)
+    configureFlickable()
+  }
 
   ScrollBar.vertical: ScrollBar {
     parent: root

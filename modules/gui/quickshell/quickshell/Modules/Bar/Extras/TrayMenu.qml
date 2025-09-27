@@ -235,13 +235,13 @@ PopupWindow {
                     openLeft = false
                   } else {
                     // Bar is horizontal (top/bottom) or undefined, use space-based logic
-                    openLeft = (globalPos.x + entry.width + submenuWidth > (screen ? screen.width : Screen.width))
+                    openLeft = (globalPos.x + entry.width + submenuWidth > screen.width)
 
                     // Secondary check: ensure we don't open off-screen
                     if (openLeft && globalPos.x - submenuWidth < 0) {
                       // Would open off the left edge, force right opening
                       openLeft = false
-                    } else if (!openLeft && globalPos.x + entry.width + submenuWidth > (screen ? screen.width : Screen.width)) {
+                    } else if (!openLeft && globalPos.x + entry.width + submenuWidth > screen.width) {
                       // Would open off the right edge, force left opening
                       openLeft = true
                     }

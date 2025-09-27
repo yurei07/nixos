@@ -11,8 +11,9 @@ Image {
 
   property string imagePath: ""
   property string imageHash: ""
+  property string cacheFolder: Settings.cacheDirImages
   property int maxCacheDimension: 512
-  readonly property string cachePath: imageHash ? `${Settings.cacheDirImages}${imageHash}@${maxCacheDimension}x${maxCacheDimension}.png` : ""
+  readonly property string cachePath: imageHash ? `${cacheFolder}${imageHash}@${maxCacheDimension}x${maxCacheDimension}.png` : ""
 
   asynchronous: true
   fillMode: Image.PreserveAspectCrop

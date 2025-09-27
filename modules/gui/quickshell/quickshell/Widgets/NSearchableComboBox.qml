@@ -19,7 +19,7 @@ RowLayout {
   }
   property string currentKey: ""
   property string placeholder: ""
-  property string searchPlaceholder: "Search..."
+  property string searchPlaceholder: I18n.tr("placeholders.search")
 
   readonly property real preferredHeight: Style.baseWidgetSize * 1.1 * scaling
 
@@ -52,6 +52,11 @@ RowLayout {
 
   function filterModel() {
     filteredModel.clear()
+
+    // Check if model exists and has items
+    if (!root.model || root.model.count === undefined || root.model.count === 0) {
+      return
+    }
 
     if (searchText.trim() === "") {
       // If no search text, show all items
@@ -153,6 +158,14 @@ RowLayout {
       height: root.popupHeight + 60 * scaling
       padding: Style.marginM * scaling
 
+      onOpened: {
+        PanelService.willOpenPopup(root)
+      }
+
+      onClosed: {
+        PanelService.willClosePopup(root)
+      }
+
       contentItem: ColumnLayout {
         spacing: Style.marginS * scaling
 
@@ -166,14 +179,13 @@ RowLayout {
           fontSize: Style.fontSizeS * scaling
         }
 
-        // Font list
-        ListView {
+        NListView {
           id: listView
           Layout.fillWidth: true
           Layout.fillHeight: true
-          clip: true
           model: combo.popup.visible ? filteredModel : null
-          ScrollIndicator.vertical: ScrollIndicator {}
+          horizontalPolicy: ScrollBar.AlwaysOff
+          verticalPolicy: ScrollBar.AsNeeded
 
           delegate: ItemDelegate {
             width: listView.width
@@ -235,11 +247,13 @@ RowLayout {
       }
     }
 
-    // Focus search input when popup opens
+    // Focus search input when popup opens and ensure model is filtered
     Connections {
       target: combo.popup
       function onVisibleChanged() {
         if (combo.popup.visible) {
+          // Ensure the model is filtered when popup opens
+          filterModel()
           // Small delay to ensure the popup is fully rendered
           Qt.callLater(function () {
             if (searchInput && searchInput.inputItem) {

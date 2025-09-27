@@ -7,9 +7,41 @@ import "../../../Helpers/FuzzySort.js" as Fuzzysort
 
 Item {
   property var launcher: null
-  property string name: "Applications"
+  property string name: I18n.tr("plugins.applications")
   property bool handleSearch: true
   property var entries: []
+
+  // Persistent usage tracking stored in cacheDir
+  property string usageFilePath: Settings.cacheDir + "launcher_app_usage.json"
+
+  // Debounced saver to avoid excessive IO
+  Timer {
+    id: saveTimer
+    interval: 750
+    repeat: false
+    onTriggered: usageFile.writeAdapter()
+  }
+
+  FileView {
+    id: usageFile
+    path: usageFilePath
+    printErrors: false
+    watchChanges: false
+
+    onLoadFailed: function (error) {
+      if (error.toString().includes("No such file") || error === 2) {
+        writeAdapter()
+      }
+    }
+
+    onAdapterUpdated: saveTimer.start()
+
+    JsonAdapter {
+      id: usageAdapter
+      // key: app id/command, value: integer count
+      property var counts: ({})
+    }
+  }
 
   function init() {
     loadApplications()
@@ -36,8 +68,20 @@ Item {
       return []
 
     if (!query || query.trim() === "") {
-      // Return all apps alphabetically
-      return entries.sort((a, b) => a.name.toLowerCase().localeCompare(b.name.toLowerCase())).map(app => createResultEntry(app))
+      // Return all apps, optionally sorted by usage
+      let sorted
+      if (Settings.data.appLauncher.sortByMostUsed) {
+        sorted = entries.slice().sort((a, b) => {
+                                        const ua = getUsageCount(a)
+                                        const ub = getUsageCount(b)
+                                        if (ub !== ua)
+                                        return ub - ua
+                                        return (a.name || "").toLowerCase().localeCompare((b.name || "").toLowerCase())
+                                      })
+      } else {
+        sorted = entries.slice().sort((a, b) => (a.name || "").toLowerCase().localeCompare((b.name || "").toLowerCase()))
+      }
+      return sorted.map(app => createResultEntry(app))
     }
 
     // Use fuzzy search if available, fallback to simple search
@@ -84,6 +128,9 @@ Item {
         launcher.closeCompleted()
 
         Logger.log("ApplicationsPlugin", `Launching: ${app.name}`)
+        // Record usage and persist asynchronously
+        if (Settings.data.appLauncher.sortByMostUsed)
+          recordUsage(app)
         if (Settings.data.appLauncher.useApp2Unit && app.id) {
           Logger.log("ApplicationsPlugin", `Using app2unit for: ${app.id}`)
           if (app.runInTerminal)
@@ -97,5 +144,34 @@ Item {
         }
       }
     }
+  }
+
+  // -------------------------
+  // Usage tracking helpers
+  function getAppKey(app) {
+    if (app && app.id)
+      return String(app.id)
+    if (app && app.command && app.command.join)
+      return app.command.join(" ")
+    return String(app && app.name ? app.name : "unknown")
+  }
+
+  function getUsageCount(app) {
+    const key = getAppKey(app)
+    const m = usageAdapter && usageAdapter.counts ? usageAdapter.counts : null
+    if (!m)
+      return 0
+    const v = m[key]
+    return typeof v === 'number' && isFinite(v) ? v : 0
+  }
+
+  function recordUsage(app) {
+    const key = getAppKey(app)
+    if (!usageAdapter.counts)
+      usageAdapter.counts = ({})
+    const current = getUsageCount(app)
+    usageAdapter.counts[key] = current + 1
+    // Trigger save via debounced timer
+    saveTimer.restart()
   }
 }

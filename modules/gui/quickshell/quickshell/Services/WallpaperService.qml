@@ -9,90 +9,10 @@ import qs.Commons
 Singleton {
   id: root
 
-  Component.onCompleted: {
-    Logger.log("Wallpaper", "Service started")
-
-    // Initialize cache from Settings on startup
-    var monitors = Settings.data.wallpaper.monitors || []
-    for (var i = 0; i < monitors.length; i++) {
-      if (monitors[i].name && monitors[i].wallpaper) {
-        currentWallpapers[monitors[i].name] = monitors[i].wallpaper
-      }
-    }
-  }
+  readonly property ListModel fillModeModel: ListModel {}
 
   // All available wallpaper transitions
-  readonly property ListModel transitionsModel: ListModel {
-    ListElement {
-      key: "none"
-      name: "None"
-    }
-    ListElement {
-      key: "random"
-      name: "Random"
-    }
-    ListElement {
-      key: "fade"
-      name: "Fade"
-    }
-    ListElement {
-      key: "disc"
-      name: "Disc"
-    }
-    ListElement {
-      key: "stripes"
-      name: "Stripes"
-    }
-    ListElement {
-      key: "wipe"
-      name: "Wipe"
-    }
-  }
-
-  readonly property ListModel fillModeModel: ListModel {
-    // Centers image without resizing
-    // Pads with fillColor if image is smaller than screen
-    ListElement {
-      key: "center"
-      name: "Center"
-      uniform: 0.0
-    }
-    // Scales image to fill entire screen
-    // Crops portions that exceed screen bounds
-    // Maintains aspect ratio
-    ListElement {
-      key: "crop"
-      name: "Crop (Fill)"
-      uniform: 1.0
-    }
-    // Scales image to fit entirely within screen
-    // Maintains aspect ratio
-    // May show fillColor bars on sides
-    ListElement {
-      key: "fit"
-      name: "Fit (Contain)"
-      uniform: 2.0
-    }
-    // Stretches image to exact screen dimensions
-    // Does NOT maintain aspect ratio
-    // May distort the image
-    ListElement {
-      key: "stretch"
-      name: "Stretch"
-      uniform: 3.0
-    }
-  }
-
-  function getFillModeUniform() {
-    for (var i = 0; i < fillModeModel.count; i++) {
-      const mode = fillModeModel.get(i)
-      if (mode.key === Settings.data.wallpaper.fillMode) {
-        return mode.uniform
-      }
-    }
-    // Fallback to crop
-    return 1.0
-  }
+  readonly property ListModel transitionsModel: ListModel {}
 
   // All transition keys but filter out "none" and "random" so we are left with the real transitions
   readonly property var allTransitions: Array.from({
@@ -149,6 +69,93 @@ Singleton {
     function onRandomIntervalSecChanged() {
       root.restartRandomWallpaperTimer()
     }
+  }
+
+  // -------------------------------------------------
+  function init() {
+    Logger.log("Wallpaper", "Service started")
+
+    // Rebuild cache from persisted settings
+    var monitors = Settings.data.wallpaper.monitors || []
+    currentWallpapers = ({})
+    for (var i = 0; i < monitors.length; i++) {
+      if (monitors[i].name && monitors[i].wallpaper) {
+        currentWallpapers[monitors[i].name] = monitors[i].wallpaper
+        // Notify listeners so Background updates immediately after settings load
+        root.wallpaperChanged(monitors[i].name, monitors[i].wallpaper)
+      }
+    }
+
+    translateModels()
+  }
+
+  // -------------------------------------------------
+  function translateModels() {
+    // Wait for i18n to be ready by retrying every time
+    if (!I18n.isLoaded) {
+      Qt.callLater(translateModels)
+      return
+    }
+
+    // Populate fillModeModel with translated names
+    fillModeModel.append({
+                           "key": "center",
+                           "name": I18n.tr("wallpaper.fill-modes.center"),
+                           "uniform": 0.0
+                         })
+    fillModeModel.append({
+                           "key": "crop",
+                           "name": I18n.tr("wallpaper.fill-modes.crop"),
+                           "uniform": 1.0
+                         })
+    fillModeModel.append({
+                           "key": "fit",
+                           "name": I18n.tr("wallpaper.fill-modes.fit"),
+                           "uniform": 2.0
+                         })
+    fillModeModel.append({
+                           "key": "stretch",
+                           "name": I18n.tr("wallpaper.fill-modes.stretch"),
+                           "uniform": 3.0
+                         })
+
+    // Populate transitionsModel with translated names
+    transitionsModel.append({
+                              "key": "none",
+                              "name": I18n.tr("wallpaper.transitions.none")
+                            })
+    transitionsModel.append({
+                              "key": "random",
+                              "name": I18n.tr("wallpaper.transitions.random")
+                            })
+    transitionsModel.append({
+                              "key": "fade",
+                              "name": I18n.tr("wallpaper.transitions.fade")
+                            })
+    transitionsModel.append({
+                              "key": "disc",
+                              "name": I18n.tr("wallpaper.transitions.disc")
+                            })
+    transitionsModel.append({
+                              "key": "stripes",
+                              "name": I18n.tr("wallpaper.transitions.stripes")
+                            })
+    transitionsModel.append({
+                              "key": "wipe",
+                              "name": I18n.tr("wallpaper.transitions.wipe")
+                            })
+  }
+
+  // -------------------------------------------------------------------
+  function getFillModeUniform() {
+    for (var i = 0; i < fillModeModel.count; i++) {
+      const mode = fillModeModel.get(i)
+      if (mode.key === Settings.data.wallpaper.fillMode) {
+        return mode.uniform
+      }
+    }
+    // Fallback to crop
+    return 1.0
   }
 
   // -------------------------------------------------------------------

@@ -39,7 +39,7 @@ NIconButton {
   function computeUnreadCount() {
     var since = lastSeenTs()
     var count = 0
-    var model = NotificationService.historyModel
+    var model = NotificationService.historyList
     for (var i = 0; i < model.count; i++) {
       var item = model.get(i)
       var ts = item.timestamp instanceof Date ? item.timestamp.getTime() : item.timestamp
@@ -52,7 +52,7 @@ NIconButton {
   baseSize: Style.capsuleHeight
   compact: (Settings.data.bar.density === "compact")
   icon: Settings.data.notifications.doNotDisturb ? "bell-off" : "bell"
-  tooltipText: Settings.data.notifications.doNotDisturb ? "Notification history.\nRight-click to disable 'Do Not Disturb'." : "Notification history.\nRight-click to enable 'Do Not Disturb'."
+  tooltipText: Settings.data.notifications.doNotDisturb ? I18n.tr("tooltips.open-notification-history-disable-dnd") : I18n.tr("tooltips.open-notification-history-enable-dnd")
   colorBg: (Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent)
   colorFg: Color.mOnSurface
   colorBorder: Color.transparent

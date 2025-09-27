@@ -10,7 +10,7 @@ Singleton {
   id: root
 
   property bool isInhibited: false
-  property string reason: "User requested"
+  property string reason: I18n.tr("system.user-requested")
   property var activeInhibitors: []
 
   // Different inhibitor strategies
@@ -163,13 +163,13 @@ Singleton {
     if (activeInhibitors.includes("manual")) {
       removeInhibitor("manual")
       Settings.data.ui.idleInhibitorEnabled = false
-      ToastService.showNotice("Keep Awake", "Disabled", false, 3000)
+      ToastService.showNotice(I18n.tr("tooltips.keep-awake"), I18n.tr("toast.keep-awake.disabled"))
       Logger.log("IdleInhibitor", "Manual inhibition disabled and saved to settings")
       return false
     } else {
       addInhibitor("manual", "Manually activated by user")
       Settings.data.ui.idleInhibitorEnabled = true
-      ToastService.showNotice("Keep Awake", "Enabled", false, 3000)
+      ToastService.showNotice(I18n.tr("tooltips.keep-awake"), I18n.tr("toast.keep-awake.enabled"))
       Logger.log("IdleInhibitor", "Manual inhibition enabled and saved to settings")
       return true
     }

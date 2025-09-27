@@ -68,7 +68,7 @@ Rectangle {
             anchors.centerIn: parent
             width: parent.width
             height: parent.height
-            source: AppIcons.iconForAppId(taskbarItem.modelData.appId)
+            source: ThemeIcons.iconForAppId(taskbarItem.modelData.appId)
             smooth: true
             asynchronous: true
           }
@@ -104,7 +104,7 @@ Rectangle {
 
         NTooltip {
           id: taskbarTooltip
-          text: taskbarItem.modelData.title || taskbarItem.modelData.appId || "Unknown App."
+          text: taskbarItem.modelData.title || taskbarItem.modelData.appId || "Unknown app."
           target: taskbarItem
           positionAbove: Settings.data.bar.position === "bottom"
         }

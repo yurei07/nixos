@@ -25,7 +25,7 @@ Singleton {
       }
       // Toast: dark/light mode switched
       const enabled = !!Settings.data.colorSchemes.darkMode
-      const label = enabled ? "Dark Mode" : "Light Mode"
+      const label = enabled ? "Dark mode" : "Light mode"
       const description = enabled ? "Enabled" : "Enabled"
       ToastService.showNotice(label, description)
     }
@@ -40,7 +40,7 @@ Singleton {
   }
 
   function loadColorSchemes() {
-    Logger.log("ColorScheme", "Load ColorScheme")
+    Logger.log("ColorScheme", "Load colorScheme")
     scanning = true
     schemes = []
     // Unsetting, then setting the folder will re-trigger the parsing!

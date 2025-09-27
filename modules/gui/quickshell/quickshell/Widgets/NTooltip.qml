@@ -6,7 +6,7 @@ Window {
   id: root
 
   property bool isVisible: false
-  property string text: "Placeholder"
+  property string text: I18n.tr("widgets.tooltip.placeholder")
   property Item target: null
   property int delay: Style.tooltipDelay
   property bool positionAbove: false

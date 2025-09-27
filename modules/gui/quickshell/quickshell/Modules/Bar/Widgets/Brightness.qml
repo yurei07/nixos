@@ -1,10 +1,10 @@
 import QtQuick
 import Quickshell
 import qs.Commons
-import qs.Modules.SettingsPanel
+import qs.Modules.Bar.Extras
+import qs.Modules.Settings
 import qs.Services
 import qs.Widgets
-import qs.Modules.Bar.Extras
 
 Item {
   id: root
@@ -78,7 +78,7 @@ Item {
     id: pill
 
     compact: (Settings.data.bar.density === "compact")
-    rightOpen: BarWidgetRegistry.getPillDirection(root)
+    rightOpen: BarService.getPillDirection(root)
     icon: getIcon()
     autoHide: false // Important to be false so we can hover as long as we want
     text: {

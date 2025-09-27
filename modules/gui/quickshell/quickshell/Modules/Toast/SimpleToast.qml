@@ -15,14 +15,12 @@ Rectangle {
 
   signal hidden
 
-  width: Math.min(500 * scaling, parent.width * 0.8)
-  height: Math.max(60 * scaling, contentLayout.implicitHeight + Style.marginL * 2 * scaling)
+  width: parent.width
+  height: Math.round(contentLayout.implicitHeight + Style.marginL * 2 * scaling)
   radius: Style.radiusL * scaling
   visible: false
   opacity: 0
   scale: initialScale
-
-  // Clean surface background like NToast
   color: Color.mSurface
 
   // Colored border based on type
@@ -65,6 +63,12 @@ Rectangle {
       root.visible = false
       root.hidden()
     }
+  }
+
+  // Cleanup on destruction
+  Component.onDestruction: {
+    hideTimer.stop()
+    hideAnimation.stop()
   }
 
   RowLayout {
@@ -125,24 +129,9 @@ Rectangle {
         visible: text.length > 0
       }
     }
-
-    // Close button
-    NIconButton {
-      id: closeButton
-      icon: "close"
-
-      colorBg: Color.mSurfaceVariant
-      colorFg: Color.mOnSurface
-      colorBorder: Color.transparent
-      colorBorderHover: Color.mOutline
-
-      baseSize: Style.baseWidgetSize * 0.8
-      Layout.alignment: Qt.AlignTop
-
-      onClicked: root.hide()
-    }
   }
 
+  // Click anywhere dismiss the toast
   MouseArea {
     anchors.fill: parent
     acceptedButtons: Qt.LeftButton
@@ -151,6 +140,10 @@ Rectangle {
   }
 
   function show(msg, desc, msgType, msgDuration) {
+    // Stop all timers first
+    hideTimer.stop()
+    hideAnimation.stop()
+
     message = msg
     description = desc || ""
     type = msgType || "notice"
@@ -167,10 +160,12 @@ Rectangle {
     hideTimer.stop()
     opacity = 0
     scale = initialScale
-    hideAnimation.start()
+    hideAnimation.restart()
   }
 
   function hideImmediately() {
+    hideTimer.stop()
+    hideAnimation.stop()
     opacity = 0
     scale = initialScale
     root.visible = false

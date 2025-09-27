@@ -56,6 +56,10 @@ Item {
   property int horizontalPadding: Math.round(Style.marginS * scaling)
   property int spacingBetweenPills: Math.round(Style.marginXS * scaling)
 
+  // Wheel scroll handling
+  property int wheelAccumulatedDelta: 0
+  property bool wheelCooldown: false
+
   signal workspaceChanged(int workspaceId, color accentColor)
 
   implicitWidth: isVertical ? Math.round(Style.barHeight * scaling) : computeWidth()
@@ -63,18 +67,14 @@ Item {
 
   function getWorkspaceWidth(ws) {
     const d = Style.capsuleHeight * root.baseDimensionRatio
-    if (ws.isFocused)
-      return d * 2.5
-    else
-      return d
+    const factor = ws.isFocused ? 2.2 : 1
+    return d * factor * scaling
   }
 
   function getWorkspaceHeight(ws) {
     const d = Style.capsuleHeight * root.baseDimensionRatio
-    if (ws.isFocused)
-      return d * 3
-    else
-      return d
+    const factor = ws.isFocused ? 2.2 : 1
+    return d * factor * scaling
   }
 
   function computeWidth() {
@@ -99,6 +99,28 @@ Item {
     return Math.round(total)
   }
 
+  function getFocusedLocalIndex() {
+    for (var i = 0; i < localWorkspaces.count; i++) {
+      if (localWorkspaces.get(i).isFocused === true)
+        return i
+    }
+    return -1
+  }
+
+  function switchByOffset(offset) {
+    if (localWorkspaces.count === 0)
+      return
+    var current = getFocusedLocalIndex()
+    if (current < 0)
+      current = 0
+    var next = (current + offset) % localWorkspaces.count
+    if (next < 0)
+      next = localWorkspaces.count - 1
+    const ws = localWorkspaces.get(next)
+    if (ws && ws.idx !== undefined)
+      CompositorService.switchToWorkspace(ws.idx)
+  }
+
   Component.onCompleted: {
     refreshWorkspaces()
   }
@@ -111,7 +133,7 @@ Item {
   onHideUnoccupiedChanged: refreshWorkspaces()
 
   Connections {
-    target: WorkspaceService
+    target: CompositorService
     function onWorkspacesChanged() {
       refreshWorkspaces()
     }
@@ -120,8 +142,8 @@ Item {
   function refreshWorkspaces() {
     localWorkspaces.clear()
     if (screen !== null) {
-      for (var i = 0; i < WorkspaceService.workspaces.count; i++) {
-        const ws = WorkspaceService.workspaces.get(i)
+      for (var i = 0; i < CompositorService.workspaces.count; i++) {
+        const ws = CompositorService.workspaces.get(i)
         if (ws.output.toLowerCase() === screen.name.toLowerCase()) {
           if (hideUnoccupied && !ws.isOccupied && !ws.isFocused) {
             continue
@@ -189,6 +211,46 @@ Item {
     anchors.verticalCenter: parent.verticalCenter
   }
 
+  // Debounce timer for wheel interactions
+  Timer {
+    id: wheelDebounce
+    interval: 150
+    repeat: false
+    onTriggered: {
+      root.wheelCooldown = false
+      root.wheelAccumulatedDelta = 0
+    }
+  }
+
+  // Scroll to switch workspaces
+  WheelHandler {
+    id: wheelHandler
+    target: root
+    acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+    onWheel: function (event) {
+      if (root.wheelCooldown)
+        return
+      // Prefer vertical delta, fall back to horizontal if needed
+      var dy = event.angleDelta.y
+      var dx = event.angleDelta.x
+      var useDy = Math.abs(dy) >= Math.abs(dx)
+      var delta = useDy ? dy : dx
+      // One notch is typically 120
+      root.wheelAccumulatedDelta += delta
+      var step = 120
+      if (Math.abs(root.wheelAccumulatedDelta) >= step) {
+        var direction = root.wheelAccumulatedDelta > 0 ? -1 : 1
+        // For vertical layout, natural mapping: wheel up -> previous, down -> next (already handled by sign)
+        // For horizontal layout, same mapping using vertical wheel
+        root.switchByOffset(direction)
+        root.wheelCooldown = true
+        wheelDebounce.restart()
+        root.wheelAccumulatedDelta = 0
+        event.accepted = true
+      }
+    }
+  }
+
   // Horizontal layout for top/bottom bars
   Row {
     id: pillRow
@@ -203,7 +265,7 @@ Item {
       Item {
         id: workspacePillContainer
         width: root.getWorkspaceWidth(model)
-        height: Style.capsuleHeight * root.baseDimensionRatio
+        height: Style.capsuleHeight * root.baseDimensionRatio * scaling
 
         Rectangle {
           id: pill
@@ -235,7 +297,7 @@ Item {
                   if (model.isActive || model.isOccupied)
                     return Color.mOnSecondary
 
-                  return Color.mOnSurface
+                  return Color.mOnSecondary
                 }
               }
             }
@@ -250,7 +312,7 @@ Item {
             if (model.isActive || model.isOccupied)
               return Color.mSecondary
 
-            return Color.mOutline
+            return Qt.alpha(Color.mSecondary, 0.3)
           }
           scale: model.isFocused ? 1.0 : 0.9
           z: 0
@@ -260,7 +322,7 @@ Item {
             anchors.fill: parent
             cursorShape: Qt.PointingHandCursor
             onClicked: {
-              WorkspaceService.switchToWorkspace(model.idx)
+              CompositorService.switchToWorkspace(model.idx)
             }
             hoverEnabled: true
           }
@@ -346,7 +408,7 @@ Item {
       model: localWorkspaces
       Item {
         id: workspacePillContainerVertical
-        width: Style.capsuleHeight * root.baseDimensionRatio
+        width: Style.capsuleHeight * root.baseDimensionRatio * scaling
         height: root.getWorkspaceHeight(model)
 
         Rectangle {
@@ -404,7 +466,7 @@ Item {
             anchors.fill: parent
             cursorShape: Qt.PointingHandCursor
             onClicked: {
-              WorkspaceService.switchToWorkspace(model.idx)
+              CompositorService.switchToWorkspace(model.idx)
             }
             hoverEnabled: true
           }

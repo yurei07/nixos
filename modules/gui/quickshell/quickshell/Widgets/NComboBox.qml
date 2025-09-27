@@ -13,9 +13,7 @@ RowLayout {
 
   property string label: ""
   property string description: ""
-  property ListModel model: {
-
-  }
+  property var model
   property string currentKey: ""
   property string placeholder: ""
 
@@ -26,11 +24,31 @@ RowLayout {
   spacing: Style.marginL * scaling
   Layout.fillWidth: true
 
+  function itemCount() {
+    if (!root.model)
+      return 0
+    if (typeof root.model.count === 'number')
+      return root.model.count
+    if (Array.isArray(root.model))
+      return root.model.length
+    return 0
+  }
+
+  function getItem(index) {
+    if (!root.model)
+      return null
+    if (typeof root.model.get === 'function')
+      return root.model.get(index)
+    if (Array.isArray(root.model))
+      return root.model[index]
+    return null
+  }
+
   function findIndexByKey(key) {
-    for (var i = 0; i < root.model.count; i++) {
-      if (root.model.get(i).key === key) {
+    for (var i = 0; i < itemCount(); i++) {
+      var item = getItem(i)
+      if (item && item.key === key)
         return i
-      }
     }
     return -1
   }
@@ -38,10 +56,6 @@ RowLayout {
   NLabel {
     label: root.label
     description: root.description
-  }
-
-  Item {
-    Layout.fillWidth: true
   }
 
   ComboBox {
@@ -52,7 +66,9 @@ RowLayout {
     model: model
     currentIndex: findIndexByKey(currentKey)
     onActivated: {
-      root.selected(model.get(combo.currentIndex).key)
+      var item = getItem(combo.currentIndex)
+      if (item && item.key !== undefined)
+        root.selected(item.key)
     }
 
     background: Rectangle {
@@ -76,8 +92,8 @@ RowLayout {
       font.pointSize: Style.fontSizeM * scaling
       verticalAlignment: Text.AlignVCenter
       elide: Text.ElideRight
-      color: (combo.currentIndex >= 0 && combo.currentIndex < root.model.count) ? Color.mOnSurface : Color.mOnSurfaceVariant
-      text: (combo.currentIndex >= 0 && combo.currentIndex < root.model.count) ? root.model.get(combo.currentIndex).name : root.placeholder
+      color: (combo.currentIndex >= 0 && combo.currentIndex < itemCount()) ? Color.mOnSurface : Color.mOnSurfaceVariant
+      text: (combo.currentIndex >= 0 && combo.currentIndex < itemCount()) ? (getItem(combo.currentIndex) ? getItem(combo.currentIndex).name : root.placeholder) : root.placeholder
     }
 
     indicator: NIcon {
@@ -89,16 +105,23 @@ RowLayout {
 
     popup: Popup {
       y: combo.height
-      width: combo.width
+      implicitWidth: combo.width - Style.marginM * scaling
       implicitHeight: Math.min(root.popupHeight, contentItem.implicitHeight + Style.marginM * scaling * 2)
       padding: Style.marginM * scaling
 
-      contentItem: ListView {
-        property var comboBoxRoot: root
-        clip: true
-        implicitHeight: contentHeight
+      onOpened: {
+        PanelService.willOpenPopup(root)
+      }
+
+      onClosed: {
+        PanelService.willClosePopup(root)
+      }
+
+      contentItem: NListView {
         model: combo.popup.visible ? root.model : null
-        ScrollIndicator.vertical: ScrollIndicator {}
+        implicitHeight: contentHeight
+        horizontalPolicy: ScrollBar.AlwaysOff
+        verticalPolicy: ScrollBar.AsNeeded
 
         delegate: ItemDelegate {
           width: combo.width
@@ -112,21 +135,11 @@ RowLayout {
           }
 
           onClicked: {
-            ListView.view.comboBoxRoot.selected(ListView.view.comboBoxRoot.model.get(index).key)
-            combo.currentIndex = index
-            combo.popup.close()
-          }
-
-          contentItem: NText {
-            text: name
-            font.pointSize: Style.fontSizeM * scaling
-            color: highlighted ? Color.mSurface : Color.mOnSurface
-            verticalAlignment: Text.AlignVCenter
-            elide: Text.ElideRight
-            Behavior on color {
-              ColorAnimation {
-                duration: Style.animationFast
-              }
+            var item = root.getItem(index)
+            if (item && item.key !== undefined) {
+              root.selected(item.key)
+              combo.currentIndex = index
+              combo.popup.close()
             }
           }
 
@@ -134,6 +147,22 @@ RowLayout {
             width: combo.width - Style.marginM * scaling * 3
             color: highlighted ? Color.mTertiary : Color.transparent
             radius: Style.radiusS * scaling
+            Behavior on color {
+              ColorAnimation {
+                duration: Style.animationFast
+              }
+            }
+          }
+
+          contentItem: NText {
+            text: {
+              var item = root.getItem(index)
+              return item && item.name ? item.name : ""
+            }
+            font.pointSize: Style.fontSizeM * scaling
+            color: highlighted ? Color.mOnTertiary : Color.mOnSurface
+            verticalAlignment: Text.AlignVCenter
+            elide: Text.ElideRight
             Behavior on color {
               ColorAnimation {
                 duration: Style.animationFast

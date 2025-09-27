@@ -1,22 +1,31 @@
-{ config, lib, pkgs, nixpkgs, inputs, ... }:
-let 
+{
+  config,
+  lib,
+  pkgs,
+  nixpkgs,
+  inputs,
+  ...
+}:
+let
   Theme = import ../../modules/gui/gtk/packages_theme.nix { inherit pkgs; };
 in
 {
-  imports =
-    [
-      ./hardware-configuration.nix
+  imports = [
+    ./hardware-configuration.nix
 
-      # nixos modules
-      ./nix-modules/nvidia.nix
-      ./nix-modules/bluetooth.nix
-      ./nix-modules/users.nix
-      ./nix-modules/fonts.nix
-      ./nix-modules/audio.nix
-      ./nix-modules/lightdm.nix
+    # nixos modules
+    ./nix-modules/nvidia.nix
+    ./nix-modules/bluetooth.nix
+    ./nix-modules/users.nix
+    ./nix-modules/fonts.nix
+    ./nix-modules/audio.nix
+    ./nix-modules/lightdm.nix
 
-      ../../modules/gui/obs
-    ];
+    ../../modules/gui/obs
+  ];
+  # Включаем поддержку GVFS, которая позволяет приложениям видеть MTP-устройства, такие как iPhone
+  services.gvfs.enable = true;
+  services.usbmuxd.enable = true;
 
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -27,7 +36,10 @@ in
 
   nixpkgs.config.allowUnfree = true;
 
-  nix.settings.experimental-features = ["nix-command" "flakes"]; 
+  nix.settings.experimental-features = [
+    "nix-command"
+    "flakes"
+  ];
 
   services.dbus.packages = with pkgs; [ dconf ];
   services.gnome.gnome-keyring.enable = true;
@@ -41,6 +53,9 @@ in
     };
     systemPackages = with pkgs; [
       Theme
+      ifuse
+      libimobiledevice
+      usbmuxd
     ];
   };
 
@@ -50,4 +65,3 @@ in
   system.stateVersion = "25.05"; # Did you read the comment?
 
 }
-

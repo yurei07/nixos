@@ -14,7 +14,7 @@ RowLayout {
   property real stepSize: 0.01
   property var cutoutColor: Color.mSurface
   property bool snapAlways: true
-  property real heightRatio: 0.75
+  property real heightRatio: 0.7
   property string text: ""
 
   // Signals

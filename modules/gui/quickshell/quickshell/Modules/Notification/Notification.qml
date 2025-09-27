@@ -16,97 +16,113 @@ Variants {
     id: root
 
     required property ShellScreen modelData
-    readonly property real scaling: ScalingService.getScreenScale(modelData)
+    property real scaling: ScalingService.getScreenScale(modelData)
 
-    // Access the notification model from the service
-    property ListModel notificationModel: NotificationService.notificationModel
-
-    // Track notifications being removed for animation
-    property var removingNotifications: ({})
+    // Access the notification model from the service - UPDATED NAME
+    property ListModel notificationModel: NotificationService.activeList
 
     // If no notification display activated in settings, then show them all
-    active: Settings.isLoaded && modelData && (NotificationService.notificationModel.count > 0) ? (Settings.data.notifications.monitors.includes(modelData.name) || (Settings.data.notifications.monitors.length === 0)) : false
+    active: Settings.isLoaded && modelData && (Settings.data.notifications.monitors.includes(modelData.name) || (Settings.data.notifications.monitors.length === 0))
 
-    visible: (NotificationService.notificationModel.count > 0)
+    Connections {
+      target: ScalingService
+      function onScaleChanged(screenName, scale) {
+        if (root.modelData && screenName === root.modelData.name) {
+          root.scaling = scale
+        }
+      }
+    }
 
     sourceComponent: PanelWindow {
       screen: modelData
+
+      WlrLayershell.namespace: "noctalia-notifications"
+      WlrLayershell.layer: (Settings.isLoaded && Settings.data && Settings.data.notifications && Settings.data.notifications.alwaysOnTop) ? WlrLayer.Overlay : WlrLayer.Top
+
       color: Color.transparent
 
-      // Position based on bar location - always at top
-      anchors.top: true
-      anchors.right: Settings.data.bar.position === "right" || Settings.data.bar.position === "top" || Settings.data.bar.position === "bottom"
-      anchors.left: Settings.data.bar.position === "left"
+      readonly property string location: (Settings.isLoaded && Settings.data && Settings.data.notifications && Settings.data.notifications.location) ? Settings.data.notifications.location : "top_right"
+      readonly property bool isTop: (location === "top") || (location.length >= 3 && location.substring(0, 3) === "top")
+      readonly property bool isBottom: (location === "bottom") || (location.length >= 6 && location.substring(0, 6) === "bottom")
+      readonly property bool isLeft: location.indexOf("_left") >= 0
+      readonly property bool isRight: location.indexOf("_right") >= 0
+      readonly property bool isCentered: (location === "top" || location === "bottom")
 
+      // Anchor selection based on location (window edges)
+      anchors.top: isTop
+      anchors.bottom: isBottom
+      anchors.left: isLeft
+      anchors.right: isRight
+
+      // Margins depending on bar position and chosen location
       margins.top: {
-        switch (Settings.data.bar.position) {
-        case "top":
-          return (Style.barHeight + Style.marginM) * scaling + (Settings.data.bar.floating ? Settings.data.bar.marginVertical * Style.marginXL * scaling : 0)
-        default:
-          return Style.marginM * scaling
+        if (!(anchors.top))
+          return 0
+        var base = Style.marginM * scaling
+        if (Settings.data.bar.position === "top") {
+          var floatExtraV = Settings.data.bar.floating ? Settings.data.bar.marginVertical * Style.marginXL * scaling : 0
+          return (Style.barHeight * scaling) + base + floatExtraV
         }
+        return base
       }
 
       margins.bottom: {
-        switch (Settings.data.bar.position) {
-        case "bottom":
-          return (Style.barHeight + Style.marginM) * scaling + (Settings.data.bar.floating ? Settings.data.bar.marginVertical * Style.marginXL * scaling : 0)
-        default:
+        if (!(anchors.bottom))
           return 0
+        var base = Style.marginM * scaling
+        if (Settings.data.bar.position === "bottom") {
+          var floatExtraV = Settings.data.bar.floating ? Settings.data.bar.marginVertical * Style.marginXL * scaling : 0
+          return (Style.barHeight * scaling) + base + floatExtraV
         }
+        return base
       }
 
       margins.left: {
-        switch (Settings.data.bar.position) {
-        case "left":
-          return (Style.barHeight + Style.marginM) * scaling + (Settings.data.bar.floating ? Settings.data.bar.marginHorizontal * Style.marginXL * scaling : 0)
-        default:
+        if (!(anchors.left))
           return 0
+        var base = Style.marginM * scaling
+        if (Settings.data.bar.position === "left") {
+          var floatExtraH = Settings.data.bar.floating ? Settings.data.bar.marginHorizontal * Style.marginXL * scaling : 0
+          return (Style.barHeight * scaling) + base + floatExtraH
         }
+        return base
       }
 
       margins.right: {
-        switch (Settings.data.bar.position) {
-        case "right":
-          return (Style.barHeight + Style.marginM) * scaling + (Settings.data.bar.floating ? Settings.data.bar.marginHorizontal * Style.marginXL * scaling : 0)
-        case "top":
-        case "bottom":
-          return Style.marginM * scaling
-        default:
+        if (!(anchors.right))
           return 0
+        var base = Style.marginM * scaling
+        if (Settings.data.bar.position === "right") {
+          var floatExtraH = Settings.data.bar.floating ? Settings.data.bar.marginHorizontal * Style.marginXL * scaling : 0
+          return (Style.barHeight * scaling) + base + floatExtraH
         }
+        return base
       }
 
       implicitWidth: 360 * scaling
-      implicitHeight: Math.min(notificationStack.implicitHeight, (NotificationService.maxVisible * 120) * scaling)
-      //WlrLayershell.layer: WlrLayer.Overlay
+      implicitHeight: notificationStack.implicitHeight
       WlrLayershell.exclusionMode: ExclusionMode.Ignore
 
-      // Connect to animation signal from service
+      // Connect to animation signal from service - UPDATED TO USE ID
       Component.onCompleted: {
-        NotificationService.animateAndRemove.connect(function (notification, index) {
-          // Prefer lookup by identity to avoid index mismatches
+        NotificationService.animateAndRemove.connect(function (notificationId) {
+          // Find the delegate by notification ID
           var delegate = null
           if (notificationStack && notificationStack.children && notificationStack.children.length > 0) {
             for (var i = 0; i < notificationStack.children.length; i++) {
               var child = notificationStack.children[i]
-              if (child && child.model && child.model.rawNotification === notification) {
+              if (child && child.notificationId === notificationId) {
                 delegate = child
                 break
               }
             }
           }
 
-          // Fallback to index if identity lookup failed
-          if (!delegate && notificationStack && notificationStack.children && notificationStack.children[index]) {
-            delegate = notificationStack.children[index]
-          }
-
           if (delegate && delegate.animateOut) {
             delegate.animateOut()
           } else {
-            // As a last resort, force-remove without animation to avoid stuck popups
-            NotificationService.forceRemoveNotification(notification)
+            // Force removal without animation as fallback
+            NotificationService.dismissActiveNotification(notificationId)
           }
         })
       }
@@ -114,10 +130,12 @@ Variants {
       // Main notification container
       ColumnLayout {
         id: notificationStack
-        // Position based on bar location - always at top
-        anchors.top: parent.top
-        anchors.right: (Settings.data.bar.position === "right" || Settings.data.bar.position === "top" || Settings.data.bar.position === "bottom") ? parent.right : undefined
-        anchors.left: Settings.data.bar.position === "left" ? parent.left : undefined
+        // Anchor the stack inside the window based on chosen location
+        anchors.top: parent.isTop ? parent.top : undefined
+        anchors.bottom: parent.isBottom ? parent.bottom : undefined
+        anchors.left: parent.isLeft ? parent.left : undefined
+        anchors.right: parent.isRight ? parent.right : undefined
+        anchors.horizontalCenter: parent.isCentered ? parent.horizontalCenter : undefined
         spacing: Style.marginS * scaling
         width: 360 * scaling
         visible: true
@@ -126,6 +144,9 @@ Variants {
         Repeater {
           model: notificationModel
           delegate: Rectangle {
+            // Store the notification ID for reference
+            property string notificationId: model.id
+
             Layout.preferredWidth: 360 * scaling
             Layout.preferredHeight: notificationLayout.implicitHeight + (Style.marginL * 2 * scaling)
             Layout.maximumHeight: Layout.preferredHeight
@@ -134,6 +155,32 @@ Variants {
             border.color: Color.mOutline
             border.width: Math.max(1, Style.borderS * scaling)
             color: Color.mSurface
+
+            Rectangle {
+              id: progressBar
+              anchors.top: parent.top
+              anchors.left: parent.left
+              anchors.right: parent.right
+              height: 2 * scaling
+              color: "transparent"
+
+              property real availableWidth: parent.width - (2 * parent.radius)
+
+              Rectangle {
+                x: parent.parent.radius + (parent.availableWidth * (1 - model.progress)) / 2
+                width: parent.availableWidth * model.progress
+                height: parent.height
+                color: {
+                  if (model.urgency === NotificationUrgency.Critical || model.urgency === 2)
+                    return Color.mError
+                  else if (model.urgency === NotificationUrgency.Low || model.urgency === 0)
+                    return Color.mOnSurface
+                  else
+                    return Color.mPrimary
+                }
+                antialiasing: true
+              }
+            }
 
             // Animation properties
             property real scaleValue: 0.8
@@ -174,14 +221,14 @@ Variants {
               interval: Style.animationSlow
               repeat: false
               onTriggered: {
-                NotificationService.forceRemoveNotification(model.rawNotification)
+                // Use the new API method with notification ID
+                NotificationService.dismissActiveNotification(notificationId)
               }
             }
 
             // Check if this notification is being removed
             onIsRemovingChanged: {
               if (isRemoving) {
-                // Remove from model after animation completes
                 removalTimer.start()
               }
             }
@@ -191,7 +238,6 @@ Variants {
               NumberAnimation {
                 duration: Style.animationSlow
                 easing.type: Easing.OutExpo
-                //easing.type: Easing.OutBack   looks better but notification get clipped on all sides
               }
             }
 
@@ -209,44 +255,28 @@ Variants {
               anchors.rightMargin: (Style.marginM + 32) * scaling // Leave space for close button
               spacing: Style.marginM * scaling
 
-              // Header section with app name and timestamp
-              RowLayout {
-                Layout.fillWidth: true
-                spacing: Style.marginS * scaling
-
-                NText {
-                  text: `${(model.appName || model.desktopEntry) || "Unknown App"} · ${NotificationService.formatTimestamp(model.timestamp)}`
-                  color: Color.mSecondary
-                  font.pointSize: Style.fontSizeXS * scaling
-                }
-
-                Rectangle {
-                  Layout.preferredWidth: 6 * scaling
-                  Layout.preferredHeight: 6 * scaling
-                  radius: Style.radiusXS * scaling
-                  color: (model.urgency === NotificationUrgency.Critical) ? Color.mError : (model.urgency === NotificationUrgency.Low) ? Color.mOnSurface : Color.mPrimary
-                  Layout.alignment: Qt.AlignVCenter
-                }
-
-                Item {
-                  Layout.fillWidth: true
-                }
-              }
-
               // Main content section
               RowLayout {
                 Layout.fillWidth: true
                 spacing: Style.marginM * scaling
 
-                // Image
-                NImageCircled {
-                  Layout.preferredWidth: 40 * scaling
-                  Layout.preferredHeight: 40 * scaling
-                  Layout.alignment: Qt.AlignTop
-                  imagePath: model.image && model.image !== "" ? model.image : ""
-                  borderColor: Color.transparent
-                  borderWidth: 0
-                  visible: (model.image && model.image !== "")
+                ColumnLayout {
+                  // For real-time notification always show the original image
+                  // as the cached version is most likely still processing.
+                  NImageCircled {
+                    Layout.preferredWidth: 40 * scaling
+                    Layout.preferredHeight: 40 * scaling
+                    Layout.alignment: Qt.AlignTop
+                    Layout.topMargin: 30 * scaling
+                    imagePath: model.originalImage || ""
+                    borderColor: Color.transparent
+                    borderWidth: 0
+                    fallbackIcon: "bell"
+                    fallbackIconSize: 24 * scaling
+                  }
+                  Item {
+                    Layout.fillHeight: true
+                  }
                 }
 
                 // Text content
@@ -254,8 +284,39 @@ Variants {
                   Layout.fillWidth: true
                   spacing: Style.marginS * scaling
 
+                  // Header section with app name and timestamp
+                  RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Style.marginS * scaling
+
+                    Rectangle {
+                      Layout.preferredWidth: 6 * scaling
+                      Layout.preferredHeight: 6 * scaling
+                      radius: Style.radiusXS * scaling
+                      color: {
+                        if (model.urgency === NotificationUrgency.Critical || model.urgency === 2)
+                          return Color.mError
+                        else if (model.urgency === NotificationUrgency.Low || model.urgency === 0)
+                          return Color.mOnSurface
+                        else
+                          return Color.mPrimary
+                      }
+                      Layout.alignment: Qt.AlignVCenter
+                    }
+
+                    NText {
+                      text: `${model.appName || I18n.tr("system.unknown-app")} · ${Time.formatRelativeTime(model.timestamp)}`
+                      color: Color.mSecondary
+                      font.pointSize: Style.fontSizeXS * scaling
+                    }
+
+                    Item {
+                      Layout.fillWidth: true
+                    }
+                  }
+
                   NText {
-                    text: model.summary || "No summary"
+                    text: model.summary || I18n.tr("general.no-summary")
                     font.pointSize: Style.fontSizeL * scaling
                     font.weight: Style.fontWeightMedium
                     color: Color.mOnSurface
@@ -264,6 +325,7 @@ Variants {
                     Layout.fillWidth: true
                     maximumLineCount: 3
                     elide: Text.ElideRight
+                    visible: text.length > 0
                   }
 
                   NText {
@@ -277,49 +339,57 @@ Variants {
                     elide: Text.ElideRight
                     visible: text.length > 0
                   }
-                }
-              }
 
-              // Notification actions
-              RowLayout {
-                Layout.fillWidth: true
-                spacing: Style.marginS * scaling
-                visible: model.rawNotification && model.rawNotification.actions && model.rawNotification.actions.length > 0
+                  // Notification actions
+                  RowLayout {
+                    Layout.fillWidth: true
+                    spacing: Style.marginS * scaling
+                    Layout.topMargin: Style.marginM * scaling
 
-                property var notificationActions: model.rawNotification ? model.rawNotification.actions : []
+                    // Store the notification ID for access in button delegates
+                    property string parentNotificationId: notificationId
 
-                Repeater {
-                  model: parent.notificationActions
-
-                  delegate: NButton {
-                    text: {
-                      var actionText = modelData.text || "Open"
-                      // If text contains comma, take the part after the comma (the display text)
-                      if (actionText.includes(",")) {
-                        return actionText.split(",")[1] || actionText
+                    // Parse actions from JSON string
+                    property var parsedActions: {
+                      try {
+                        return model.actionsJson ? JSON.parse(model.actionsJson) : []
+                      } catch (e) {
+                        return []
                       }
-                      return actionText
                     }
-                    fontSize: Style.fontSizeS * scaling
-                    backgroundColor: Color.mPrimary
-                    textColor: Color.mOnPrimary
-                    hoverColor: Color.mSecondary
-                    pressColor: Color.mTertiary
-                    outlined: false
-                    customHeight: 32 * scaling
-                    Layout.preferredHeight: 32 * scaling
+                    visible: parsedActions.length > 0
 
-                    onClicked: {
-                      if (modelData && modelData.invoke) {
-                        modelData.invoke()
+                    Repeater {
+                      model: parent.parsedActions
+
+                      delegate: NButton {
+                        property var actionData: modelData
+
+                        text: {
+                          var actionText = actionData.text || "Open"
+                          // If text contains comma, take the part after the comma (the display text)
+                          if (actionText.includes(",")) {
+                            return actionText.split(",")[1] || actionText
+                          }
+                          return actionText
+                        }
+                        fontSize: Style.fontSizeS * scaling
+                        backgroundColor: Color.mPrimary
+                        textColor: hovered ? Color.mOnTertiary : Color.mOnPrimary
+                        hoverColor: Color.mTertiary
+                        outlined: false
+                        Layout.preferredHeight: 24 * scaling
+                        onClicked: {
+                          NotificationService.invokeAction(parent.parentNotificationId, actionData.identifier)
+                        }
                       }
+                    }
+
+                    // Spacer to push buttons to the left
+                    Item {
+                      Layout.fillWidth: true
                     }
                   }
-                }
-
-                // Spacer to push buttons to the left if needed
-                Item {
-                  Layout.fillWidth: true
                 }
               }
             }
@@ -327,7 +397,7 @@ Variants {
             // Close button positioned absolutely
             NIconButton {
               icon: "close"
-              tooltipText: "Close."
+              tooltipText: I18n.tr("tooltips.close")
               baseSize: Style.baseWidgetSize * 0.6
               anchors.top: parent.top
               anchors.topMargin: Style.marginM * scaling

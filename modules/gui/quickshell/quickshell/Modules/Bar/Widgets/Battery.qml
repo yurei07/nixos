@@ -54,7 +54,9 @@ Item {
     // Only notify once we are a below threshold
     if (!charging && !root.hasNotifiedLowBattery && percent <= warningThreshold) {
       root.hasNotifiedLowBattery = true
-      ToastService.showWarning("Low Battery", `Battery is at ${Math.round(percent)}%. Please connect the charger.`)
+      ToastService.showWarning(I18n.tr("toast.battery.low"), I18n.tr("toast.battery.low-desc", {
+                                                                       "percent": Math.round(percent)
+                                                                     }))
     } else if (root.hasNotifiedLowBattery && (charging || percent > warningThreshold + 5)) {
       // Reset when charging starts or when battery recovers 5% above threshold
       root.hasNotifiedLowBattery = false
@@ -86,7 +88,7 @@ Item {
     id: pill
 
     compact: (Settings.data.bar.density === "compact")
-    rightOpen: BarWidgetRegistry.getPillDirection(root)
+    rightOpen: BarService.getPillDirection(root)
     icon: testMode ? BatteryService.getIcon(testPercent, testCharging, true) : BatteryService.getIcon(percent, charging, isReady)
     text: (isReady || testMode) ? Math.round(percent) : "-"
     suffix: "%"

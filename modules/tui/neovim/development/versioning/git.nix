@@ -9,7 +9,7 @@ let
 in
 {
   home.packages = with pkgs; [
-    commitizen # Commit rules for projects
+    # commitizen # Commit rules for projects
     # gitea # Self-hostable web service for managing Git repositories
   ];
 

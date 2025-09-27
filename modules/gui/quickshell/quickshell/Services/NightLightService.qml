@@ -63,12 +63,12 @@ Singleton {
       apply()
       // Toast: night light toggled
       const enabled = !!Settings.data.nightLight.enabled
-      ToastService.showNotice("Night Light", enabled ? "Enabled" : "Disabled")
+      ToastService.showNotice(I18n.tr("settings.display.night-light.section.label"), enabled ? I18n.tr("toast.night-light.enabled") : I18n.tr("toast.night-light.disabled"))
     }
     function onForcedChanged() {
       apply()
       if (Settings.data.nightLight.enabled) {
-        ToastService.showNotice("Night Light", Settings.data.nightLight.forced ? "Forced activation" : "Normal mode")
+        ToastService.showNotice(I18n.tr("settings.display.night-light.section.label"), Settings.data.nightLight.forced ? I18n.tr("toast.night-light.forced") : I18n.tr("toast.night-light.normal"))
       }
     }
     function onNightTempChanged() {

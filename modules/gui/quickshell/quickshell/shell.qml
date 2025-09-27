@@ -6,30 +6,40 @@
  * but proper credit must be given to the original author.
 */
 
-// Disable reload popup add this as a new row:  //pragma Env QS_NO_RELOAD_POPUP=1
+// Qt & Quickshell Core
 import QtQuick
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Pipewire
 import Quickshell.Widgets
+
+// Commons & Services
 import qs.Commons
-import qs.Modules.Launcher
-import qs.Modules.Background
-import qs.Modules.Bar
-import qs.Modules.Bar.Extras
-import qs.Modules.BluetoothPanel
-import qs.Modules.Calendar
-import qs.Modules.Dock
-import qs.Modules.IPC
-import qs.Modules.LockScreen
-import qs.Modules.Notification
-import qs.Modules.SettingsPanel
-import qs.Modules.PowerPanel
-import qs.Modules.SidePanel
-import qs.Modules.Toast
-import qs.Modules.WiFiPanel
 import qs.Services
 import qs.Widgets
+
+// Core Modules
+import qs.Modules.Background
+import qs.Modules.Dock
+import qs.Modules.LockScreen
+import qs.Modules.SessionMenu
+
+// Bar & Bar Components
+import qs.Modules.Bar
+import qs.Modules.Bar.Extras
+import qs.Modules.Bar.Bluetooth
+import qs.Modules.Bar.Calendar
+
+import qs.Modules.Bar.WiFi
+
+// Panels & UI Components
+import qs.Modules.ControlCenter
+import qs.Modules.Launcher
+import qs.Modules.Notification
+import qs.Modules.OSD
+import qs.Modules.Settings
+import qs.Modules.Toast
+import qs.Modules.Wallpaper
 
 ShellRoot {
   id: shellRoot
@@ -49,8 +59,11 @@ ShellRoot {
   }
 
   ToastOverlay {}
+  OSD {}
 
-  IPCManager {}
+  // IPCService is treated as a service
+  // but it's actually an Item that needs to exists in the shell.
+  IPCService {}
 
   // ------------------------------
   // All the NPanels
@@ -59,12 +72,12 @@ ShellRoot {
     objectName: "launcherPanel"
   }
 
-  SidePanel {
-    id: sidePanel
-    objectName: "sidePanel"
+  ControlCenterPanel {
+    id: controlCenterPanel
+    objectName: "controlCenterPanel"
   }
 
-  Calendar {
+  CalendarPanel {
     id: calendarPanel
     objectName: "calendarPanel"
   }
@@ -79,9 +92,9 @@ ShellRoot {
     objectName: "notificationHistoryPanel"
   }
 
-  PowerPanel {
-    id: powerPanel
-    objectName: "powerPanel"
+  SessionMenu {
+    id: sessionMenuPanel
+    objectName: "sessionMenuPanel"
   }
 
   WiFiPanel {
@@ -94,8 +107,22 @@ ShellRoot {
     objectName: "bluetoothPanel"
   }
 
+  WallpaperPanel {
+    id: wallpaperPanel
+    objectName: "wallpaperPanel"
+  }
+
   Component.onCompleted: {
     // Save a ref. to our lockScreen so we can access it  easily
     PanelService.lockScreen = lockScreen
+
+    BarWidgetRegistry.init()
+  }
+
+  Connections {
+    target: Quickshell
+    function onReloadCompleted() {
+      Quickshell.inhibitReloadPopup()
+    }
   }
 }

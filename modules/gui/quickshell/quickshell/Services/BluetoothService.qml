@@ -9,8 +9,7 @@ Singleton {
   id: root
 
   readonly property BluetoothAdapter adapter: Bluetooth.defaultAdapter
-  readonly property bool available: adapter !== null
-  readonly property bool enabled: (adapter && adapter.enabled) ?? false
+  readonly property bool available: (adapter !== null)
   readonly property bool discovering: (adapter && adapter.discovering) ?? false
   readonly property var devices: adapter ? adapter.devices : null
   readonly property var pairedDevices: {
@@ -30,37 +29,64 @@ Singleton {
                                          })
   }
 
+  property bool lastAdapterState: false
+
   function init() {
     Logger.log("Bluetooth", "Service initialized")
-    delaySyncState.running = true
+    syncStateTimer.running = true
   }
 
   Timer {
-    id: delaySyncState
+    id: syncStateTimer
     interval: 1000
     repeat: false
     onTriggered: {
-      Settings.data.network.bluetoothEnabled = adapter.enabled
+      lastAdapterState = Settings.data.network.bluetoothEnabled = adapter.enabled
     }
   }
 
   Timer {
-    id: delayDiscovery
+    id: discoveryTimer
     interval: 1000
     repeat: false
     onTriggered: adapter.discovering = true
   }
 
+  Timer {
+    id: stateDebounceTimer
+    interval: 200
+    repeat: false
+    onTriggered: {
+      if (!adapter) {
+        Logger.warn("Bluetooth", "State debouncer", "No adapter available")
+        return
+      }
+      if (lastAdapterState === adapter.enabled) {
+        return
+      }
+      lastAdapterState = adapter.enabled
+      if (adapter.enabled) {
+        ToastService.showNotice(I18n.tr("bluetooth.panel.title"), I18n.tr("toast.bluetooth.enabled"))
+      } else {
+        ToastService.showNotice(I18n.tr("bluetooth.panel.title"), I18n.tr("toast.bluetooth.disabled"))
+      }
+    }
+  }
+
   Connections {
     target: adapter
     function onEnabledChanged() {
+      if (!adapter) {
+        Logger.warn("Bluetooth", "onEnabledChanged", "No adapter available")
+        return
+      }
+
+      Logger.log("Bluetooth", "onEnableChanged", adapter.enabled)
       Settings.data.network.bluetoothEnabled = adapter.enabled
+      stateDebounceTimer.restart()
       if (adapter.enabled) {
-        ToastService.showNotice("Bluetooth", "Enabled")
         // Using a timer to give a little time so the adapter is really enabled
-        delayDiscovery.running = true
-      } else {
-        ToastService.showNotice("Bluetooth", "Disabled")
+        discoveryTimer.running = true
       }
     }
   }
@@ -170,7 +196,7 @@ Singleton {
     if (signal >= 20) {
       return "Signal: Poor"
     }
-    return "Signal: Very Poor"
+    return "Signal: Very poor"
   }
 
   function getBattery(device) {
@@ -231,12 +257,13 @@ Singleton {
     device.forget()
   }
 
-  function setBluetoothEnabled(enabled) {
+  function setBluetoothEnabled(state) {
     if (!adapter) {
       Logger.warn("Bluetooth", "No adapter available")
       return
     }
 
-    adapter.enabled = enabled
+    Logger.log("Bluetooth", "SetBluetoothEnabled", state)
+    adapter.enabled = state
   }
 }

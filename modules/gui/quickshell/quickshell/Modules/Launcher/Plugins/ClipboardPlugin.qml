@@ -7,7 +7,7 @@ Item {
   id: root
 
   // Plugin metadata
-  property string name: "Clipboard History"
+  property string name: I18n.tr("plugins.clipboard")
   property var launcher: null
 
   // Plugin capabilities
@@ -68,7 +68,7 @@ Item {
   function commands() {
     return [{
               "name": ">clip",
-              "description": "Search clipboard history",
+              "description": I18n.tr("plugins.clipboard-search-description"),
               "icon": "text-x-generic",
               "isImage": false,
               "onActivate": function () {
@@ -76,7 +76,7 @@ Item {
               }
             }, {
               "name": ">clip clear",
-              "description": "Clear all clipboard history",
+              "description": I18n.tr("plugins.clipboard-clear-description"),
               "icon": "text-x-generic",
               "isImage": false,
               "onActivate": function () {
@@ -99,8 +99,8 @@ Item {
     // Check if clipboard service is not active
     if (!ClipboardService.active) {
       return [{
-                "name": "Clipboard History Disabled",
-                "description": "Enable clipboard history in settings or install cliphist",
+                "name": I18n.tr("plugins.clipboard-history-disabled"),
+                "description": I18n.tr("plugins.clipboard-history-disabled-description"),
                 "icon": "view-refresh",
                 "isImage": false,
                 "onActivate": function () {}
@@ -110,8 +110,8 @@ Item {
     // Special command: clear
     if (query === "clear") {
       return [{
-                "name": "Clear Clipboard History",
-                "description": "Remove all items from clipboard history",
+                "name": I18n.tr("plugins.clipboard-clear-history"),
+                "description": I18n.tr("plugins.clipboard-clear-description-full"),
                 "icon": "delete_sweep",
                 "isImage": false,
                 "onActivate": function () {
@@ -124,8 +124,8 @@ Item {
     // Show loading state if data is being loaded
     if (ClipboardService.loading || isWaitingForData) {
       return [{
-                "name": "Loading clipboard history...",
-                "description": "Please wait",
+                "name": I18n.tr("plugins.clipboard-loading"),
+                "description": I18n.tr("plugins.clipboard-loading-description"),
                 "icon": "view-refresh",
                 "isImage": false,
                 "onActivate": function () {}
@@ -140,8 +140,8 @@ Item {
       isWaitingForData = true
       ClipboardService.list(100)
       return [{
-                "name": "Loading clipboard history...",
-                "description": "Please wait",
+                "name": I18n.tr("plugins.clipboard-loading"),
+                "description": I18n.tr("plugins.clipboard-loading-description"),
                 "icon": "view-refresh",
                 "isImage": false,
                 "onActivate": function () {}

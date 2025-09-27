@@ -4,22 +4,41 @@ import QtQuick
 import QtQuick.Controls
 import Quickshell
 import qs.Commons
-import qs.Commons.IconsSets
 
 Singleton {
   id: root
 
   // Expose the font family name for easy access
-  readonly property string fontFamily: fontLoader.name
+  readonly property string fontFamily: currentFontLoader ? currentFontLoader.name : ""
   readonly property string defaultIcon: TablerIcons.defaultIcon
   readonly property var icons: TablerIcons.icons
   readonly property var aliases: TablerIcons.aliases
   readonly property string fontPath: "/Assets/Fonts/tabler/tabler-icons.ttf"
 
+  // Current active font loader
+  property FontLoader currentFontLoader: null
+  property int fontVersion: 0
+
+  // Create a unique cache-busting path
+  readonly property string cacheBustingPath: Quickshell.shellDir + fontPath + "?v=" + fontVersion + "&t=" + Date.now()
+
+  // Signal emitted when font is reloaded
+  signal fontReloaded
+
   Component.onCompleted: {
     Logger.log("Icons", "Service started")
+    loadFontWithCacheBusting()
   }
 
+  Connections {
+    target: Quickshell
+    function onReloadCompleted() {
+      Logger.log("Icons", "Quickshell reload completed - forcing font reload")
+      reloadFont()
+    }
+  }
+
+  // ---------------------------------------
   function get(iconName) {
     // Check in aliases first
     if (aliases[iconName] !== undefined) {
@@ -30,20 +49,37 @@ Singleton {
     return icons[iconName]
   }
 
-  FontLoader {
-    id: fontLoader
-    source: Quickshell.shellDir + fontPath
+  function loadFontWithCacheBusting() {
+    Logger.log("Icons", "Loading font with cache busting:", cacheBustingPath)
+
+    // Destroy old loader first
+    if (currentFontLoader) {
+      currentFontLoader.destroy()
+      currentFontLoader = null
+    }
+
+    // Create new loader with cache-busting URL
+    currentFontLoader = Qt.createQmlObject(`
+                                           import QtQuick
+                                           FontLoader {
+                                           source: "${cacheBustingPath}"
+                                           }
+                                           `, root, "dynamicFontLoader_" + fontVersion)
+
+    // Connect to the new loader's status changes
+    currentFontLoader.statusChanged.connect(function () {
+      if (currentFontLoader.status === FontLoader.Ready) {
+        Logger.log("Icons", "Font loaded successfully:", currentFontLoader.name, "(version " + fontVersion + ")")
+        fontReloaded()
+      } else if (currentFontLoader.status === FontLoader.Error) {
+        Logger.error("Icons", "Font failed to load (version " + fontVersion + ")")
+      }
+    })
   }
 
-  // Monitor font loading status
-  Connections {
-    target: fontLoader
-    function onStatusChanged() {
-      if (fontLoader.status === FontLoader.Ready) {
-        Logger.log("Icons", "Font loaded successfully:", fontFamily)
-      } else if (fontLoader.status === FontLoader.Error) {
-        Logger.error("Icons", "Font failed to load")
-      }
-    }
+  function reloadFont() {
+    Logger.log("Icons", "Forcing font reload...")
+    fontVersion++
+    loadFontWithCacheBusting()
   }
 }

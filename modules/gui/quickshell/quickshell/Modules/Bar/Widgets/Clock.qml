@@ -29,177 +29,86 @@ Rectangle {
   }
 
   readonly property string barPosition: Settings.data.bar.position
+  readonly property bool isBarVertical: barPosition === "left" || barPosition === "right"
   readonly property bool compact: (Settings.data.bar.density === "compact")
 
+  readonly property var now: Time.date
+
   // Resolve settings: try user settings or defaults from BarWidgetRegistry
-  readonly property bool use12h: widgetSettings.use12HourClock !== undefined ? widgetSettings.use12HourClock : widgetMetadata.use12HourClock
-  readonly property bool reverseDayMonth: widgetSettings.reverseDayMonth !== undefined ? widgetSettings.reverseDayMonth : widgetMetadata.reverseDayMonth
-  readonly property string displayFormat: widgetSettings.displayFormat !== undefined ? widgetSettings.displayFormat : widgetMetadata.displayFormat
+  readonly property bool usePrimaryColor: widgetSettings.usePrimaryColor !== undefined ? widgetSettings.usePrimaryColor : widgetMetadata.usePrimaryColor
+  property bool useMonospacedFont: widgetSettings.useMonospacedFont !== undefined ? widgetSettings.useMonospacedFont : widgetMetadata.useMonospacedFont
+  readonly property string formatHorizontal: widgetSettings.formatHorizontal !== undefined ? widgetSettings.formatHorizontal : widgetMetadata.formatHorizontal
+  readonly property string formatVertical: widgetSettings.formatVertical !== undefined ? widgetSettings.formatVertical : widgetMetadata.formatVertical
 
-  // Use compact mode for vertical bars
-  readonly property bool verticalMode: barPosition === "left" || barPosition === "right"
+  implicitWidth: isBarVertical ? Math.round(Style.capsuleHeight * scaling) : Math.round((isBarVertical ? verticalLoader.implicitWidth : horizontalLoader.implicitWidth) + Style.marginM * 2 * scaling)
 
-  implicitWidth: verticalMode ? Math.round(Style.capsuleHeight * scaling) : Math.round(layout.implicitWidth + Style.marginM * 2 * scaling)
-  implicitHeight: verticalMode ? Math.round(Style.capsuleHeight * 2.5 * scaling) : Math.round(Style.capsuleHeight * scaling) // Match BarPill
+  implicitHeight: isBarVertical ? Math.round(verticalLoader.implicitHeight + Style.marginS * 2 * scaling) : Math.round(Style.capsuleHeight * scaling)
 
   radius: Math.round(Style.radiusS * scaling)
   color: Settings.data.bar.showCapsule ? Color.mSurfaceVariant : Color.transparent
 
   Item {
     id: clockContainer
-    anchors.fill: parent
-    anchors.margins: compact ? 0 : Style.marginXS * scaling
+    anchors.centerIn: parent
 
-    ColumnLayout {
-      id: layout
+    // Horizontal
+    Loader {
+      id: horizontalLoader
+      active: !isBarVertical
       anchors.centerIn: parent
-      spacing: verticalMode ? -2 * scaling : -3 * scaling
-
-      // Compact mode for vertical bars - Time section (HH, MM)
-      Repeater {
-        model: verticalMode ? 2 : 1
-        NText {
-          readonly property bool showSeconds: (displayFormat === "time-seconds")
-          readonly property bool inlineDate: (displayFormat === "time-date")
-          readonly property var now: Time.date
-
-          text: {
-            if (verticalMode) {
-              // Compact mode: time section (first 2 lines)
-              switch (index) {
-              case 0:
-                // Hours
-                if (use12h) {
-                  const hours = now.getHours()
-                  const displayHours = hours === 0 ? 12 : (hours > 12 ? hours - 12 : hours)
-                  return displayHours.toString().padStart(2, '0')
-                } else {
-                  return now.getHours().toString().padStart(2, '0')
-                }
-              case 1:
-                // Minutes
-                return now.getMinutes().toString().padStart(2, '0')
-              default:
-                return ""
-              }
-            } else {
-              // Normal mode: single line with time
-              let timeStr = ""
-
-              if (use12h) {
-                // 12-hour format with proper padding and consistent spacing
-                const hours = now.getHours()
-                const displayHours = hours === 0 ? 12 : (hours > 12 ? hours - 12 : hours)
-                const paddedHours = displayHours.toString().padStart(2, '0')
-                const minutes = now.getMinutes().toString().padStart(2, '0')
-                const ampm = hours < 12 ? 'AM' : 'PM'
-
-                if (showSeconds) {
-                  const seconds = now.getSeconds().toString().padStart(2, '0')
-                  timeStr = `${paddedHours}:${minutes}:${seconds} ${ampm}`
-                } else {
-                  timeStr = `${paddedHours}:${minutes} ${ampm}`
-                }
+      sourceComponent: ColumnLayout {
+        anchors.centerIn: parent
+        spacing: Settings.data.bar.showCapsule ? -4 * scaling : -2 * scaling
+        Repeater {
+          id: repeater
+          model: Qt.formatDateTime(now, formatHorizontal.trim()).split("\\n")
+          NText {
+            visible: text !== ""
+            text: modelData
+            font.family: useMonospacedFont ? Settings.data.ui.fontFixed : Settings.data.ui.fontDefault
+            font.pointSize: {
+              if (repeater.model.length == 1) {
+                return Style.fontSizeS * scaling
               } else {
-                // 24-hour format with padding
-                const hours = now.getHours().toString().padStart(2, '0')
-                const minutes = now.getMinutes().toString().padStart(2, '0')
-
-                if (showSeconds) {
-                  const seconds = now.getSeconds().toString().padStart(2, '0')
-                  timeStr = `${hours}:${minutes}:${seconds}`
-                } else {
-                  timeStr = `${hours}:${minutes}`
-                }
-              }
-
-              // Add inline date if needed
-              if (inlineDate) {
-                let dayName = now.toLocaleDateString(Qt.locale(), "ddd")
-                dayName = dayName.charAt(0).toUpperCase() + dayName.slice(1)
-                const day = now.getDate().toString().padStart(2, '0')
-                let month = now.toLocaleDateString(Qt.locale(), "MMM")
-                timeStr += " - " + (reverseDayMonth ? `${dayName}, ${month} ${day}` : `${dayName}, ${day} ${month}`)
-              }
-
-              return timeStr
-            }
-          }
-
-          font.family: Settings.data.ui.fontFixed
-          font.pointSize: verticalMode ? Style.fontSizeXXS * scaling : Style.fontSizeXS * scaling
-          font.weight: Style.fontWeightBold
-          color: Color.mPrimary
-          Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
-        }
-      }
-
-      // Separator line for compact mode (between time and date)
-      Rectangle {
-        visible: verticalMode
-        Layout.preferredWidth: 20 * scaling
-        Layout.preferredHeight: 2 * scaling
-        Layout.alignment: Qt.AlignHCenter
-        Layout.topMargin: 3 * scaling
-        Layout.bottomMargin: 3 * scaling
-        color: Color.mPrimary
-        opacity: 0.3
-        radius: 1 * scaling
-      }
-
-      // Compact mode for vertical bars - Date section (DD, MM)
-      Repeater {
-        model: verticalMode ? 2 : 0
-        NText {
-          readonly property var now: Time.date
-
-          text: {
-            if (verticalMode) {
-              // Compact mode: date section (last 2 lines)
-              switch (index) {
-              case 0:
-                // Day
-                return now.getDate().toString().padStart(2, '0')
-              case 1:
-                // Month
-                return (now.getMonth() + 1).toString().padStart(2, '0')
-              default:
-                return ""
+                return (index == 0) ? Style.fontSizeXS * scaling : Style.fontSizeXXS * scaling
               }
             }
-            return ""
+            font.weight: Style.fontWeightBold
+            color: usePrimaryColor ? Color.mPrimary : Color.mOnSurface
+            wrapMode: Text.WordWrap
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
           }
-
-          font.pointSize: Style.fontSizeXXS * scaling
-          font.weight: Style.fontWeightBold
-          color: Color.mPrimary
-          Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
         }
       }
+    }
 
-      // Second line for normal mode (date)
-      NText {
-        visible: !verticalMode && (displayFormat === "time-date-short")
-        text: {
-          const now = Time.date
-          const day = now.getDate().toString().padStart(2, '0')
-          const month = (now.getMonth() + 1).toString().padStart(2, '0')
-          return reverseDayMonth ? `${month}/${day}` : `${day}/${month}`
+    // Vertical
+    Loader {
+      id: verticalLoader
+      active: isBarVertical
+      anchors.centerIn: parent // Now this works without layout conflicts
+      sourceComponent: ColumnLayout {
+        anchors.centerIn: parent
+        spacing: -2 * scaling
+        Repeater {
+          model: Qt.formatDateTime(now, formatVertical.trim()).split(" ")
+          delegate: NText {
+            visible: text !== ""
+            text: modelData
+            font.family: useMonospacedFont ? Settings.data.ui.fontFixed : Settings.data.ui.fontDefault
+            font.pointSize: Style.fontSizeS * scaling
+            font.weight: Style.fontWeightBold
+            color: usePrimaryColor ? Color.mPrimary : Color.mOnSurface
+            wrapMode: Text.WordWrap
+            Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
+          }
         }
-
-        // Enable fixed-width font for consistent spacing
-        font.family: Settings.data.ui.fontFixed
-        font.pointSize: Style.fontSizeXXS * scaling
-        font.weight: Style.fontWeightRegular
-        color: Color.mPrimary
-        Layout.alignment: Qt.AlignHCenter | Qt.AlignVCenter
       }
     }
   }
-
   NTooltip {
     id: tooltip
-    text: `${Time.formatDate(reverseDayMonth)}.`
+    text: I18n.tr("clock.tooltip")
     target: clockContainer
     positionAbove: Settings.data.bar.position === "bottom"
   }

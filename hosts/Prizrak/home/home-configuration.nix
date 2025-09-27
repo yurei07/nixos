@@ -46,6 +46,7 @@
 
     packages = with pkgs; [
       # Apps
+      calibre
       pomodoro-gtk
       blanket
       obsidian

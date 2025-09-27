@@ -40,6 +40,8 @@
         pipenv # Python dependency management tool
         pytest # Python testing framework
         grip # Preview READMEs from GitHub repos before committing
+        msgpack
+        flask
 
         # --- Formatters ---
         # mdformat # Markdown formatter

@@ -16,7 +16,7 @@ Singleton {
   readonly property alias data: adapter // Used to access via GitHubService.data.xxx.yyy
 
   // Public properties for easy access
-  property string latestVersion: "Unknown"
+  property string latestVersion: I18n.tr("system.unknown-version")
   property var contributors: []
 
   FileView {
@@ -43,7 +43,7 @@ Singleton {
     JsonAdapter {
       id: adapter
 
-      property string version: "Unknown"
+      property string version: I18n.tr("system.unknown-version")
       property var contributors: []
       property real timestamp: 0
     }
@@ -97,7 +97,7 @@ Singleton {
 
   // --------------------------------
   function resetCache() {
-    data.version = "Unknown"
+    data.version = I18n.tr("system.unknown-version")
     data.contributors = []
     data.timestamp = 0
 

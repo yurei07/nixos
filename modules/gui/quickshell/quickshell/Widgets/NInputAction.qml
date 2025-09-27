@@ -13,7 +13,7 @@ RowLayout {
   property string description: ""
   property string placeholderText: ""
   property string text: ""
-  property string actionButtonText: "Test"
+  property string actionButtonText: I18n.tr("placeholders.test")
   property string actionButtonIcon: "media-play"
   property bool actionButtonEnabled: text !== ""
 
@@ -47,7 +47,6 @@ RowLayout {
     backgroundColor: Color.mSecondary
     textColor: Color.mOnSecondary
     hoverColor: Color.mTertiary
-    pressColor: Color.mPrimary
     enabled: root.actionButtonEnabled
 
     onClicked: {

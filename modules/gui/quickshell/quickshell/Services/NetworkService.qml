@@ -48,9 +48,9 @@ Singleton {
     target: Settings.data.network
     function onWifiEnabledChanged() {
       if (Settings.data.network.wifiEnabled) {
-        ToastService.showNotice("Wi-Fi", "Enabled")
+        ToastService.showNotice(I18n.tr("wifi.panel.title"), I18n.tr("toast.wifi.enabled"))
       } else {
-        ToastService.showNotice("Wi-Fi", "Disabled")
+        ToastService.showNotice(I18n.tr("wifi.panel.title"), I18n.tr("toast.wifi.disabled"))
       }
     }
   }
@@ -492,7 +492,9 @@ Singleton {
         root.connecting = false
         root.connectingTo = ""
         Logger.log("Network", `Connected to network: '${connectProcess.ssid}'`)
-        ToastService.showNotice("Wi-Fi", `Connected to '${connectProcess.ssid}'`)
+        ToastService.showNotice(I18n.tr("wifi.panel.title"), I18n.tr("toast.wifi.connected", {
+                                                                       "ssid": connectProcess.ssid
+                                                                     }))
 
         // Still do a scan to get accurate signal and security info
         delayedScanTimer.interval = 5000
@@ -533,7 +535,9 @@ Singleton {
     stdout: StdioCollector {
       onStreamFinished: {
         Logger.log("Network", `Disconnected from network: '${disconnectProcess.ssid}'`)
-        ToastService.showNotice("Wi-Fi", `Disconnected from '${disconnectProcess.ssid}'`)
+        ToastService.showNotice(I18n.tr("wifi.panel.title"), I18n.tr("toast.wifi.disconnected", {
+                                                                       "ssid": disconnectProcess.ssid
+                                                                     }))
 
         // Immediately update UI on successful disconnect
         root.updateNetworkStatus(disconnectProcess.ssid, false)

@@ -1,377 +1,405 @@
 pragma Singleton
 
 import QtQuick
+import QtQuick.Window
 import Quickshell
 import Quickshell.Io
+import Quickshell.Services.Notifications
 import qs.Commons
 import qs.Services
-import Quickshell.Services.Notifications
+import "../Helpers/sha256.js" as Checksum
 
 Singleton {
   id: root
 
-  // Notification server instance
-  property NotificationServer server: NotificationServer {
-    id: notificationServer
+  // Configuration
+  property int maxVisible: 5
+  property int maxHistory: 100
+  property string historyFile: Quickshell.env("NOCTALIA_NOTIF_HISTORY_FILE") || (Settings.cacheDir + "notifications.json")
 
-    // Server capabilities
+  // Models
+  property ListModel activeList: ListModel {}
+  property ListModel historyList: ListModel {}
+
+  // Internal state
+  property var activeMap: ({})
+  property var imageQueue: []
+  property var progressTimers: ({})
+
+  // Simple image cacher
+  PanelWindow {
+    implicitHeight: 1
+    implicitWidth: 1
+    color: "transparent"
+    mask: Region {}
+
+    Image {
+      id: cacher
+      width: 64
+      height: 64
+      visible: true
+      cache: false
+      asynchronous: true
+      mipmap: true
+      antialiasing: true
+
+      onStatusChanged: {
+        if (imageQueue.length === 0)
+        return
+        const req = imageQueue[0]
+
+        if (status === Image.Ready) {
+          Logger.log("Notification", "Caching image to:", req.dest)
+          Quickshell.execDetached(["mkdir", "-p", Settings.cacheDirImagesNotifications])
+          grabToImage(result => {
+                        if (result.saveToFile(req.dest))
+                        updateImagePath(req.imageId, req.dest)
+                        processNextImage()
+                      })
+        } else if (status === Image.Error) {
+          processNextImage()
+        }
+      }
+
+      function processNextImage() {
+        imageQueue.shift()
+        if (imageQueue.length > 0) {
+          source = imageQueue[0].src
+        } else {
+          source = ""
+        }
+      }
+    }
+  }
+
+  // Notification server
+  NotificationServer {
     keepOnReload: false
     imageSupported: true
     actionsSupported: true
-    actionIconsSupported: true
-    bodyMarkupSupported: true
-    bodySupported: true
-    persistenceSupported: true
-    inlineReplySupported: true
-    bodyHyperlinksSupported: true
-    bodyImagesSupported: true
+    onNotification: notification => handleNotification(notification)
+  }
 
-    // Signal when notification is received
-    onNotification: function (notification) {
-      // Always add notification to history
-      root.addToHistory(notification)
+  // Main handler
+  function handleNotification(notification) {
+    const data = createData(notification)
+    addToHistory(data)
 
-      // Check if do-not-disturb is enabled
-      if (Settings.data.notifications && Settings.data.notifications.doNotDisturb) {
+    if (Settings.data.notifications?.doNotDisturb)
+      return
+
+    activeMap[data.id] = notification
+    notification.tracked = true
+    notification.closed.connect(() => removeActive(data.id))
+
+    activeList.insert(0, data)
+    while (activeList.count > maxVisible) {
+      const last = activeList.get(activeList.count - 1)
+      activeMap[last.id]?.dismiss()
+      activeList.remove(activeList.count - 1)
+    }
+  }
+
+  function createData(n) {
+    const time = new Date()
+    const id = Checksum.sha256(JSON.stringify({
+                                                "summary": n.summary,
+                                                "body": n.body,
+                                                "app": n.appName,
+                                                "time": time.getTime()
+                                              }))
+
+    const image = n.image || getIcon(n.appIcon)
+    const imageId = generateImageId(n, image)
+    queueImage(image, imageId)
+
+    return {
+      "id": id,
+      "summary": (n.summary || ""),
+      "body": stripTags(n.body || ""),
+      "appName": getAppName(n.appName),
+      "urgency": n.urgency < 0 || n.urgency > 2 ? 1 : n.urgency,
+      "expireTimeout": n.expireTimeout,
+      "timestamp": time,
+      "progress": 1.0,
+      "originalImage": image,
+      "cachedImage": imageId ? (Settings.cacheDirImagesNotifications + imageId + ".png") : image,
+      "actionsJson": JSON.stringify((n.actions || []).map(a => ({
+                                                                  "text": a.text || "Action",
+                                                                  "identifier": a.identifier || ""
+                                                                })))
+    }
+  }
+
+  function queueImage(path, imageId) {
+    if (!path || !path.startsWith("image://") || !imageId)
+      return
+
+    const dest = Settings.cacheDirImagesNotifications + imageId + ".png"
+
+    // Skip if already queued
+    for (const req of imageQueue) {
+      if (req.imageId === imageId)
         return
+    }
+
+    imageQueue.push({
+                      "src": path,
+                      "dest": dest,
+                      "imageId": imageId
+                    })
+
+    // If we have a single item in the queue, process it immediately
+    if (imageQueue.length === 1)
+      cacher.source = path
+  }
+
+  function updateImagePath(id, path) {
+    updateModel(activeList, id, "cachedImage", path)
+    updateModel(historyList, id, "cachedImage", path)
+    saveHistory()
+  }
+
+  function updateModel(model, id, prop, value) {
+    for (var i = 0; i < model.count; i++) {
+      if (model.get(i).id === id) {
+        model.setProperty(i, prop, value)
+        break
       }
-
-      // Track the notification
-      notification.tracked = true
-
-      // Connect to closed signal for cleanup
-      notification.closed.connect(function () {
-        root.removeNotification(notification)
-      })
-
-      // Add to our model
-      root.addNotification(notification)
     }
   }
 
-  // List model to hold notifications
-  property ListModel notificationModel: ListModel {}
-
-  // Persistent history of notifications (most recent first)
-  property ListModel historyModel: ListModel {}
-  property int maxHistory: 100
-
-  // Cached history file path
-  property string historyFile: Quickshell.env("NOCTALIA_NOTIF_HISTORY_FILE") || (Settings.cacheDir + "notifications.json")
-
-  // Persisted storage for history
-  property FileView historyFileView: FileView {
-    id: historyFileView
-    objectName: "notificationHistoryFileView"
-    path: historyFile
-    printErrors: false
-    watchChanges: true
-    onFileChanged: reload()
-    onAdapterUpdated: writeAdapter()
-    Component.onCompleted: reload()
-    onLoaded: loadFromHistory()
-    onLoadFailed: function (error) {
-      // Create file on first use
-      if (error.toString().includes("No such file") || error === 2) {
-        writeAdapter()
+  function removeActive(id) {
+    for (var i = 0; i < activeList.count; i++) {
+      if (activeList.get(i).id === id) {
+        activeList.remove(i)
+        delete activeMap[id]
+        delete progressTimers[id]
+        break
       }
-    }
-
-    JsonAdapter {
-      id: historyAdapter
-      property var history: []
-      property real timestamp: 0
-    }
-  }
-
-  // Maximum visible notifications
-  property int maxVisible: 5
-
-  // Function to get duration based on urgency
-  function getDurationForUrgency(urgency) {
-    switch (urgency) {
-    case 0:
-      // Low urgency
-      return (Settings.data.notifications.lowUrgencyDuration || 3) * 1000
-    case 1:
-      // Normal urgency
-      return (Settings.data.notifications.normalUrgencyDuration || 8) * 1000
-    case 2:
-      // Critical urgency
-      return (Settings.data.notifications.criticalUrgencyDuration || 15) * 1000
-    default:
-      return (Settings.data.notifications.normalUrgencyDuration || 8) * 1000
     }
   }
 
   // Auto-hide timer
-  property Timer hideTimer: Timer {
-    interval: 1000 // Check every second
+  Timer {
+    interval: 10
     repeat: true
-    running: notificationModel.count > 0
-
+    running: activeList.count > 0
     onTriggered: {
-      if (notificationModel.count === 0) {
-        return
-      }
+      const now = Date.now()
+      const durations = [Settings.data.notifications?.lowUrgencyDuration * 1000 || 3000, Settings.data.notifications?.normalUrgencyDuration * 1000 || 8000, Settings.data.notifications?.criticalUrgencyDuration * 1000 || 15000]
 
-      // Check each notification for expiration
-      for (var i = notificationModel.count - 1; i >= 0; i--) {
-        let notificationData = notificationModel.get(i)
-        if (notificationData && notificationData.rawNotification) {
-          let notification = notificationData.rawNotification
-          let urgency = notificationData.urgency
-          let timestamp = notificationData.timestamp
+      for (var i = activeList.count - 1; i >= 0; i--) {
+        const notif = activeList.get(i)
+        const elapsed = now - notif.timestamp.getTime()
+        var expire = 0
 
-          // Calculate if this notification should be removed
-          let duration = getDurationForUrgency(urgency)
-          let now = new Date()
-          let elapsed = now.getTime() - timestamp.getTime()
+        if (Settings.data.notifications?.respectExpireTimeout)
+        expire = notif.expireTimeout > 0 ? notif.expireTimeout : durations[notif.urgency]
+        else
+        expire = durations[notif.urgency]
 
-          if (elapsed >= duration) {
-            // Trigger animation signal instead of direct dismiss
-            animateAndRemove(notification, i)
-            break
-            // Only remove one notification per check to avoid conflicts
-          }
+        const progress = Math.max(1.0 - (elapsed / expire), 0.0)
+        updateModel(activeList, notif.id, "progress", progress)
+
+        if (elapsed >= expire) {
+          animateAndRemove(notif.id)
+          delete progressTimers[notif.id]
+          break
         }
       }
     }
   }
+
+  // History management
+  function addToHistory(data) {
+    historyList.insert(0, data)
+
+    while (historyList.count > maxHistory) {
+      const old = historyList.get(historyList.count - 1)
+      if (old.cachedImage && !old.cachedImage.startsWith("image://")) {
+        Quickshell.execDetached(["rm", "-f", old.cachedImage])
+      }
+      historyList.remove(historyList.count - 1)
+    }
+    saveHistory()
+  }
+
+  // Persistence
+  FileView {
+    id: historyFileView
+    path: historyFile
+    printErrors: false
+    onLoaded: loadHistory()
+    onLoadFailed: error => {
+      if (error === 2)
+      writeAdapter()
+    }
+
+    JsonAdapter {
+      id: adapter
+      property var notifications: []
+    }
+  }
+
+  Timer {
+    id: saveTimer
+    interval: 200
+    onTriggered: performSaveHistory()
+  }
+
+  function saveHistory() {
+    saveTimer.restart()
+  }
+
+  function performSaveHistory() {
+    try {
+      const items = []
+      for (var i = 0; i < historyList.count; i++) {
+        const n = historyList.get(i)
+        const copy = Object.assign({}, n)
+        copy.timestamp = n.timestamp.getTime()
+        items.push(copy)
+      }
+      adapter.notifications = items
+      // Actually write the file
+      historyFileView.writeAdapter()
+    } catch (e) {
+      Logger.error("Notifications", "Save history failed:", e)
+    }
+  }
+
+  function loadHistory() {
+    try {
+      historyList.clear()
+      for (const item of adapter.notifications || []) {
+        const time = new Date(item.timestamp)
+
+        // Check if we have a cached image and try to use it
+        let cachedImage = item.cachedImage || ""
+        if (item.originalImage && item.originalImage.startsWith("image://") && !cachedImage) {
+          // Try to generate the expected cached path
+          const imageId = generateImageId(item, item.originalImage)
+          if (imageId) {
+            cachedImage = Settings.cacheDirImagesNotifications + imageId + ".png"
+          }
+        }
+
+        historyList.append({
+                             "id": item.id || "",
+                             "summary": item.summary || "",
+                             "body": item.body || "",
+                             "appName": item.appName || "",
+                             "urgency": item.urgency < 0 || item.urgency > 2 ? 1 : item.urgency,
+                             "timestamp": time,
+                             "originalImage": item.originalImage || "",
+                             "cachedImage": cachedImage
+                           })
+      }
+    } catch (e) {
+      Logger.error("Notifications", "Load failed:", e)
+    }
+  }
+
+  // Helpers
+  function getAppName(name) {
+    if (!name?.includes("."))
+      return name || ""
+    const entries = DesktopEntries.byId(name)
+    if (entries?.length)
+      return entries[0].name || name
+    const parts = name.split(".")
+    return parts[parts.length - 1].charAt(0).toUpperCase() + parts[parts.length - 1].slice(1)
+  }
+
+  function getIcon(icon) {
+    if (!icon)
+      return ""
+    if (icon.startsWith("/") || icon.startsWith("file://"))
+      return icon
+    return ThemeIcons.iconFromName(icon)
+  }
+
+  function stripTags(text) {
+    return text.replace(/<[^>]*>?/gm, '')
+  }
+
+  function generateImageId(notification, image) {
+    if (image && image.startsWith("image://")) {
+      // For qsimage URLs, try to use a combination that's unique per user
+      if (image.startsWith("image://qsimage/")) {
+        // Try to use app name + summary for uniqueness (summary often contains username)
+        const key = (notification.appName || "") + "|" + (notification.summary || "")
+        return Checksum.sha256(key)
+      }
+
+      return Checksum.sha256(image)
+    }
+    return ""
+  }
+
+  // Public API
+  function dismissActiveNotification(id) {
+    activeMap[id]?.dismiss()
+    removeActive(id)
+  }
+
+  function dismissAllActive() {
+    Object.values(activeMap).forEach(n => n.dismiss())
+    activeList.clear()
+    activeMap = {}
+  }
+
+  function invokeAction(id, actionId) {
+    const n = activeMap[id]
+    if (!n?.actions)
+      return false
+
+    for (const action of n.actions) {
+      if (action.identifier === actionId && action.invoke) {
+        action.invoke()
+        return true
+      }
+    }
+    return false
+  }
+
+  function removeFromHistory(notificationId) {
+    for (var i = 0; i < historyList.count; i++) {
+      const notif = historyList.get(i)
+      if (notif.id === notificationId) {
+        // Delete cached image if it exists
+        if (notif.cachedImage && !notif.cachedImage.startsWith("image://")) {
+          Quickshell.execDetached(["rm", "-f", notif.cachedImage])
+        }
+        historyList.remove(i)
+        saveHistory()
+        return true
+      }
+    }
+    return false
+  }
+
+  function clearHistory() {
+    // Remove all cached images
+    try {
+      Quickshell.execDetached(["sh", "-c", `rm -rf "${Settings.cacheDirImagesNotifications}"*`])
+    } catch (e) {
+      Logger.error("Notifications", "Failed to clear cache directory:", e)
+    }
+
+    historyList.clear()
+    saveHistory()
+  }
+
+  // Signals & connections
+  signal animateAndRemove(string notificationId)
 
   Connections {
     target: Settings.data.notifications
     function onDoNotDisturbChanged() {
-      const label = Settings.data.notifications.doNotDisturb ? "'Do Not Disturb' enabled" : "'Do Not Disturb' disabled"
-      const description = Settings.data.notifications.doNotDisturb ? "You'll find these notifications in your history." : "Showing all notifications."
-      ToastService.showNotice(label, description)
-    }
-  }
-
-  // Function to resolve app name from notification
-  function resolveAppName(notification) {
-    try {
-      const appName = notification.appName || ""
-
-      // If it's already a clean name (no dots or reverse domain notation), use it
-      if (!appName.includes(".") || appName.length < 10) {
-        return appName
-      }
-
-      // Try to find a desktop entry for this app ID
-      const desktopEntries = DesktopEntries.byId(appName)
-      if (desktopEntries && desktopEntries.length > 0) {
-        const entry = desktopEntries[0]
-        // Prefer name over genericName, fallback to original appName
-        return entry.name || entry.genericName || appName
-      }
-
-      // If no desktop entry found, try to clean up the app ID
-      // Convert "org.gnome.Nautilus" to "Nautilus"
-      const parts = appName.split(".")
-      if (parts.length > 1) {
-        // Take the last part and capitalize it
-        const lastPart = parts[parts.length - 1]
-        return lastPart.charAt(0).toUpperCase() + lastPart.slice(1)
-      }
-
-      return appName
-    } catch (e) {
-      // Fallback to original app name on any error
-      return notification.appName || ""
-    }
-  }
-
-  // Function to add notification to model
-  function addNotification(notification) {
-    const resolvedImage = resolveNotificationImage(notification)
-    const resolvedAppName = resolveAppName(notification)
-
-    notificationModel.insert(0, {
-                               "rawNotification": notification,
-                               "summary": notification.summary,
-                               "body": notification.body,
-                               "appName": resolvedAppName,
-                               "desktopEntry": notification.desktopEntry,
-                               "image": resolvedImage,
-                               "appIcon": notification.appIcon,
-                               "urgency": notification.urgency,
-                               "timestamp": new Date()
-                             })
-
-    // Remove oldest notifications if we exceed maxVisible
-    while (notificationModel.count > maxVisible) {
-      let oldestNotification = notificationModel.get(notificationModel.count - 1).rawNotification
-      if (oldestNotification) {
-        oldestNotification.dismiss()
-      }
-      notificationModel.remove(notificationModel.count - 1)
-    }
-  }
-
-  // Resolve an image path for a notification, supporting icon names and absolute paths
-  function resolveNotificationImage(notification) {
-    try {
-      // If an explicit image is already provided, prefer it
-      if (notification && notification.image && notification.image !== "") {
-        return notification.image
-      }
-
-      // Fallback to appIcon which may be a name or a path (notify-send -i)
-      const icon = notification ? (notification.appIcon || "") : ""
-      if (!icon)
-        return ""
-
-      // Accept absolute file paths or file URLs directly
-      if (icon.startsWith("/")) {
-        return icon
-      }
-      if (icon.startsWith("file://")) {
-        // Strip the scheme for QML image source compatibility
-        return icon.substring("file://".length)
-      }
-
-      // Resolve themed icon names to absolute paths
-      try {
-        const p = AppIcons.iconFromName(icon, "")
-        return p || ""
-      } catch (e2) {
-        return ""
-      }
-    } catch (e) {
-      return ""
-    }
-  }
-
-  function addToHistory(notification) {
-    const resolvedAppName = resolveAppName(notification)
-    const resolvedImage = resolveNotificationImage(notification)
-
-    historyModel.insert(0, {
-                          "summary": notification.summary,
-                          "body": notification.body,
-                          "appName": resolvedAppName,
-                          "desktopEntry": notification.desktopEntry || "",
-                          "image": resolvedImage,
-                          "appIcon": notification.appIcon || "",
-                          "urgency": notification.urgency,
-                          "timestamp": new Date()
-                        })
-    while (historyModel.count > maxHistory) {
-      historyModel.remove(historyModel.count - 1)
-    }
-    saveHistory()
-  }
-
-  function clearHistory() {
-    historyModel.clear()
-    saveHistory()
-  }
-
-  function loadFromHistory() {
-    // Populate in-memory model from adapter
-    try {
-      historyModel.clear()
-      const items = historyAdapter.history || []
-      for (var i = 0; i < items.length; i++) {
-        const it = items[i]
-        // Coerce legacy second-based timestamps to milliseconds
-        var ts = it.timestamp
-        if (typeof ts === "number" && ts < 1e12) {
-          ts = ts * 1000
-        }
-        historyModel.append({
-                              "summary": it.summary || "",
-                              "body": it.body || "",
-                              "appName": it.appName || "",
-                              "desktopEntry": it.desktopEntry || "",
-                              "image": it.image || "",
-                              "appIcon": it.appIcon || "",
-                              "urgency": it.urgency,
-                              "timestamp": ts ? new Date(ts) : new Date()
-                            })
-      }
-    } catch (e) {
-      Logger.error("Notifications", "Failed to load history:", e)
-    }
-  }
-
-  function saveHistory() {
-    try {
-      // Serialize model back to adapter
-      var arr = []
-      for (var i = 0; i < historyModel.count; i++) {
-        const n = historyModel.get(i)
-        arr.push({
-                   "summary": n.summary,
-                   "body": n.body,
-                   "appName": n.appName,
-                   "desktopEntry": n.desktopEntry,
-                   "image": n.image,
-                   "appIcon": n.appIcon,
-                   "urgency": n.urgency,
-                   "timestamp"// Always persist in milliseconds
-                   : (n.timestamp instanceof Date) ? n.timestamp.getTime() : (typeof n.timestamp === "number" && n.timestamp < 1e12 ? n.timestamp * 1000 : n.timestamp)
-                 })
-      }
-      historyAdapter.history = arr
-      historyAdapter.timestamp = Time.timestamp
-
-      Qt.callLater(function () {
-        historyFileView.writeAdapter()
-      })
-    } catch (e) {
-      Logger.error("Notifications", "Failed to save history:", e)
-    }
-  }
-
-  // Signal to trigger animation before removal
-  signal animateAndRemove(var notification, int index)
-
-  // Function to remove notification from model
-  function removeNotification(notification) {
-    for (var i = 0; i < notificationModel.count; i++) {
-      if (notificationModel.get(i).rawNotification === notification) {
-        // Emit signal to trigger animation first
-        animateAndRemove(notification, i)
-        break
-      }
-    }
-  }
-
-  // Function to actually remove notification after animation
-  function forceRemoveNotification(notification) {
-    for (var i = 0; i < notificationModel.count; i++) {
-      if (notificationModel.get(i).rawNotification === notification) {
-        notificationModel.remove(i)
-        break
-      }
-    }
-  }
-
-  // Function to format timestamp
-  function formatTimestamp(timestamp) {
-    if (!timestamp)
-      return ""
-
-    const now = new Date()
-    const diff = now - timestamp
-
-    // Less than 1 minute
-    if (diff < 60000) {
-      return "now"
-    } // Less than 1 hour
-    else if (diff < 3600000) {
-      const minutes = Math.floor(diff / 60000)
-      return `${minutes}m ago`
-    } // Less than 24 hours
-    else if (diff < 86400000) {
-      const hours = Math.floor(diff / 3600000)
-      return `${hours}h ago`
-    } // More than 24 hours
-    else {
-      const days = Math.floor(diff / 86400000)
-      return `${days}d ago`
+      const enabled = Settings.data.notifications.doNotDisturb
+      ToastService.showNotice(enabled ? I18n.tr("toast.do-not-disturb.enabled") : I18n.tr("toast.do-not-disturb.disabled"), enabled ? I18n.tr("toast.do-not-disturb.enabled-desc") : I18n.tr("toast.do-not-disturb.disabled-desc"))
     }
   }
 }

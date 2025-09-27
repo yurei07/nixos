@@ -1,10 +1,11 @@
 import QtQuick
 import qs.Services
+import qs.Commons
 import "../../../Helpers/AdvancedMath.js" as AdvancedMath
 
 Item {
   property var launcher: null
-  property string name: "Calculator"
+  property string name: I18n.tr("plugins.calculator")
 
   function handleCommand(query) {
     // Handle >calc command or direct math expressions after >
@@ -14,7 +15,7 @@ Item {
   function commands() {
     return [{
               "name": ">calc",
-              "description": "Calculator - evaluate mathematical expressions",
+              "description": I18n.tr("plugins.calculator-description"),
               "icon": "accessories-calculator",
               "isImage": false,
               "onActivate": function () {
@@ -36,8 +37,8 @@ Item {
 
     if (!expression) {
       return [{
-                "name": "Calculator",
-                "description": "Enter a mathematical expression",
+                "name": I18n.tr("plugins.calculator-name"),
+                "description": I18n.tr("plugins.calculator-enter-expression"),
                 "icon": "accessories-calculator",
                 "isImage": false,
                 "onActivate": function () {}
@@ -59,7 +60,7 @@ Item {
               }]
     } catch (error) {
       return [{
-                "name": "Error",
+                "name": I18n.tr("plugins.calculator-error"),
                 "description": error.message || "Invalid expression",
                 "icon": "dialog-error",
                 "isImage": false,

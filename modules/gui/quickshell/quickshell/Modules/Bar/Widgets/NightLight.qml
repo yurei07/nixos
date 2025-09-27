@@ -4,7 +4,7 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Wayland
 import qs.Commons
-import qs.Modules.SettingsPanel
+import qs.Modules.Settings
 import qs.Services
 import qs.Widgets
 
@@ -22,7 +22,7 @@ NIconButton {
   colorBorderHover: Color.transparent
 
   icon: Settings.data.nightLight.enabled ? (Settings.data.nightLight.forced ? "nightlight-forced" : "nightlight-on") : "nightlight-off"
-  tooltipText: `Night light: ${Settings.data.nightLight.enabled ? (Settings.data.nightLight.forced ? "forced." : "enabled.") : "disabled."}\nLeft click to cycle (disabled → normal → forced).\nRight click to access settings.`
+  tooltipText: Settings.data.nightLight.enabled ? (Settings.data.nightLight.forced ? I18n.tr("tooltips.night-light-forced") : I18n.tr("tooltips.night-light-enabled")) : I18n.tr("tooltips.night-light-disabled")
   onClicked: {
     if (!Settings.data.nightLight.enabled) {
       Settings.data.nightLight.enabled = true

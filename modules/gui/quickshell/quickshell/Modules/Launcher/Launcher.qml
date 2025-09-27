@@ -245,7 +245,7 @@ NPanel {
         fontWeight: Style.fontWeightSemiBold
 
         text: searchText
-        placeholderText: "Search entries... or use > for commands"
+        placeholderText: I18n.tr("placeholders.search-launcher")
 
         onTextChanged: searchText = text
 
@@ -397,7 +397,7 @@ NPanel {
                 sourceComponent: Component {
                   IconImage {
                     anchors.fill: parent
-                    source: modelData.icon ? AppIcons.iconFromName(modelData.icon, "application-x-executable") : ""
+                    source: modelData.icon ? ThemeIcons.iconFromName(modelData.icon, "application-x-executable") : ""
                     visible: modelData.icon && source !== ""
                     asynchronous: true
                   }

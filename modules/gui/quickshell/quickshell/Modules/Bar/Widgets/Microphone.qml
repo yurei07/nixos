@@ -3,7 +3,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Pipewire
 import qs.Commons
-import qs.Modules.SettingsPanel
+import qs.Modules.Settings
 import qs.Services
 import qs.Widgets
 import qs.Modules.Bar.Extras
@@ -89,15 +89,17 @@ Item {
 
   BarPill {
     id: pill
-    rightOpen: BarWidgetRegistry.getPillDirection(root)
+    rightOpen: BarService.getPillDirection(root)
     icon: getIcon()
     compact: (Settings.data.bar.density === "compact")
     autoHide: false // Important to be false so we can hover as long as we want
-    text: Math.floor(AudioService.inputVolume * 100)
+    text: Math.round(AudioService.inputVolume * 100)
     suffix: "%"
     forceOpen: displayMode === "alwaysShow"
     forceClose: displayMode === "alwaysHide"
-    tooltipText: "Microphone: " + Math.round(AudioService.inputVolume * 100) + "%\nLeft click to toggle mute.\nRight click for  settings.\nScroll to modify volume."
+    tooltipText: I18n.tr("tooltips.microphone-volume-at", {
+                           "volume": Math.round(AudioService.inputVolume * 100)
+                         })
 
     onWheel: function (delta) {
       wheelAccumulator += delta

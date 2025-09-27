@@ -84,7 +84,7 @@ Singleton {
                                              var ddcModel = ddcModelMatc ? ddcModelMatc.length > 0 : false
                                              var model = modelMatch ? modelMatch[1] : "Unknown"
                                              var bus = busMatch ? busMatch[1] : "Unknown"
-                                             Logger.log("Detected DDC Monitor:", model, "on bus", bus, "is DDC:", !ddcModel)
+                                             Logger.log("Brigthness", "Detected DDC Monitor:", model, "on bus", bus, "is DDC:", !ddcModel)
                                              return {
                                                "model": model,
                                                "busNum": bus,

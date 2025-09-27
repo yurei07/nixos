@@ -54,6 +54,7 @@ Rectangle {
     // Fallback icon
     Loader {
       active: fallbackIcon !== undefined && fallbackIcon !== "" && (imagePath === undefined || imagePath === "")
+      anchors.centerIn: parent
       sourceComponent: NIcon {
         anchors.centerIn: parent
         icon: fallbackIcon
@@ -63,7 +64,7 @@ Rectangle {
     }
   }
 
-  //Border
+  // Border
   Rectangle {
     anchors.fill: parent
     radius: parent.radius

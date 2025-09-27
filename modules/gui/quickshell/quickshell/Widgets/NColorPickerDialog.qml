@@ -26,7 +26,14 @@ Popup {
   y: (parent.height - height) * 0.5
 
   modal: true
-  clip: true
+
+  onOpened: {
+    PanelService.willOpenPopup(root)
+  }
+
+  onClosed: {
+    PanelService.willClosePopup(root)
+  }
 
   function rgbToHsv(r, g, b) {
     r /= 255
@@ -110,9 +117,9 @@ Popup {
     border.width: Math.max(1, Style.borderM * scaling)
   }
 
-  NScrollView {
+  contentItem: NScrollView {
     id: scrollView
-    anchors.fill: parent
+    width: parent.width
 
     verticalPolicy: ScrollBar.AlwaysOff
     horizontalPolicy: ScrollBar.AlwaysOff
@@ -136,7 +143,7 @@ Popup {
           }
 
           NText {
-            text: "Color Picker"
+            text: I18n.tr("widgets.color-picker.title")
             font.pointSize: Style.fontSizeXL * scaling
             font.weight: Style.fontWeightBold
             color: Color.mPrimary
@@ -199,8 +206,8 @@ Popup {
         spacing: Style.marginM * scaling
 
         NLabel {
-          label: "Hex Color"
-          description: "Enter a hexadecimal color code"
+          label: I18n.tr("widgets.color-picker.hex.label")
+          description: I18n.tr("widgets.color-picker.hex.description")
           Layout.fillWidth: true
         }
 
@@ -228,8 +235,8 @@ Popup {
           spacing: Style.marginM * scaling
 
           NLabel {
-            label: "RGB Values"
-            description: "Adjust red, green, blue, and brightness values"
+            label: I18n.tr("widgets.color-picker.rgb.label")
+            description: I18n.tr("widgets.color-picker.rgb.description")
             Layout.fillWidth: true
           }
 
@@ -318,7 +325,7 @@ Popup {
             spacing: Style.marginM * scaling
 
             NText {
-              text: "Brightness"
+              text: I18n.tr("widgets.color-picker.brightness")
               font.weight: Font.Bold
               Layout.preferredWidth: 80 * scaling
             }
@@ -364,8 +371,8 @@ Popup {
           spacing: Style.marginS * scaling
 
           NLabel {
-            label: "Theme Colors"
-            description: "Quick access to your theme's color palette"
+            label: I18n.tr("widgets.color-picker.theme-colors.label")
+            description: I18n.tr("widgets.color-picker.theme-colors.description")
             Layout.fillWidth: true
           }
 
@@ -412,8 +419,8 @@ Popup {
           spacing: Style.marginS * scaling
 
           NLabel {
-            label: "Colors Palette"
-            description: "Choose from a wide range of predefined colors"
+            label: I18n.tr("widgets.color-picker.palette.label")
+            description: I18n.tr("widgets.color-picker.palette.description")
             Layout.fillWidth: true
           }
 
@@ -462,20 +469,16 @@ Popup {
 
         NButton {
           id: cancelButton
-          text: "Cancel"
+          text: I18n.tr("widgets.color-picker.cancel")
           outlined: cancelButton.hovered ? false : true
-          customHeight: 36 * scaling
-          customWidth: 100 * scaling
           onClicked: {
             root.close()
           }
         }
 
         NButton {
-          text: "Apply"
+          text: I18n.tr("widgets.color-picker.apply")
           icon: "check"
-          customHeight: 36 * scaling
-          customWidth: 100 * scaling
           onClicked: {
             root.colorSelected(root.selectedColor)
             root.close()
