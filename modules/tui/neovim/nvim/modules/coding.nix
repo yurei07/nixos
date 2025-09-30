@@ -41,19 +41,19 @@
       #   plugin = crates-nvim;
       #   config = sourceLuaFile "crates-nvim.lua";
       # }
-      # {
-      #   plugin = image-nvim;
-      #   config = sourceLuaFile "image-nvim.lua";
-      # }
+       {
+         plugin = image-nvim;
+         config = sourceLuaFile "image-nvim.lua";
+       }
       {
         plugin = molten-nvim;
         config = sourceLuaFile "molten-nvim.lua";
       }
 
-      # {
-      #   plugin = lazydev-nvim;
-      #   config = sourceLuaFile "lazydev-nvim.lua";
-      # }
+       {
+         plugin = lazydev-nvim;
+         config = sourceLuaFile "lazydev-nvim.lua";
+       }
 
       vim-nix
 

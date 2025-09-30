@@ -36,7 +36,7 @@
       {
         plugin = lualine-nvim; # Status line
         config = sourceLuaFile "lualine-nvim.lua";
-        # config = sourceLuaFile "evil-lualine-nvim.lua";
+        #config = sourceLuaFile "evil-lualine-nvim.lua";
       }
       lualine-lsp-progress
     ];
