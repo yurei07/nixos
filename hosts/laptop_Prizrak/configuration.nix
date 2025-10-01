@@ -30,6 +30,33 @@ in
   xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
   xdg.portal.config.common.default = "*";
 
+  # Battery
+  services.thermald.enable = true;
+
+  services.tlp = {
+    enable = true;
+
+    settings = {
+      CPU_SCALING_GOVERNOR_ON_BAT = "powersave";
+      CPU_SCALING_GOVERNOR_ON_AC = "performance";
+
+      CPU_BOOST_ON_BAT = 0;
+      CPU_BOOST_ON_AC = 1;
+
+      RUNTIME_PM_ON_AC = "auto";
+      RUNTIME_PM_ON_BAT = "auto";
+
+      START_CHARGE_THRESH_BAT0 = 95;
+      STOP_CHARGE_THRESH_BAT0 = 100;
+      START_CHARGE_THRESH_BAT1 = 95;
+      STOP_CHARGE_THRESH_BAT1 = 100;
+    };
+  };
+
+  # boot.kernelParams = ["acpi_backlight=vendor"];
+  programs.light.enable = true;
+
+
   services.upower.enable = true;
   nixpkgs.config.allowUnfree = true;
 

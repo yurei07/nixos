@@ -6,7 +6,6 @@
 }:
 {
   imports = [
-    ./development
     # windows manager
     ../../../modules/wm/hyprland
     # gui
@@ -35,24 +34,6 @@
       StartLimitInterval = 0;
     };
   };
-  programs.obs-studio = {
-    enable = true;
-
-    package = (
-      pkgs.obs-studio.override {
-        cudaSupport = true;
-      }
-    );
-
-    plugins = with pkgs.obs-studio-plugins; [
-      wlrobs
-      obs-backgroundremoval
-      obs-pipewire-audio-capture
-      obs-vaapi # optional AMD hardware acceleration
-      obs-gstreamer
-      obs-vkcapture
-    ];
-  };
 
   home = {
     username = "laptop_Prizrak";
@@ -78,6 +59,9 @@
       gpu-screen-recorder
       prismlauncher
       foliate
+      airtame
+      libreoffice-qt
+      pdfsam-basic
 
       #themes
       gnome-themes-extra
