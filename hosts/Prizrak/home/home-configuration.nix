@@ -64,6 +64,8 @@
       prismlauncher
       foliate
       chromium
+      stress-ng
+      glmark2
 
       #themes
       gnome-themes-extra
