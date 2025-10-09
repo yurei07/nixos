@@ -11,12 +11,6 @@
     textfox.url = "github:adriankarlen/textfox";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
-    noctalia = {
-      url = "github:noctalia-dev/noctalia-shell";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.quickshell.follows = "quickshell";
-    };
-
     spicetify-nix = {
       url = "github:Gerg-L/spicetify-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -66,7 +60,6 @@
           modules = [
             ./hosts/Prizrak/configuration.nix
             inputs.home-manager.nixosModules.home-manager
-            #inputs.noctalia.nixosModules.noctalia  # Import Noctalia module here
             {
               home-manager = {
                 extraSpecialArgs = {
