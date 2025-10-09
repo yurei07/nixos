@@ -21,12 +21,13 @@ in
     ./nix-modules/audio.nix
     ./nix-modules/lightdm.nix
 
-    ../../modules/gui/obs
+    ../../modules/gui/obs/obs.nix
   ];
   # Включаем поддержку GVFS, которая позволяет приложениям видеть MTP-устройства, такие как iPhone
   services.gvfs.enable = true;
   services.usbmuxd.enable = true;
-
+  programs.adb.enable = true;
+  users.users.Prizrak.extraGroups = [ "adbusers" ];
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
