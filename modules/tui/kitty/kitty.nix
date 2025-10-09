@@ -58,6 +58,8 @@ in
       tab_bar_align = "left";
       tab_bar_min_tabs = 2;
       tab_powerline_style = "round";
+
+      allow_remote_control = "yes";
     };
   };
 }

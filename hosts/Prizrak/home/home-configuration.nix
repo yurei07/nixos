@@ -78,6 +78,8 @@
       tree
       cmatrix
       yazi
+      brightnessctl
+
 
       # inputs
       inputs.hyprland.packages.${system}.hyprland
