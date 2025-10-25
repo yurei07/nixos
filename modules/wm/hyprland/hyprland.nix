@@ -1,7 +1,12 @@
-{pkgs, config, inputs, ... }:
-let 
-  crust1 = (import ../../../materials/themes {}).crust1;
-  mantle1 = (import ../../../materials/themes {}).mantle1;
+{
+  pkgs,
+  config,
+  inputs,
+  ...
+}:
+let
+  crust1 = (import ../../../materials/themes { }).crust1;
+  mantle1 = (import ../../../materials/themes { }).mantle1;
 in
 {
 
@@ -16,47 +21,45 @@ in
     wf-recorder
     wlr-randr
     wl-clipboard
-    cliphist  
+    cliphist
   ];
-
 
   wayland.windowManager.hyprland = {
     package = inputs.hyprland.packages.${pkgs.system}.hyprland;
     enable = true;
     xwayland.enable = true;
 
-
     settings = {
       "$mod" = "SUPER";
       "$shiftMod" = "SUPER_SHIFT";
 
       bind = [
-        "$mod, RETURN, exec, kitty" 
-	      "$mod, Y, exec, ${../../../scripts/nvim.sh}"
-	      "$mod, E, exec, nautilus"
-        "$mod, B, exec, firefox" 
-        "$mod, D, exec, discord" 
-        "$mod, O, exec, obsidian" 
+        "$mod, RETURN, exec, kitty"
+        "$mod, Y, exec, ${../../../scripts/nvim.sh}"
+        "$mod, E, exec, nautilus"
+        "$mod, B, exec, firefox"
+        "$mod, D, exec, discord"
+        "$mod, O, exec, obsidian"
         "$mod, Q, killactive"
         "$mod, W, togglefloating"
         "$mod, G, fullscreen"
-	      "$mod, SPACE, exec, rofi -show drun"
-        
+        "$mod, SPACE, exec, rofi -show drun"
+
         ", Print, exec, hyprshot -m output"
         "SHIFT, Print, exec, hyprshot -m region"
 
-	      "$mod, 1, workspace, 1"
+        "$mod, 1, workspace, 1"
         "$mod, 2, workspace, 2"
         "$mod, 3, workspace, 3"
         "$mod, 4, workspace, 4"
         "$mod, 5, workspace, 5"
-        "$mod, 6, workspace, 6" 
+        "$mod, 6, workspace, 6"
         "$mod, 7, workspace, 7"
-        "$mod, 8, workspace, 8" 
-	      "$mod, 9, workspace, 9"
+        "$mod, 8, workspace, 8"
+        "$mod, 9, workspace, 9"
         "$mod, 0, workspace, 10"
-        "$mod SHIFT, 1, movetoworkspace, 1" 
-	      "$mod SHIFT, 2, movetoworkspace, 2"
+        "$mod SHIFT, 1, movetoworkspace, 1"
+        "$mod SHIFT, 2, movetoworkspace, 2"
         "$mod SHIFT, 3, movetoworkspace, 3"
         "$mod SHIFT, 4, movetoworkspace, 4"
         "$mod SHIFT, 5, movetoworkspace, 5"
@@ -65,10 +68,10 @@ in
         "$mod SHIFT, 8, movetoworkspace, 8"
         "$mod SHIFT, 9, movetoworkspace, 9"
         "$mod SHIFT, 0, movetoworkspace, 10"
-	      "$mod, S, togglespecialworkspace, magic"
-      	"$mod SHIFT, S, movetoworkspace, special:magic"
+        "$mod, S, togglespecialworkspace, magic"
+        "$mod SHIFT, S, movetoworkspace, special:magic"
 
-        # Thinkpad 
+        # Thinkpad
         ", XF86MonBrightnessUp, exec, brightnessctl set 5%+"
         ", XF86MonBrightnessDown, exec, brightnessctl set 5%-"
       ];
@@ -78,14 +81,14 @@ in
         "$mod, mouse:273, resizewindow"
       ];
       exec-once = [
-        #...
+        "noctalia-shell"
       ];
 
       monitor = [
         # Thinkpad
-        #"DPe-1,1920x1080@60,0x0,1.2" 
+        #"DPe-1,1920x1080@60,0x0,1.2"
 
-        "DP-1,1920x1080@60,-1920x0,1" 
+        "DP-1,1920x1080@60,-1920x0,1"
         "HDMI-A-1,1920x1080@120,0x0,1"
         "DP-2,1920x1080@60,0x-1080,1"
       ];
@@ -97,48 +100,47 @@ in
         "__GLX_VENDOR_LIBRARY_NAME,nvidia"
         "__GL_GSYNC_ALLOWED,0"
         "__GL_VRR_ALLOWED,0"
-        "QT_QPA_PLATFORM,wayland"  
+        "QT_QPA_PLATFORM,wayland"
         "QT_WAYLAND_DISABLE_WINDOWDECORATION,1"
         "QT_AUTO_SCREEN_SCALE_FACTOR,1"
         "XCURSOR_SIZE,24"
         "NIXOS_OZONE_WL,1"
-        "WLR_NO_HARDWARE_CURSORS,1" 
+        "WLR_NO_HARDWARE_CURSORS,1"
       ];
       windowrule = [
-	      "nomaxsize, class:^(polkit-mate-authentication-agent-1)$"
+        "nomaxsize, class:^(polkit-mate-authentication-agent-1)$"
         "pin, class:^(polkit-mate-authentication-agent-1)$"
       ];
 
       general = {
         resize_on_border = true;
-        border_size = 2;  
+        border_size = 2;
         gaps_out = 25;
-	      gaps_in = 10;
-        layout = "dwindle";  
-       # "col.active_border" = "rgb(4575da) rgb(6804b5)";
+        gaps_in = 10;
+        layout = "dwindle";
         "col.inactive_border" = "rgb(595959)";
       };
 
       decoration = {
         active_opacity = 1;
-	      inactive_opacity = 0.85;
-       # rounding = 12;
+        inactive_opacity = 0.85;
+        # rounding = 12;
         blur = {
-          enabled = true;  
+          enabled = true;
           size = 18;
           passes = 3;
         };
-	shadow = {
-	  enabled = true;
-	  range = 20;
-	};
+        shadow = {
+          enabled = true;
+          range = 20;
+        };
       };
 
       cursor = {
         no_hardware_cursors = true;
-        default_monitor = "HDMI-A-1"; 
+        default_monitor = "HDMI-A-1";
       };
-      
+
       input = {
         kb_layout = "us,ru, de";
         kb_options = "grp:alt_shift_toggle";
@@ -166,7 +168,7 @@ in
         "opacity 0.95 0.90, class:^(kitty)$"
         "opacity 0.92 0.88, class:^(Code)$"
       ];
-      
+
       misc = {
         disable_hyprland_logo = true;
       };

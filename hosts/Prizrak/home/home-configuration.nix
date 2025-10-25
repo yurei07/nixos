@@ -85,6 +85,7 @@
       # inputs
       inputs.hyprland.packages.${system}.hyprland
       inputs.anicli-ru.packages.${system}.default
+      inputs.noctalia.packages.${system}.default
     ];
   };
 }

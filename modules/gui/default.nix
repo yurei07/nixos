@@ -7,6 +7,7 @@
     ./firefox/firefox.nix
     ./spicetify/spicetify.nix
     ./syncthing/syncthing.nix
-    ./quickshell/quickshell.nix
+    # ./quickshell/quickshell.nix
+    # ./quickshell/nactalia.nix
   ];
 }
