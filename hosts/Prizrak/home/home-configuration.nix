@@ -45,6 +45,7 @@
       android-tools
       usbutils
       stress-ng
+      libreoffice-qt
 
       #themes
       gnome-themes-extra

@@ -50,7 +50,6 @@
       telegram-desktop
       lutris
       bottles
-      xfce.thunar
       nautilus
       mpv
       steam

@@ -45,7 +45,8 @@ in
   services.dbus.packages = with pkgs; [ dconf ];
   services.gnome.gnome-keyring.enable = true;
   programs.dconf.enable = true;
-
+  
+  # services.premid.enable = true;
   services.flatpak.enable = true;
 
   environment = {

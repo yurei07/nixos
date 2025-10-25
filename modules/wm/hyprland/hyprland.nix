@@ -33,7 +33,7 @@ in
       bind = [
         "$mod, RETURN, exec, kitty" 
 	      "$mod, Y, exec, ${../../../scripts/nvim.sh}"
-	      "$mod, E, exec, thunar"
+	      "$mod, E, exec, nautilus"
         "$mod, B, exec, firefox" 
         "$mod, D, exec, discord" 
         "$mod, O, exec, obsidian" 
