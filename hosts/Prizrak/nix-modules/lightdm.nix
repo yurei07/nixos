@@ -1,4 +1,9 @@
-{pkgs, inputs, ...}:
+{
+  pkgs,
+  inputs,
+  username,
+  ...
+}:
 {
   services.xserver = {
     enable = true;
@@ -13,7 +18,7 @@
     sessionPackages = [ inputs.hyprland.packages.${pkgs.system}.default ];
     defaultSession = "hyprland";
     autoLogin = {
-      user = "Prizrak";
+      user = "${username}";
       enable = true;
     };
   };

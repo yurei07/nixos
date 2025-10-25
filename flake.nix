@@ -54,12 +54,13 @@
       pkgs = nixpkgs.legacyPackages.${system};
       lib = nixpkgs.lib;
       rhodiumLib = import ./lib { inherit lib pkgs; };
+      username = "Prizrak";
     in
     {
       nixosConfigurations = {
         nixos = inputs.nixpkgs.lib.nixosSystem {
           specialArgs = {
-            inherit inputs rhodiumLib;
+            inherit inputs rhodiumLib username;
           };
           inherit system;
           modules = [
@@ -68,7 +69,7 @@
             {
               home-manager = {
                 extraSpecialArgs = {
-                  inherit inputs rhodiumLib;
+                  inherit inputs rhodiumLib username;
                 };
                 useGlobalPkgs = true;
                 useUserPackages = true;

@@ -1,13 +1,21 @@
-{config, pkgs, ...}:
+{
+  config,
+  pkgs,
+  username,
+  ...
+}:
 {
   networking.hostName = "nixos";
   networking.networkmanager.enable = true;
 
-  time.timeZone = "Europe/Berlin"; 
+  time.timeZone = "Europe/Berlin";
 
-  users.users.Prizrak = {
+  users.users.${username} = {
     isNormalUser = true;
-    home = "/home/Prizrak";
-    extraGroups = ["wheel" "networkmanager" ];
+    home = "/home/${username}";
+    extraGroups = [
+      "wheel"
+      "networkmanager"
+    ];
   };
 }
