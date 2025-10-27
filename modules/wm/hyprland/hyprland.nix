@@ -34,7 +34,7 @@ in
       "$shiftMod" = "SUPER_SHIFT";
 
       bind = [
-        "$mod, RETURN, exec, kitty"
+        "$mod, RETURN, exec, noctalia-shell ipc call launcher toggle"
         "$mod, Y, exec, ${../../../scripts/nvim.sh}"
         "$mod, E, exec, nautilus"
         "$mod, B, exec, firefox"
