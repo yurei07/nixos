@@ -45,6 +45,7 @@
       usbutils
       stress-ng
       libreoffice-qt
+      quickshell
 
       #themes
       gnome-themes-extra

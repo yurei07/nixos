@@ -74,6 +74,10 @@ in
         # Thinkpad
         ", XF86MonBrightnessUp, exec, brightnessctl set 5%+"
         ", XF86MonBrightnessDown, exec, brightnessctl set 5%-"
+        ", XF86AudioLowerVolume, exec, noctalia-shell ipc call volume decrease"
+        ", XF86AudioRaiseVolume, exec, noctalia-shell ipc call volume increase"
+        ", XF86AudioMute, exec, noctalia-shell ipc call volume muteOutpute"
+
       ];
 
       bindm = [
@@ -86,7 +90,7 @@ in
 
       monitor = [
         # Thinkpad
-        #"DPe-1,1920x1080@60,0x0,1.2"
+        #"DPe-1,1920x1080@60,0x0,1.2" # FOR MY LAPTOP
 
         "DP-1,1920x1080@60,-1920x0,1"
         "HDMI-A-1,1920x1080@120,0x0,1"
