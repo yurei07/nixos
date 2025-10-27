@@ -34,7 +34,7 @@ in
       "$shiftMod" = "SUPER_SHIFT";
 
       bind = [
-        "$mod, RETURN, exec, noctalia-shell ipc call launcher toggle"
+        "$mod, RETURN, exec, kitty"
         "$mod, Y, exec, ${../../../scripts/nvim.sh}"
         "$mod, E, exec, nautilus"
         "$mod, B, exec, firefox"
@@ -43,7 +43,7 @@ in
         "$mod, Q, killactive"
         "$mod, W, togglefloating"
         "$mod, G, fullscreen"
-        "$mod, SPACE, exec, rofi -show drun"
+        "$mod, SPACE, exec, noctalia-shell ipc call launcher toggle"
 
         ", Print, exec, hyprshot -m output"
         "SHIFT, Print, exec, hyprshot -m region"
