@@ -98,7 +98,7 @@
         showCalendarEvents = true;
       };
       screenRecorder = {
-        directory = "";
+        directory = "/home/Prizrak/Videos/";
         frameRate = 60;
         audioCodec = "opus";
         videoCodec = "h264";
@@ -113,8 +113,8 @@
         directory = "/home/Prizrak/Wallpapers/";
         enableMultiMonitorDirectories = false;
         setWallpaperOnAllMonitors = true;
-        defaultWallpaper = "";
-        fillMode = "crop";
+        defaultWallpaper = "/home/Prizrak/Wallpapers/117542401_p0.png";
+        fillMode = "stretch";
         fillColor = "#000000";
         randomEnabled = true;
         randomIntervalSec = 7200;

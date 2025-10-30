@@ -7,33 +7,12 @@
 {
   imports = [
     # windows manager
-    ../../../modules/wm/hyprland
+    ../../../modules/wm
     # gui
-    ../../../modules/gui/spicetify
-    ../../../modules/gui/discord
-    ../../../modules/gui/gtk
-    ../../../modules/gui/quickshell
-    ../../../modules/gui/rofi
-    ../../../modules/gui/syncthing
-    ../../../modules/gui/firefox
+    ../../../modules/gui
     # tui
-    ../../../modules/tui/neovim
-    ../../../modules/tui/kitty
-    ../../../modules/tui/zsh
-    ../../../modules/tui/nh
-    ../../../modules/tui/neofetch
+    ../../../modules/tui
   ];
-
-  systemd.user.services.polkit_mate = {
-    Install = {
-      WantedBy = [ "hyprland-session.target" ];
-    };
-    Service = {
-      ExecStart = "${pkgs.mate.mate-polkit}/libexec/polkit-mate-authentication-agent-1";
-      Restart = "always";
-      StartLimitInterval = 0;
-    };
-  };
 
   home = {
     username = "laptop_Prizrak";

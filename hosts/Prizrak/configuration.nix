@@ -23,7 +23,6 @@ in
 
     ../../modules/gui/obs/obs.nix
   ];
-  # Включаем поддержку GVFS, которая позволяет приложениям видеть MTP-устройства, такие как iPhone
   services.gvfs.enable = true;
   services.usbmuxd.enable = true;
   programs.adb.enable = true;
