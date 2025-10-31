@@ -67,6 +67,7 @@
           modules = [
             ./hosts/Prizrak/configuration.nix
             inputs.home-manager.nixosModules.home-manager
+            # inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t480
             {
               home-manager = {
                 extraSpecialArgs = {
