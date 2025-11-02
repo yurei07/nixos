@@ -43,7 +43,8 @@ in
         "$mod, Q, killactive"
         "$mod, W, togglefloating"
         "$mod, G, fullscreen"
-        "$mod, SPACE, exec, noctalia-shell ipc call launcher toggle"
+        # "$mod, SPACE, exec, noctalia-shell ipc call launcher toggle"
+        "$mod, SPACE, exec, caelestia shell drawers toggle launcher "
 
         ", Print, exec, hyprshot -m output"
         "SHIFT, Print, exec, hyprshot -m region"
@@ -85,7 +86,7 @@ in
         "$mod, mouse:273, resizewindow"
       ];
       exec-once = [
-        "noctalia-shell"
+        "caelestia-shell"
       ];
 
       monitor = [
@@ -127,7 +128,7 @@ in
       decoration = {
         active_opacity = 1;
         inactive_opacity = 0.85;
-        # rounding = 12;
+        rounding = 12;
         blur = {
           enabled = true;
           size = 18;

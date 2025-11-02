@@ -11,10 +11,15 @@
     textfox.url = "github:adriankarlen/textfox";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
-    noctalia = {
-      url = "github:noctalia-dev/noctalia-shell";
+    # noctalia = {
+    #   url = "github:noctalia-dev/noctalia-shell";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    #   inputs.quickshell.follows = "quickshell";
+    # };
+
+    caelestia-shell = {
+      url = "github:caelestia-dots/shell";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.quickshell.follows = "quickshell";
     };
 
     spicetify-nix = {
@@ -68,6 +73,14 @@
             ./hosts/Prizrak/configuration.nix
             inputs.home-manager.nixosModules.home-manager
             # inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t480
+            {
+              nixpkgs.overlays = [
+                (final: prev: {
+                  caelestia-shell = inputs.caelestia-shell.packages.${system}.caelestia-shell;
+                  caelestia-cli = inputs.caelestia-shell.inputs.caelestia-cli.packages.${system}.caelestia-cli;
+                })
+              ];
+            }
             {
               home-manager = {
                 extraSpecialArgs = {

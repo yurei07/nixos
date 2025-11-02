@@ -4,6 +4,9 @@
   inputs,
   ...
 }:
+let
+  caelestiaConfigDir = ./.;
+in
 {
   imports = [
     # windows manager
@@ -13,7 +16,6 @@
     # tui
     ../../../modules/tui
   ];
-
 
   home = {
     username = "Prizrak";
@@ -82,11 +84,16 @@
       yazi
       brightnessctl
 
-
       # inputs
       inputs.hyprland.packages.${system}.hyprland
       inputs.anicli-ru.packages.${system}.default
-      inputs.noctalia.packages.${system}.default
+      # inputs.noctalia.packages.${system}.default
+      caelestia-shell
+      caelestia-cli
     ];
+
   };
+
+    xdg.configFile."caelestia/shell.json".source = caelestiaConfigDir + "/shell.json";
+    xdg.configFile.".local/state/caelestia/scheme.json".source = caelestiaConfigDir + "/scheme.json";
 }
