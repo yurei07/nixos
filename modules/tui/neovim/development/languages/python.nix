@@ -7,7 +7,7 @@
     pyright # Type checker
     ruff # Fast Python formatter/linter
     poetry
-    typstfmt
+    typstyle
     fish
     fourmolu
 

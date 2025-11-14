@@ -24,7 +24,7 @@ require("conform").setup({
     kdl = { "kdlfmt" },
     typescript = { "prettierd", "prettier", stop_after_first = true },
     typescriptreact = { "prettierd", "prettier", stop_after_first = true },
-    typst = { "typstfmt" },
+    typst = { "typstyle" },
     latex = { "latexindent" },
     nix = { "nixfmt" },
     ocaml = { "ocamlformat" },
@@ -57,8 +57,8 @@ require("conform").setup({
       args = { "--wrap", "80", "--number", "--end-of-line", "lf", "-" },
       stdin = true,
     },
-    typstfmt = {
-      command = "typstfmt",
+    typstyle = {
+      command = "typstyle",
       stdin = true,
     },
     crystal_tool_format = {

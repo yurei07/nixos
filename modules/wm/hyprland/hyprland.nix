@@ -14,7 +14,7 @@ in
     qt5.qtwayland
     qt6.qtwayland
     libsForQt5.qt5ct
-    qt6ct
+    qt6Packages.qt6ct
     hyprshot
     hyprpicker
     swappy
@@ -25,7 +25,7 @@ in
   ];
 
   wayland.windowManager.hyprland = {
-    package = inputs.hyprland.packages.${pkgs.system}.hyprland;
+    package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
     enable = true;
     xwayland.enable = true;
 
@@ -48,6 +48,9 @@ in
 
         ", Print, exec, hyprshot -m output"
         "SHIFT, Print, exec, hyprshot -m region"
+
+        "$mod, V, exec, hyprctl keyword monitor 'DP-1, 2560x1080@60, -1080x0, 1, transform, 1'"
+        "$mod, H, exec, hyprctl keyword monitor 'DP-1, 2560x1080@60, -2560x0, 1, transform, 0'"
 
         "$mod, 1, workspace, 1"
         "$mod, 2, workspace, 2"
@@ -93,8 +96,8 @@ in
         # Thinkpad
         #"DPe-1,1920x1080@60,0x0,1.2" # FOR MY LAPTOP
 
-        "DP-1, 1920x1080@100,-1920x0,1"
-        "HDMI-A-1,2560x1080@180,0x0,1"
+        "HDMI-A-1, 1920x1080@120,0x0,1"
+        "DP-1,2560x1080@60,-1080x0,1, transform, 1"
       ];
 
       env = [

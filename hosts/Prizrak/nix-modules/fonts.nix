@@ -3,7 +3,7 @@
   fonts = {
     enableDefaultPackages = true;
     packages = with pkgs; [ 
-      ubuntu_font_family
+      ubuntu-classic
       liberation_ttf
       material-symbols
       nerd-fonts.jetbrains-mono

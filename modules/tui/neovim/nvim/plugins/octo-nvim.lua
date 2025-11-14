@@ -2,7 +2,7 @@ require("octo").setup({
 	use_local_fs = false, -- use local files on right side of reviews
 	enable_builtin = false, -- shows a list of builtin actions when no action is provided
 	default_remote = { "upstream", "origin" }, -- order to try remotes
-	default_merge_method = "commit", -- default merge method which should be used for both `Octo pr merge` and merging from picker, could be `commit`, `rebase` or `squash`
+	default_merge_method = "merge", -- default merge method which should be used for both `Octo pr merge` and merging from picker, could be `commit`, `rebase` or `squash`
 	default_delete_branch = false, -- whether to delete branch when merging pull request with either `Octo pr merge` or from picker (can be overridden with `delete`/`nodelete` argument to `Octo pr merge`)
 	ssh_aliases = {}, -- SSH aliases. e.g. `ssh_aliases = {["github.com-work"] = "github.com"}`. The key part will be interpreted as an anchored Lua pattern.
 	picker = "telescope", -- or "fzf-lua" or "snacks"

@@ -15,7 +15,7 @@
 
   services.displayManager = {
     sessionData.autologinSession = "hyprland";
-    sessionPackages = [ inputs.hyprland.packages.${pkgs.system}.default ];
+    sessionPackages = [ inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.default ];
     defaultSession = "hyprland";
     autoLogin = {
       user = "${username}";

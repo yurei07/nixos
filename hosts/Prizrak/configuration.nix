@@ -44,9 +44,18 @@ in
   services.dbus.packages = with pkgs; [ dconf ];
   services.gnome.gnome-keyring.enable = true;
   programs.dconf.enable = true;
-  
+
   # services.premid.enable = true;
   services.flatpak.enable = true;
+
+  services.hardware.openrgb = {
+    enable = true;
+    package = pkgs.openrgb-with-all-plugins;
+    motherboard = "amd";
+    server = {
+      port = 6742;
+    };
+  };
 
   environment = {
     variables = {
@@ -56,7 +65,10 @@ in
       Theme
       ifuse
       libimobiledevice
+      openrgb
       usbmuxd
+      openrazer-daemon
+      polychromatic
     ];
   };
 

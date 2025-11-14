@@ -85,9 +85,8 @@ in
       brightnessctl
 
       # inputs
-      inputs.hyprland.packages.${system}.hyprland
-      inputs.anicli-ru.packages.${system}.default
-      # inputs.noctalia.packages.${system}.default
+      inputs.hyprland.packages.${stdenv.hostPlatform.system}.hyprland
+      inputs.anicli-ru.packages.${stdenv.hostPlatform.system}.default
       caelestia-shell
       caelestia-cli
     ];
