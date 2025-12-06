@@ -69,6 +69,8 @@ in
       usbmuxd
       openrazer-daemon
       polychromatic
+      vscode-fhs
+      git
     ];
   };
 

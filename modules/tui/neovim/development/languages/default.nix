@@ -47,7 +47,7 @@
     ./scala.nix
     ./sql.nix
     ./svelte.nix
-    ./swift.nix
+    # ./swift.nix
     ./tailwind.nix
     ./terraform.nix
     ./toml.nix

@@ -22,6 +22,7 @@ in
     homeDirectory = "/home/Prizrak";
     stateVersion = "25.11";
 
+
     file.".config/mpv".source = ../../../materials/mpv;
 
     packages = with pkgs; [
@@ -83,9 +84,13 @@ in
       cmatrix
       yazi
       brightnessctl
+      easyeffects
+      rnnoise-plugin
+      lsp-plugins
 
       # inputs
       inputs.hyprland.packages.${stdenv.hostPlatform.system}.hyprland
+      inputs.zen-browser.packages.${stdenv.hostPlatform.system}.default
       inputs.anicli-ru.packages.${stdenv.hostPlatform.system}.default
       caelestia-shell
       caelestia-cli

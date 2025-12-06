@@ -37,7 +37,7 @@ in
         "$mod, RETURN, exec, kitty"
         "$mod, Y, exec, ${../../../scripts/nvim.sh}"
         "$mod, E, exec, nautilus"
-        "$mod, B, exec, firefox"
+        "$mod, B, exec, zen" 
         "$mod, D, exec, discord"
         "$mod, O, exec, obsidian"
         "$mod, Q, killactive"
@@ -49,8 +49,8 @@ in
         ", Print, exec, hyprshot -m output"
         "SHIFT, Print, exec, hyprshot -m region"
 
-        "$mod, V, exec, hyprctl keyword monitor 'DP-1, 2560x1080@60, -1080x0, 1, transform, 1'"
-        "$mod, H, exec, hyprctl keyword monitor 'DP-1, 2560x1080@60, -2560x0, 1, transform, 0'"
+        "$mod, V, exec, hyprctl keyword monitor 'DP-2, 2560x1080@60, -1080x0, 1, transform, 1'"
+        "$mod, H, exec, hyprctl keyword monitor 'DP-2, 2560x1080@60, -2560x0, 1, transform, 0'"
 
         "$mod, 1, workspace, 1"
         "$mod, 2, workspace, 2"
@@ -96,8 +96,8 @@ in
         # Thinkpad
         #"DPe-1,1920x1080@60,0x0,1.2" # FOR MY LAPTOP
 
-        "HDMI-A-1, 1920x1080@120,0x0,1"
-        "DP-1,2560x1080@60,-1080x0,1, transform, 1"
+        "DP-1,2560x1440@165.00,0x0,1"
+        "HDMI-A-1,2560x1080@180,-1080x0,1, transform, 1"
       ];
 
       env = [
@@ -115,8 +115,8 @@ in
         "WLR_NO_HARDWARE_CURSORS,1"
       ];
       windowrule = [
-        "nomaxsize, class:^(polkit-mate-authentication-agent-1)$"
-        "pin, class:^(polkit-mate-authentication-agent-1)$"
+        # "nomaxsize, class:^(polkit-mate-authentication-agent-1)$"
+        # "pin, class:^(polkit-mate-authentication-agent-1)$"
       ];
 
       general = {
@@ -145,7 +145,7 @@ in
 
       cursor = {
         no_hardware_cursors = true;
-        default_monitor = "HDMI-A-1";
+          default_monitor = "DP-1";
       };
 
       input = {
@@ -171,9 +171,9 @@ in
       };
 
       windowrulev2 = [
-        "noborder, fullscreen:1"
-        "opacity 0.95 0.90, class:^(kitty)$"
-        "opacity 0.92 0.88, class:^(Code)$"
+        # "noborder, fullscreen:1"
+        # "opacity 0.95 0.90, class:^(kitty)$"
+        # "opacity 0.92 0.88, class:^(Code)$"
       ];
 
       misc = {
