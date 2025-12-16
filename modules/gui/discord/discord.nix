@@ -35,7 +35,7 @@ in
     config = {
       useQuickCss = true;
       themeLinks = [
-        "https://refact0r.github.io/system24/build/system24.css"
+        "https://refact0r.github.io/midnight-discord/build/midnight.css"
       ];
 
       plugins = {

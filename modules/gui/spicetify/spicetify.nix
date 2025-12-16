@@ -7,7 +7,7 @@ in {
 
   programs.spicetify = {
     enable = true;
-    theme = spicePkgs.themes.text;
+    theme = spicePkgs.themes.turntable;
 
 
     customColorScheme = {

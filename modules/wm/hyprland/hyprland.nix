@@ -43,8 +43,9 @@ in
         "$mod, Q, killactive"
         "$mod, W, togglefloating"
         "$mod, G, fullscreen"
-        # "$mod, SPACE, exec, noctalia-shell ipc call launcher toggle"
-        "$mod, SPACE, exec, caelestia shell drawers toggle launcher "
+        "$mod, SPACE, exec, noctalia-shell ipc call launcher toggle"
+        "$mod CTRL, R, exec, pkill -SIGUSR1 gpu-screen-recorder && notify-send 'GPU-Screen-Recorder' 'Повтор успешно сохранён'"
+        # "$mod, SPACE, exec, caelestia shell drawers toggle launcher "
 
         ", Print, exec, hyprshot -m output"
         "SHIFT, Print, exec, hyprshot -m region"
@@ -89,7 +90,8 @@ in
         "$mod, mouse:273, resizewindow"
       ];
       exec-once = [
-        "caelestia-shell"
+        # "caelestia-shell"
+        "noctalia-shell"
       ];
 
       monitor = [

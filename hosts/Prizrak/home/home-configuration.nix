@@ -17,11 +17,11 @@ in
     ../../../modules/tui
   ];
 
+
   home = {
     username = "Prizrak";
     homeDirectory = "/home/Prizrak";
     stateVersion = "25.11";
-
 
     file.".config/mpv".source = ../../../materials/mpv;
 
@@ -65,6 +65,7 @@ in
       unzip
       git
       btop
+      bash
       gdu
       dysk
       networkmanager_dmenu
@@ -92,12 +93,13 @@ in
       inputs.hyprland.packages.${stdenv.hostPlatform.system}.hyprland
       inputs.zen-browser.packages.${stdenv.hostPlatform.system}.default
       inputs.anicli-ru.packages.${stdenv.hostPlatform.system}.default
-      caelestia-shell
-      caelestia-cli
+      inputs.noctalia.packages.${stdenv.hostPlatform.system}.default
+      # caelestia-shell
+      # caelestia-cli
     ];
 
   };
 
-    xdg.configFile."caelestia/shell.json".source = caelestiaConfigDir + "/shell.json";
-    xdg.configFile.".local/state/caelestia/scheme.json".source = caelestiaConfigDir + "/scheme.json";
+  # xdg.configFile."caelestia/shell.json".source = caelestiaConfigDir + "/shell.json";
+  # xdg.configFile.".local/state/caelestia/scheme.json".source = caelestiaConfigDir + "/scheme.json";
 }

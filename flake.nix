@@ -11,11 +11,11 @@
     textfox.url = "github:adriankarlen/textfox";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
-    # noctalia = {
-    #   url = "github:noctalia-dev/noctalia-shell";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    #   inputs.quickshell.follows = "quickshell";
-    # };
+    noctalia = {
+      url = "github:noctalia-dev/noctalia-shell";
+      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.quickshell.follows = "quickshell";
+    };
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
       inputs = {
@@ -25,10 +25,10 @@
         home-manager.follows = "home-manager";
       };
     };
-    caelestia-shell = {
-      url = "github:caelestia-dots/shell";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # caelestia-shell = {
+    #   url = "github:caelestia-dots/shell";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
 
     spicetify-nix = {
       url = "github:Gerg-L/spicetify-nix";
@@ -81,14 +81,14 @@
             ./hosts/Prizrak/configuration.nix
             inputs.home-manager.nixosModules.home-manager
             # inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t480
-            {
-              nixpkgs.overlays = [
-                (final: prev: {
-                  caelestia-shell = inputs.caelestia-shell.packages.${system}.caelestia-shell;
-                  caelestia-cli = inputs.caelestia-shell.inputs.caelestia-cli.packages.${system}.caelestia-cli;
-                })
-              ];
-            }
+            # {
+            #   nixpkgs.overlays = [
+            #     (final: prev: {
+            #       caelestia-shell = inputs.caelestia-shell.packages.${system}.caelestia-shell;
+            #       caelestia-cli = inputs.caelestia-shell.inputs.caelestia-cli.packages.${system}.caelestia-cli;
+            #     })
+            #   ];
+            # }
             {
               home-manager = {
                 extraSpecialArgs = {

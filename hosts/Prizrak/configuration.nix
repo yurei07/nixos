@@ -20,15 +20,19 @@ in
     ./nix-modules/fonts.nix
     ./nix-modules/audio.nix
     ./nix-modules/lightdm.nix
-
+    ./nix-modules/replays.nix
     ../../modules/gui/obs/obs.nix
   ];
+
+  replays.enable = true;
+
   services.gvfs.enable = true;
   services.usbmuxd.enable = true;
   programs.adb.enable = true;
   users.users.Prizrak.extraGroups = [ "adbusers" ];
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  programs.gpu-screen-recorder.enable = true;
 
   xdg.portal.enable = true;
   xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
