@@ -2,6 +2,7 @@
   pkgs,
   config,
   inputs,
+  lib,
   ...
 }:
 let
@@ -37,21 +38,21 @@ in
         "$mod, RETURN, exec, kitty"
         "$mod, Y, exec, ${../../../scripts/nvim.sh}"
         "$mod, E, exec, nautilus"
-        "$mod, B, exec, zen" 
+        "$mod, B, exec, zen"
         "$mod, D, exec, discord"
         "$mod, O, exec, obsidian"
         "$mod, Q, killactive"
         "$mod, W, togglefloating"
         "$mod, G, fullscreen"
         "$mod, SPACE, exec, noctalia-shell ipc call launcher toggle"
-        "$mod CTRL, R, exec, pkill -SIGUSR1 gpu-screen-recorder && notify-send 'GPU-Screen-Recorder' 'Повтор успешно сохранён'"
+        "$mod CTRL, R, exec, killall -SIGUSR1 gpu-screen-recorder && notify-send 'GPU-Screen-Recorder' 'Повтор успешно сохранён'"
         # "$mod, SPACE, exec, caelestia shell drawers toggle launcher "
 
         ", Print, exec, hyprshot -m output"
         "SHIFT, Print, exec, hyprshot -m region"
 
-        "$mod, V, exec, hyprctl keyword monitor 'DP-2, 2560x1080@60, -1080x0, 1, transform, 1'"
-        "$mod, H, exec, hyprctl keyword monitor 'DP-2, 2560x1080@60, -2560x0, 1, transform, 0'"
+        "$mod, V, exec, hyprctl keyword monitor 'HDMI-A-1', 2560x1080@180, -1080x0, 1, transform, 1'"
+        "$mod, H, exec, hyprctl keyword monitor 'HDMI-A-1', 2560x1080@180, -2560x0, 1, transform, 0'"
 
         "$mod, 1, workspace, 1"
         "$mod, 2, workspace, 2"
@@ -99,7 +100,36 @@ in
         #"DPe-1,1920x1080@60,0x0,1.2" # FOR MY LAPTOP
 
         "DP-1,2560x1440@165.00,0x0,1"
-        "HDMI-A-1,2560x1080@180,-1080x0,1, transform, 1"
+        "DP-2,2560x1080@200,-1080x0,1, transform, 1"
+
+      ];
+      windowrule = [
+        "no_max_size on, match:class polkit-mate-authentication-agent-1"
+        "pin on, match:class polkit-mate-authentication-agent-1"
+        "opacity 0.99 override 0.99 override, match:title QDiskInfo"
+        "opacity 0.99 override 0.99 override, match:title MainPicker"
+        "opacity 0.99 override 0.99 override, match:class thunderbird"
+        "opacity 0.99 override 0.99 override, match:class spotify"
+        "opacity 0.99 override 0.99 override, match:class org.prismlauncher.PrismLauncher"
+        "opacity 0.99 override 0.99 override, match:class mpv"
+        "opacity 0.99 override 0.99 override, match:class org.qbittorrent.qBittorrent"
+        "opacity 0.99 override 0.99 override, match:class die"
+      ];
+      layerrule = [
+        # "blur on, match:namespace .*"
+        "blur_popups on, match:namespace .*"
+        "no_anim on, match:namespace selection"
+        "ignore_alpha 0.9, match:namespace selection"
+        "ignore_alpha 0, match:namespace corner0"
+        "ignore_alpha 0, match:namespace overview"
+        "ignore_alpha 0, match:namespace indicator0"
+        "ignore_alpha 0, match:namespace datemenu"
+        "ignore_alpha 0, match:namespace launcher"
+        "ignore_alpha 0, match:namespace quicksettings"
+        "ignore_alpha 0, match:namespace swaync-control-center"
+        "ignore_alpha 0, match:namespace swaync-notification-window"
+        "animation popin 90%, match:namespace logout_dialog"
+        "animation slide left, match:namespace swaync-control-center"
       ];
 
       env = [
@@ -116,10 +146,6 @@ in
         "NIXOS_OZONE_WL,1"
         "WLR_NO_HARDWARE_CURSORS,1"
       ];
-      windowrule = [
-        # "nomaxsize, class:^(polkit-mate-authentication-agent-1)$"
-        # "pin, class:^(polkit-mate-authentication-agent-1)$"
-      ];
 
       general = {
         resize_on_border = true;
@@ -127,17 +153,22 @@ in
         gaps_out = 25;
         gaps_in = 10;
         layout = "dwindle";
-        "col.inactive_border" = "rgb(595959)";
+        "col.active_border" = lib.mkForce "rgb(${config.lib.stylix.colors.base0D})"; 
       };
-
       decoration = {
         active_opacity = 1;
         inactive_opacity = 0.85;
         rounding = 12;
         blur = {
           enabled = true;
-          size = 18;
-          passes = 3;
+          popups = true;
+          popups_ignorealpha = 0;
+          ignore_opacity = true;
+          size = 10;
+          brightness = 0.6;
+          passes = 4;
+          noise = 0;
+          vibrancy = 0;
         };
         shadow = {
           enabled = true;
@@ -147,13 +178,22 @@ in
 
       cursor = {
         no_hardware_cursors = true;
-          default_monitor = "DP-1";
+        default_monitor = "DP-1";
       };
 
       input = {
         kb_layout = "us,ru, de";
         kb_options = "grp:alt_shift_toggle";
         follow_mouse = 1;
+      };
+
+      misc = {
+        enable_swallow = true;
+        animate_manual_resizes = false;
+        animate_mouse_windowdragging = false;
+        swallow_regex = "^(kitty|lutris|bottles|alacritty)$";
+        swallow_exception_regex = "^(ncspot)$";
+        force_default_wallpaper = 2;
       };
 
       animations = {

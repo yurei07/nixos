@@ -50,11 +50,16 @@ in
       stress-ng
       libreoffice-qt
       quickshell
-
+      (discord.override {
+              withOpenASAR = true;
+              withVencord = true;
+            })
       #themes
       gnome-themes-extra
       materia-theme
       arc-theme
+      killall
+      libnotify
 
       # icons
       papirus-icon-theme

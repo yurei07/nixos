@@ -41,6 +41,7 @@
       libreoffice-qt
       pdfsam-basic
 
+
       #themes
       gnome-themes-extra
       materia-theme
@@ -91,6 +92,7 @@
       # inputs
       inputs.hyprland.packages.${system}.hyprland
       inputs.anicli-ru.packages.${system}.default
+      inputs.nixcord.packages.${system}.default
     ];
   };
 }

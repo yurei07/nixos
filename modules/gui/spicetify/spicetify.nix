@@ -1,25 +1,33 @@
-{ pkgs, config, lib, inputs, ... }:
-let
+# Spicetify is a spotify client customizer
+{
+  pkgs,
+  config,
+  lib,
+  inputs,
+  ...
+}: let
   spicePkgs = inputs.spicetify-nix.legacyPackages.${pkgs.stdenv.hostPlatform.system};
-  color = import ../../../materials/themes {};
+  accent = "${config.lib.stylix.colors.base0D}";
+  background = "${config.lib.stylix.colors.base00}";
 in {
-  imports = [ inputs.spicetify-nix.homeManagerModules.default ];
+  imports = [inputs.spicetify-nix.homeManagerModules.default];
+
+  stylix.targets.spicetify.enable = false;
 
   programs.spicetify = {
     enable = true;
-    theme = spicePkgs.themes.turntable;
+    theme = lib.mkForce spicePkgs.themes.dreary;
 
+    colorScheme = "custom";
 
     customColorScheme = {
-      accent = color.base0D;
-      accent-active = color.base0D;
-      border-active = color.base0D;
-      tab-active = color.base0D;
-      player = color.base00;
-      sidebar = color.base00;
-      highlight = color.base0D;
+      button = accent;
+      button-active = accent;
+      tab-active = accent;
+      player = background;
+      main = background;
+      sidebar = background;
     };
-
 
     enabledExtensions = with spicePkgs.extensions; [
       playlistIcons

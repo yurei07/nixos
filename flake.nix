@@ -8,27 +8,26 @@
     flake-utils.url = "github:numtide/flake-utils";
     nixcord.url = "github:kaylorben/nixcord";
     lazyvim.url = "github:pfassina/lazyvim-nix";
-    textfox.url = "github:adriankarlen/textfox";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+
+    stylix = {
+      url = "github:danth/stylix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     noctalia = {
       url = "github:noctalia-dev/noctalia-shell";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.quickshell.follows = "quickshell";
     };
+
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
       inputs = {
-        # IMPORTANT: we're using "libgbm" and is only available in unstable so ensure
-        # to have it up-to-date or simply don't specify the nixpkgs input
         nixpkgs.follows = "nixpkgs";
         home-manager.follows = "home-manager";
       };
     };
-    # caelestia-shell = {
-    #   url = "github:caelestia-dots/shell";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
 
     spicetify-nix = {
       url = "github:Gerg-L/spicetify-nix";
@@ -62,56 +61,51 @@
   };
 
   outputs =
-    { self, nixpkgs, ... }@inputs:
+    {
+      self,
+      nixpkgs,
+      stylix,
+      ...
+    }@inputs:
     let
       system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
-      lib = nixpkgs.lib;
-      rhodiumLib = import ./lib { inherit lib pkgs; };
       username = "Prizrak";
     in
     {
       nixosConfigurations = {
         nixos = inputs.nixpkgs.lib.nixosSystem {
-          specialArgs = {
-            inherit inputs rhodiumLib username;
-          };
           inherit system;
+          specialArgs = {
+            inherit inputs username;
+          };
           modules = [
             ./hosts/Prizrak/configuration.nix
+            stylix.nixosModules.stylix
+            ./materials/themes/prizrak.nix
             inputs.home-manager.nixosModules.home-manager
-            # inputs.nixos-hardware.nixosModules.lenovo-thinkpad-t480
-            # {
-            #   nixpkgs.overlays = [
-            #     (final: prev: {
-            #       caelestia-shell = inputs.caelestia-shell.packages.${system}.caelestia-shell;
-            #       caelestia-cli = inputs.caelestia-shell.inputs.caelestia-cli.packages.${system}.caelestia-cli;
-            #     })
-            #   ];
-            # }
             {
-              home-manager = {
-                extraSpecialArgs = {
-                  inherit inputs rhodiumLib username;
-                };
-                useGlobalPkgs = true;
-                useUserPackages = true;
+              home-manager.useGlobalPkgs = true;
+              home-manager.useUserPackages = true;
+              home-manager.extraSpecialArgs = {
+                inherit inputs username;
+              };
+              home-manager.users.${username} = {
+                imports = [ ]; 
               };
             }
           ];
         };
+
         server = inputs.nixpkgs.lib.nixosSystem {
-          specialArgs = { inherit inputs; };
           inherit system;
+          specialArgs = { inherit inputs; };
           modules = [
             ./hosts/server/configuration.nix
             inputs.home-manager.nixosModules.home-manager
             inputs.copyparty.nixosModules.default
             {
               home-manager = {
-                extraSpecialArgs = {
-                  inherit inputs;
-                };
+                extraSpecialArgs = { inherit inputs; };
                 useGlobalPkgs = true;
                 useUserPackages = true;
               };

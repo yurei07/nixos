@@ -6,11 +6,10 @@
   inputs,
   ...
 }:
-let
-  Theme = import ../../modules/gui/gtk/packages_theme.nix { inherit pkgs; };
-in
 {
   imports = [
+    ./../../materials/themes/prizrak.nix
+
     ./hardware-configuration.nix
 
     # nixos modules
@@ -18,10 +17,13 @@ in
     ./nix-modules/bluetooth.nix
     ./nix-modules/users.nix
     ./nix-modules/fonts.nix
+
     ./nix-modules/audio.nix
     ./nix-modules/lightdm.nix
     ./nix-modules/replays.nix
+
     ../../modules/gui/obs/obs.nix
+
   ];
 
   replays.enable = true;
@@ -62,11 +64,7 @@ in
   };
 
   environment = {
-    variables = {
-      GTK_THEME = "Goth_theme-2025-04-17-grey-Dark";
-    };
     systemPackages = with pkgs; [
-      Theme
       ifuse
       libimobiledevice
       openrgb

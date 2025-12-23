@@ -1,11 +1,9 @@
 { ... }:
 {
   imports = [
-    ./gtk/theme.nix
-    ./discord/discord.nix
-    # ./firefox/firefox.nix
+    # ./gtk/theme.nix
     ./spicetify/spicetify.nix
     ./syncthing/syncthing.nix
-    # ./noctalia/noctalia.nix
+    ./file-associations
   ];
 }
