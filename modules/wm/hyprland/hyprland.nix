@@ -91,8 +91,8 @@ in
         "$mod, mouse:273, resizewindow"
       ];
       exec-once = [
-        # "caelestia-shell"
         "noctalia-shell"
+        "swww-deamon"
       ];
 
       monitor = [

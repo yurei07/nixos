@@ -5,7 +5,6 @@
   ...
 }:
 let
-  caelestiaConfigDir = ./.;
 in
 {
   imports = [
@@ -99,12 +98,6 @@ in
       inputs.zen-browser.packages.${stdenv.hostPlatform.system}.default
       inputs.anicli-ru.packages.${stdenv.hostPlatform.system}.default
       inputs.noctalia.packages.${stdenv.hostPlatform.system}.default
-      # caelestia-shell
-      # caelestia-cli
     ];
-
   };
-
-  # xdg.configFile."caelestia/shell.json".source = caelestiaConfigDir + "/shell.json";
-  # xdg.configFile.".local/state/caelestia/scheme.json".source = caelestiaConfigDir + "/scheme.json";
 }

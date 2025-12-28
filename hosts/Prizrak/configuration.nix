@@ -25,8 +25,10 @@
     ../../modules/gui/obs/obs.nix
 
   ];
-
   replays.enable = true;
+  networking.firewall.allowedTCPPorts = [ 80 8080 21 22 25565 9993];
+  networking.firewall.allowedUDPPorts = [ 80 8080 21 22 25565 9993];
+  networking.firewall.trustedInterfaces = [ "zt+" ];
 
   services.gvfs.enable = true;
   services.usbmuxd.enable = true;
@@ -51,6 +53,8 @@
   services.gnome.gnome-keyring.enable = true;
   programs.dconf.enable = true;
 
+  services.zerotierone.enable = true;
+
   # services.premid.enable = true;
   services.flatpak.enable = true;
 
@@ -73,6 +77,7 @@
       polychromatic
       vscode-fhs
       git
+      openjdk
     ];
   };
 
