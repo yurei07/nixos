@@ -92,7 +92,6 @@ in
       ];
       exec-once = [
         "noctalia-shell"
-        "swww-deamon"
       ];
 
       monitor = [
