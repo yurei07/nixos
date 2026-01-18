@@ -37,6 +37,8 @@
   boot.loader.efi.canTouchEfiVariables = true;
   programs.gpu-screen-recorder.enable = true;
   
+  programs.ssh.askPassword = ""; 
+
   xdg.portal = {
     enable = true;
     extraPortals = [ 
