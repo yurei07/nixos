@@ -3,13 +3,14 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-    # hyprland.url = "github:hyprwm/Hyprland";
     niri.url = "github:YaLTeR/niri";
-    # hyprpolkitagent.url = "github:hyprwm/hyprpolkitagent";
     flake-utils.url = "github:numtide/flake-utils";
-    nixcord.url = "github:kaylorben/nixcord";
-    lazyvim.url = "github:pfassina/lazyvim-nix";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+
+    caelestia-shell = {
+      url = "github:AyushKr2003/niri-caelestia-shell";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     stylix = {
       url = "github:danth/stylix";
@@ -33,6 +34,7 @@
     prismlauncher = {
       url = "github:Diegiwg/PrismLauncher-Cracked";
     };
+
     spicetify-nix = {
       url = "github:Gerg-L/spicetify-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -41,11 +43,6 @@
     quickshell = {
       url = "github:outfoxxed/quickshell";
       inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    kanso-nvim = {
-      url = "github:pabloagn/kanso.nvim";
-      flake = false;
     };
 
     home-manager = {
@@ -84,10 +81,17 @@
           };
           modules = [
             ./hosts/Prizrak/configuration.nix
-            # inputs.niri.nixosModules.niri
             stylix.nixosModules.stylix
             ./materials/themes/prizrak.nix
             inputs.home-manager.nixosModules.home-manager
+            {
+              nixpkgs.overlays = [
+                (final: prev: {
+                  caelestia-shell = inputs.caelestia-shell.packages.${system}.caelestia-shell;
+                  caelestia-cli = inputs.caelestia-shell.inputs.caelestia-cli.packages.${system}.caelestia-cli;
+                })
+              ];
+            }
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;

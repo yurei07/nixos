@@ -27,6 +27,8 @@
   ];
   replays.enable = true;
 
+  nixpkgs.config.allowUnfree = true;
+
   services.gvfs.enable = true;
   services.usbmuxd.enable = true;
   # programs.adb.enable = true;
@@ -34,12 +36,24 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
   programs.gpu-screen-recorder.enable = true;
-
-  xdg.portal.enable = true;
-  xdg.portal.extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
-  xdg.portal.config.common.default = "*";
-
-  nixpkgs.config.allowUnfree = true;
+  
+  xdg.portal = {
+    enable = true;
+    extraPortals = [ 
+      pkgs.xdg-desktop-portal-gnome 
+      pkgs.xdg-desktop-portal-gtk
+    ];
+    
+    config = {
+      common = {
+        default = [ "gtk" ];
+      };
+      niri = {
+        "org.freedesktop.impl.portal.ScreenCast" = "gnome";
+        "org.freedesktop.impl.portal.Screenshot" = "gnome";
+      };
+    };
+  };
 
   nix.settings.experimental-features = [
     "nix-command"
@@ -52,7 +66,6 @@
 
   services.zerotierone.enable = true;
 
-  # services.premid.enable = true;
   services.flatpak.enable = true;
 
   services.hardware.openrgb = {
@@ -66,15 +79,7 @@
 
   environment = {
     systemPackages = with pkgs; [
-      alacritty
-      fuzzel
-      swaylock
       xwayland-satellite
-
-      xdg-desktop-portal
-      xdg-desktop-portal-gnome
-      xdg-desktop-portal-wlr
-      xorg.xhost
     ];
   };
 

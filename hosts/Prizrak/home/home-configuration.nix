@@ -5,6 +5,7 @@
   ...
 }:
 let
+  caelestiaConfigDir = ../../../modules/gui/caelestia;
 in
 {
   imports = [
@@ -33,7 +34,6 @@ in
       telegram-desktop
       lutris
       bottles
-      xfce.thunar
       nautilus
       wget
       mpv
@@ -41,17 +41,16 @@ in
       mate.mate-polkit
       matugen
       gpu-screen-recorder
-      # prismlauncher
       foliate
       scrcpy
       usbutils
       stress-ng
       libreoffice-qt
       quickshell
-      (discord.override {
-              withOpenASAR = true;
-              withVencord = true;
-            })
+      vesktop
+      caelestia-shell
+      caelestia-cli
+
       #themes
       gnome-themes-extra
       materia-theme
@@ -93,12 +92,11 @@ in
       lsp-plugins
 
       # inputs
-      # inputs.hyprland.packages.${stdenv.hostPlatform.system}.hyprland
       inputs.niri.packages.${stdenv.hostPlatform.system}.niri
       inputs.zen-browser.packages.${stdenv.hostPlatform.system}.default
-      # inputs.anicli-ru.packages.${stdenv.hostPlatform.system}.default
-      inputs.noctalia.packages.${stdenv.hostPlatform.system}.default
       inputs.prismlauncher.packages.${stdenv.hostPlatform.system}.default
     ];
   };
+    xdg.configFile."caelestia/shell.json".source = caelestiaConfigDir + "/shell.json";
+    xdg.configFile.".local/state/caelestia/scheme.json".source = caelestiaConfigDir + "/scheme.json";
 }

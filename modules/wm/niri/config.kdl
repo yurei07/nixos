@@ -1,31 +1,47 @@
 input {
-    keyboard {
-        xkb {
-            layout "us,ru,de"
-            options "grp:alt_shift_toggle,compose:ralt,ctrl:nocaps"
-        }
-    }
+    warp-mouse-to-focus
+    focus-follows-mouse
+    disable-power-key-handling
+    workspace-auto-back-and-forth
+
     touchpad {
         tap
         natural-scroll
-        dwt
+        drag false
+        click-method "button-areas"
+        scroll-method "two-finger"
+        accel-speed 0.20
+        accel-profile "adaptive"
+        tap-button-map "left-right-middle"
+        scroll-factor 1.0
     }
+
     mouse {
-        // Оставляем стандартно
+        accel-speed 0.20
+        accel-profile "adaptive"
+        scroll-factor 1.0
     }
-    // Эта опция должна быть внутри input
-    warp-mouse-to-focus
+
+    keyboard {
+        track-layout "window"
+        xkb {
+            layout "us,ru,de"
+            options "grp:alt_shift_toggle"
+        }
+        repeat-delay 600
+        repeat-rate 25
+    }
 }
 
-// --- МОНИТОРЫ ---
-// Основной
+// --- MONITORS ---
+// Primary Monitor
 output "DP-1" {
     mode "2560x1440@164.999"
     scale 1.0
     position x=0 y=0
 }
 
-// Второй монитор
+// Secondary Monitor (Vertical)
 output "DP-2" {
     mode "2560x1080@199.997"
     scale 1.0
@@ -33,97 +49,156 @@ output "DP-2" {
     position x=-1080 y=0
 }
 
-// --- ВНЕШНИЙ ВИД ---
-layout {
-    gaps 16
-    center-focused-column "never"
-    
-    preset-column-widths {
-        proportion 0.33333
-        proportion 0.5
-        proportion 0.66667
+// --- VISUALS ---
+overview {
+    zoom 0.4
+}
+
+// ANIMATIONS: Using "Spring" curves for a smooth, high-end feel
+animations {
+    // Uncomment to turn off all animations.
+    // You can also put "off" into each individual animation to disable it.
+    // off
+
+    // Slow down all animations by this factor. Values below 1 speed them up instead.
+    // slowdown 3.0
+
+    // Individual animations.
+
+    workspace-switch {
+        spring damping-ratio=1.0 stiffness=1000 epsilon=0.0001
     }
 
-    default-column-width { proportion 0.5; }
+    window-open {
+        duration-ms 150
+        curve "ease-out-expo"
+    }
+
+    window-close {
+        duration-ms 150
+        curve "ease-out-quad"
+    }
+
+    horizontal-view-movement {
+        spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+    }
+
+    window-movement {
+        spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+    }
+
+    window-resize {
+        spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+    }
+
+    config-notification-open-close {
+        spring damping-ratio=0.6 stiffness=1000 epsilon=0.001
+    }
+
+    exit-confirmation-open-close {
+        spring damping-ratio=0.6 stiffness=500 epsilon=0.01
+    }
+
+    screenshot-ui-open {
+        duration-ms 200
+        curve "ease-out-quad"
+    }
+
+    overview-open-close {
+        spring damping-ratio=1.0 stiffness=800 epsilon=0.0001
+    }
+
+    recent-windows-close {
+        spring damping-ratio=1.0 stiffness=800 epsilon=0.001
+    }
+}
+
+layout {
+    shadow {
+        on
+    }
+
+    gaps 16
+    default-column-display "normal"
+    center-focused-column "never"
+
+    struts {
+        left 0
+        right 0
+        top 0
+        bottom 0
+    }
 
     focus-ring {
+        on
         width 2
-        active-color "#7fc8ff"
-        inactive-color "#505050"
+        active-color "#8771DA"
     }
 
     border {
         off
+        width 4
+        active-color "#8771DA"
     }
 
-    shadow {
-	off
+    insert-hint {
+        color "#ffc87f70"
     }
-    
+
+    tab-indicator {
+        hide-when-single-tab
+        place-within-column
+        corner-radius 4
+        width 4
+        length total-proportion=1.0
+        gap 4
+        gaps-between-tabs 2
+    }
 }
 
-// --- ПРАВИЛА ОКОН ---
+// --- WINDOW RULES ---
 prefer-no-csd
 
 window-rule {
     match is-active=false
-    opacity 0.95
-}
-
-window-rule {
-    match app-id=r#"^org\.wezfurlong\.wezterm$"#
-    default-column-width {}
-}
-
-window-rule {
-    match app-id="discord"
-    open-on-workspace "2" 
-}
-
-window-rule {
-    match app-id="spotify"
-    open-on-workspace "2"
-}
-
-window-rule {
-    match title="Picture in picture"
-    open-floating true
 }
 
 window-rule {
     geometry-corner-radius 12
     clip-to-geometry true
 }
-// --- АВТОЗАПУСК ---
-spawn-at-startup "noctalia-shell"
+
+// --- STARTUP ---
+spawn-at-startup "caelestia" "shell"
 spawn-at-startup "swaybg" "-i" "/path/to/your/wallpaper" 
 
-// --- ГОРЯЧИЕ КЛАВИШИ ---
+// --- BINDINGS ---
 binds {
-    // Системные
+    // System
     Mod+Shift+Slash { show-hotkey-overlay; }
     Mod+Shift+E { quit; }
     Mod+Q { close-window; }
 
-    // СОФТ
+    // Apps
     Mod+Return { spawn "kitty"; }
-    Mod+Y { spawn "sh" "-c" "../../../scripts/nvim.sh"; }
+    Mod+Y { spawn "sh" "-c" "/etc/nixos/scripts/nvim.sh"; }
     Mod+E { spawn "nautilus"; }
     Mod+B { spawn "zen"; }
-    Mod+D { spawn "discord"; }
-    // Mod+O { spawn "obsidian"; }
+    Mod+D { spawn "vesktop"; }
+    // Overview 
+    Mod+O { toggle-overview; }
     
-    // ЛАУНЧЕР
-    Mod+Space { spawn "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
+    // Launcher
+    Mod+Space { spawn "caelestia" "shell" "drawers" "toggle" "launcher"; }
 
-    // СКРИНШОТЫ
+    // Screenshots
     Print { screenshot; }
     Shift+Print { screenshot-screen; }
     
-    // ПОВТОР
-    Mod+Ctrl+R { spawn "sh" "-c" "killall -SIGUSR1 gpu-screen-recorder && notify-send 'GPU-Screen-Recorder' 'Повтор успешно сохранён'"; }
+    // Instant Replay (GPU Screen Recorder)
+    Mod+Ctrl+R { spawn "sh" "-c" "killall -SIGUSR1 gpu-screen-recorder && notify-send 'GPU-Screen-Recorder' 'Replay saved successfully'"; }
 
-    // МУЛЬТИМЕДИА
+    // Multimedia
     XF86AudioRaiseVolume allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "volume" "increase"; }
     XF86AudioLowerVolume allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "volume" "decrease"; }
     XF86AudioMute        allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "volume" "muteOutpute"; }
@@ -131,7 +206,7 @@ binds {
     XF86MonBrightnessUp   allow-when-locked=true { spawn "brightnessctl" "set" "5%+"; }
     XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "set" "5%-"; }
 
-    // НАВИГАЦИЯ
+    // Navigation
     Mod+Left  { focus-column-left; }
     Mod+Right { focus-column-right; }
     Mod+H     { focus-column-left; }
@@ -139,13 +214,13 @@ binds {
     Mod+J     { focus-window-down; }
     Mod+K     { focus-window-up; }
 
-    // ПЕРЕМЕЩЕНИЕ ОКОН
+    // Moving Windows
     Mod+Shift+Left  { move-column-left; }
     Mod+Shift+Right { move-column-right; }
     Mod+Shift+H     { move-column-left; }
     Mod+Shift+L     { move-column-right; }
 
-    // РАБОЧИЕ СТОЛЫ
+    // Workspaces
     Mod+1 { focus-workspace 1; }
     Mod+2 { focus-workspace 2; }
     Mod+3 { focus-workspace 3; }
@@ -162,7 +237,7 @@ binds {
     Mod+Shift+4 { move-column-to-workspace 4; }
     Mod+Shift+5 { move-column-to-workspace 5; }
 
-    // УПРАВЛЕНИЕ РАЗМЕРОМ
+    // Layout Management
     Mod+F { maximize-column; }
     Mod+Shift+F { fullscreen-window; }
     Mod+V { toggle-window-floating; }
@@ -171,10 +246,32 @@ binds {
     
     Mod+Minus { set-column-width "-10%"; }
     Mod+Equal { set-column-width "+10%"; }
+
+    // --- MOUSE WHEEL NAVIGATION ---
+
+    // Super + Wheel: Switch between windows (columns)
+    Mod+WheelScrollDown      { focus-column-right; }
+    Mod+WheelScrollUp        { focus-column-left; }
+
+    // Alt + Wheel: Switch between workspaces
+    // Using Alt (A) as requested
+    Alt+WheelScrollDown      { focus-workspace-down; }
+    Alt+WheelScrollUp        { focus-workspace-up; }
+
+    // --- QUICK NAVIGATION (First / Last Window) ---
+
+    // Switch to the first window on the workspace
+    Mod+Home { focus-column-first; }
+
+    // Switch to the last window on the workspace
+    Mod+End  { focus-column-last; }
+
+    // Alternative: if you want to use keys like 1 and 9 for first/last
+    // Mod+Shift+1 { focus-column-first; }
+    // Mod+Shift+9 { focus-column-last; }
 }
 
-// РАЗМЫТИЕ ПАНЕЛЕЙ
+// LAYER RULES
 layer-rule {
     match namespace="launcher"
-    
 }
