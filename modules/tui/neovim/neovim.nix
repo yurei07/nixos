@@ -153,7 +153,7 @@ in
          vim.keymap.set('n', '<leader>fh', builtin.help_tags, { desc = 'Help' })
 
         -- 4. TREESITTER
-         require'nvim-treesitter.configs'.setup {
+         require'nvim-treesitter'.setup {
            highlight = { enable = true },
            indent = { enable = true },
            ensure_installed = {}, 

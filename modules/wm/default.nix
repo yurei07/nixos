@@ -1,7 +1,8 @@
 { ... }:
 {
   imports = [
-    ./hyprland/hyprland.nix
+    # ./hyprland/hyprland.nix
+    ./niri/niri.nix
     ./polkit/polkit.nix
   ];
 }

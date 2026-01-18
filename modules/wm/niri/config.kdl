@@ -1,0 +1,180 @@
+input {
+    keyboard {
+        xkb {
+            layout "us,ru,de"
+            options "grp:alt_shift_toggle,compose:ralt,ctrl:nocaps"
+        }
+    }
+    touchpad {
+        tap
+        natural-scroll
+        dwt
+    }
+    mouse {
+        // Оставляем стандартно
+    }
+    // Эта опция должна быть внутри input
+    warp-mouse-to-focus
+}
+
+// --- МОНИТОРЫ ---
+// Основной
+output "DP-1" {
+    mode "2560x1440@164.999"
+    scale 1.0
+    position x=0 y=0
+}
+
+// Второй монитор
+output "DP-2" {
+    mode "2560x1080@199.997"
+    scale 1.0
+    transform "90"
+    position x=-1080 y=0
+}
+
+// --- ВНЕШНИЙ ВИД ---
+layout {
+    gaps 16
+    center-focused-column "never"
+    
+    preset-column-widths {
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+    }
+
+    default-column-width { proportion 0.5; }
+
+    focus-ring {
+        width 2
+        active-color "#7fc8ff"
+        inactive-color "#505050"
+    }
+
+    border {
+        off
+    }
+
+    shadow {
+	off
+    }
+    
+}
+
+// --- ПРАВИЛА ОКОН ---
+prefer-no-csd
+
+window-rule {
+    match is-active=false
+    opacity 0.95
+}
+
+window-rule {
+    match app-id=r#"^org\.wezfurlong\.wezterm$"#
+    default-column-width {}
+}
+
+window-rule {
+    match app-id="discord"
+    open-on-workspace "2" 
+}
+
+window-rule {
+    match app-id="spotify"
+    open-on-workspace "2"
+}
+
+window-rule {
+    match title="Picture in picture"
+    open-floating true
+}
+
+window-rule {
+    geometry-corner-radius 12
+    clip-to-geometry true
+}
+// --- АВТОЗАПУСК ---
+spawn-at-startup "noctalia-shell"
+spawn-at-startup "swaybg" "-i" "/path/to/your/wallpaper" 
+
+// --- ГОРЯЧИЕ КЛАВИШИ ---
+binds {
+    // Системные
+    Mod+Shift+Slash { show-hotkey-overlay; }
+    Mod+Shift+E { quit; }
+    Mod+Q { close-window; }
+
+    // СОФТ
+    Mod+Return { spawn "kitty"; }
+    Mod+Y { spawn "sh" "-c" "../../../scripts/nvim.sh"; }
+    Mod+E { spawn "nautilus"; }
+    Mod+B { spawn "zen"; }
+    Mod+D { spawn "discord"; }
+    // Mod+O { spawn "obsidian"; }
+    
+    // ЛАУНЧЕР
+    Mod+Space { spawn "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
+
+    // СКРИНШОТЫ
+    Print { screenshot; }
+    Shift+Print { screenshot-screen; }
+    
+    // ПОВТОР
+    Mod+Ctrl+R { spawn "sh" "-c" "killall -SIGUSR1 gpu-screen-recorder && notify-send 'GPU-Screen-Recorder' 'Повтор успешно сохранён'"; }
+
+    // МУЛЬТИМЕДИА
+    XF86AudioRaiseVolume allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "volume" "increase"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "volume" "decrease"; }
+    XF86AudioMute        allow-when-locked=true { spawn "noctalia-shell" "ipc" "call" "volume" "muteOutpute"; }
+    
+    XF86MonBrightnessUp   allow-when-locked=true { spawn "brightnessctl" "set" "5%+"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "set" "5%-"; }
+
+    // НАВИГАЦИЯ
+    Mod+Left  { focus-column-left; }
+    Mod+Right { focus-column-right; }
+    Mod+H     { focus-column-left; }
+    Mod+L     { focus-column-right; }
+    Mod+J     { focus-window-down; }
+    Mod+K     { focus-window-up; }
+
+    // ПЕРЕМЕЩЕНИЕ ОКОН
+    Mod+Shift+Left  { move-column-left; }
+    Mod+Shift+Right { move-column-right; }
+    Mod+Shift+H     { move-column-left; }
+    Mod+Shift+L     { move-column-right; }
+
+    // РАБОЧИЕ СТОЛЫ
+    Mod+1 { focus-workspace 1; }
+    Mod+2 { focus-workspace 2; }
+    Mod+3 { focus-workspace 3; }
+    Mod+4 { focus-workspace 4; }
+    Mod+5 { focus-workspace 5; }
+    Mod+6 { focus-workspace 6; }
+    Mod+7 { focus-workspace 7; }
+    Mod+8 { focus-workspace 8; }
+    Mod+9 { focus-workspace 9; }
+
+    Mod+Shift+1 { move-column-to-workspace 1; }
+    Mod+Shift+2 { move-column-to-workspace 2; }
+    Mod+Shift+3 { move-column-to-workspace 3; }
+    Mod+Shift+4 { move-column-to-workspace 4; }
+    Mod+Shift+5 { move-column-to-workspace 5; }
+
+    // УПРАВЛЕНИЕ РАЗМЕРОМ
+    Mod+F { maximize-column; }
+    Mod+Shift+F { fullscreen-window; }
+    Mod+V { toggle-window-floating; }
+    Mod+R { switch-preset-column-width; }
+    Mod+C { center-column; }
+    
+    Mod+Minus { set-column-width "-10%"; }
+    Mod+Equal { set-column-width "+10%"; }
+}
+
+// РАЗМЫТИЕ ПАНЕЛЕЙ
+layer-rule {
+    match namespace="launcher"
+    
+}

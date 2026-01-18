@@ -41,10 +41,9 @@ in
       mate.mate-polkit
       matugen
       gpu-screen-recorder
-      prismlauncher
+      # prismlauncher
       foliate
       scrcpy
-      android-tools
       usbutils
       stress-ng
       libreoffice-qt
@@ -94,10 +93,12 @@ in
       lsp-plugins
 
       # inputs
-      inputs.hyprland.packages.${stdenv.hostPlatform.system}.hyprland
+      # inputs.hyprland.packages.${stdenv.hostPlatform.system}.hyprland
+      inputs.niri.packages.${stdenv.hostPlatform.system}.niri
       inputs.zen-browser.packages.${stdenv.hostPlatform.system}.default
-      inputs.anicli-ru.packages.${stdenv.hostPlatform.system}.default
+      # inputs.anicli-ru.packages.${stdenv.hostPlatform.system}.default
       inputs.noctalia.packages.${stdenv.hostPlatform.system}.default
+      inputs.prismlauncher.packages.${stdenv.hostPlatform.system}.default
     ];
   };
 }

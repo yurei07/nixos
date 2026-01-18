@@ -26,13 +26,10 @@
 
   ];
   replays.enable = true;
-  networking.firewall.allowedTCPPorts = [ 80 8080 21 22 25565 9993];
-  networking.firewall.allowedUDPPorts = [ 80 8080 21 22 25565 9993];
-  networking.firewall.trustedInterfaces = [ "zt+" ];
 
   services.gvfs.enable = true;
   services.usbmuxd.enable = true;
-  programs.adb.enable = true;
+  # programs.adb.enable = true;
   users.users.Prizrak.extraGroups = [ "adbusers" ];
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -69,15 +66,15 @@
 
   environment = {
     systemPackages = with pkgs; [
-      ifuse
-      libimobiledevice
-      openrgb
-      usbmuxd
-      openrazer-daemon
-      polychromatic
-      vscode-fhs
-      git
-      openjdk
+      alacritty
+      fuzzel
+      swaylock
+      xwayland-satellite
+
+      xdg-desktop-portal
+      xdg-desktop-portal-gnome
+      xdg-desktop-portal-wlr
+      xorg.xhost
     ];
   };
 

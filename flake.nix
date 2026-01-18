@@ -3,8 +3,9 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-    hyprland.url = "github:hyprwm/Hyprland";
-    hyprpolkitagent.url = "github:hyprwm/hyprpolkitagent";
+    # hyprland.url = "github:hyprwm/Hyprland";
+    niri.url = "github:YaLTeR/niri";
+    # hyprpolkitagent.url = "github:hyprwm/hyprpolkitagent";
     flake-utils.url = "github:numtide/flake-utils";
     nixcord.url = "github:kaylorben/nixcord";
     lazyvim.url = "github:pfassina/lazyvim-nix";
@@ -29,6 +30,9 @@
       };
     };
 
+    prismlauncher = {
+      url = "github:Diegiwg/PrismLauncher-Cracked";
+    };
     spicetify-nix = {
       url = "github:Gerg-L/spicetify-nix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -49,10 +53,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    anicli-ru = {
-      url = "github:vypivshiy/ani-cli-ru";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    # anicli-ru = {
+    #   url = "github:vypivshiy/ani-cli-ru";
+    #   inputs.nixpkgs.follows = "nixpkgs";
+    # };
 
     copyparty = {
       url = "github:9001/copyparty";
@@ -80,6 +84,7 @@
           };
           modules = [
             ./hosts/Prizrak/configuration.nix
+            # inputs.niri.nixosModules.niri
             stylix.nixosModules.stylix
             ./materials/themes/prizrak.nix
             inputs.home-manager.nixosModules.home-manager

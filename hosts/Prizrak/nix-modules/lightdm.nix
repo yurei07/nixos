@@ -14,9 +14,9 @@
   };
 
   services.displayManager = {
-    sessionData.autologinSession = "hyprland";
-    sessionPackages = [ inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.default ];
-    defaultSession = "hyprland";
+    sessionData.autologinSession = "niri";
+    sessionPackages = [ inputs.niri.packages.${pkgs.stdenv.hostPlatform.system}.default ];
+    defaultSession = "niri";
     autoLogin = {
       user = "${username}";
       enable = true;
