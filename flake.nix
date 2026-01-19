@@ -7,11 +7,6 @@
     flake-utils.url = "github:numtide/flake-utils";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
 
-    caelestia-shell = {
-      url = "github:AyushKr2003/niri-caelestia-shell";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
     stylix = {
       url = "github:danth/stylix";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -84,14 +79,6 @@
             stylix.nixosModules.stylix
             ./materials/themes/prizrak.nix
             inputs.home-manager.nixosModules.home-manager
-            {
-              nixpkgs.overlays = [
-                (final: prev: {
-                  caelestia-shell = inputs.caelestia-shell.packages.${system}.caelestia-shell;
-                  caelestia-cli = inputs.caelestia-shell.inputs.caelestia-cli.packages.${system}.caelestia-cli;
-                })
-              ];
-            }
             {
               home-manager.useGlobalPkgs = true;
               home-manager.useUserPackages = true;

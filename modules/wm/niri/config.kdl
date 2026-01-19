@@ -1,5 +1,4 @@
 input {
-    warp-mouse-to-focus
     focus-follows-mouse
     disable-power-key-handling
     workspace-auto-back-and-forth
@@ -118,9 +117,9 @@ layout {
         on
     }
 
-    gaps 16
+    gaps 24
     default-column-display "normal"
-    center-focused-column "never"
+    center-focused-column "on-overflow"
 
     struts {
         left 0
@@ -164,12 +163,12 @@ window-rule {
 }
 
 window-rule {
-    geometry-corner-radius 12
+    geometry-corner-radius 20
     clip-to-geometry true
 }
 
 // --- STARTUP ---
-spawn-at-startup "caelestia" "shell"
+spawn-at-startup "noctalia-shell"
 spawn-at-startup "swaybg" "-i" "/path/to/your/wallpaper" 
 
 // --- BINDINGS ---
@@ -189,7 +188,7 @@ binds {
     Mod+O { toggle-overview; }
     
     // Launcher
-    Mod+Space { spawn "caelestia" "shell" "drawers" "toggle" "launcher"; }
+    Mod+Space { spawn "noctalia-shell" "ipc" "call" "launcher" "toggle"; }
 
     // Screenshots
     Print { screenshot; }
