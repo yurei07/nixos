@@ -59,7 +59,7 @@ in
 
     # Nix
     nixd
-    nixfmt-rfc-style
+    nixfmt
 
     # File Manager
     yazi
@@ -71,6 +71,8 @@ in
     viAlias = true;
     vimAlias = true;
     vimdiffAlias = true;
+    withRuby = false;
+    withPython3 = false;
 
     # --- Plugins ---
     plugins = with pkgs.vimPlugins; [
@@ -113,7 +115,7 @@ in
     ];
 
     # --- Lua Config ---
-    extraLuaConfig = ''
+    initLua = ''
          vim.g.lspconfig_suppress_deprecation_warnings = true
          -- 1. BASIC SETTINGS
          vim.opt.number = true

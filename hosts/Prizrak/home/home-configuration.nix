@@ -33,7 +33,7 @@
       wget
       mpv
       steam
-      mate.mate-polkit
+      mate-polkit
       matugen
       gpu-screen-recorder
       foliate
