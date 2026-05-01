@@ -99,7 +99,7 @@ in
         #"DPe-1,1920x1080@60,0x0,1.2" # FOR MY LAPTOP
 
         "DP-1,2560x1440@165.00,0x0,1"
-        "DP-2,2560x1080@200,-1080x0,1, transform, 1"
+        "DP-2,2560x1080@200,-1080x0,1, transform, 3"
 
       ];
       windowrule = [

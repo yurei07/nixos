@@ -44,7 +44,7 @@ output "DP-1" {
 output "DP-2" {
     mode "2560x1080@199.997"
     scale 1.0
-    transform "90"
+    transform "270"
     position x=-1080 y=0
 }
 

@@ -3,9 +3,13 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-    niri.url = "github:YaLTeR/niri";
     flake-utils.url = "github:numtide/flake-utils";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+
+    hyprland = {
+      url = "github:hyprwm/Hyprland";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     stylix = {
       url = "github:danth/stylix";
@@ -45,11 +49,6 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # anicli-ru = {
-    #   url = "github:vypivshiy/ani-cli-ru";
-    #   inputs.nixpkgs.follows = "nixpkgs";
-    # };
-
     copyparty = {
       url = "github:9001/copyparty";
       inputs.nixpkgs.follows = "nixpkgs";
@@ -86,7 +85,9 @@
                 inherit inputs username;
               };
               home-manager.users.${username} = {
-                imports = [ ]; 
+                imports = [
+                  ./hosts/Prizrak/home/home-configuration.nix
+                ];
               };
             }
           ];

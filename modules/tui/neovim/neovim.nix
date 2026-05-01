@@ -42,8 +42,8 @@ in
     myPython
 
     # Web (HTML/CSS/JS)
-    nodePackages.vscode-langservers-extracted # HTML/CSS/JSON/ESLint
-    nodePackages.typescript-language-server # JS/TS
+    # nodePackages.vscode-langservers-extracted # HTML/CSS/JSON/ESLint
+    # nodePackages.typescript-language-server # JS/TS
     prettierd # Форматтер
 
     # Assembly
@@ -204,90 +204,82 @@ in
          
          -- 9. WHICH-KEY (Подсказки биндов)
          require("which-key").setup()
+        
+        -- 10. LSP & COMPLETION (nvim 0.11+)
+        local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
-         -- 10. LSP & COMPLETION
-         local lspconfig = require('lspconfig')
-         lspconfig["clangd"].setup({})
-         local cmp = require('cmp')
-         local capabilities = require('cmp_nvim_lsp').default_capabilities()
-
-         -- Настройка автодополнения
-         cmp.setup({
-           snippet = {
-             expand = function(args)
-               require('luasnip').lsp_expand(args.body)
-             end,
-           },
-           mapping = cmp.mapping.preset.insert({
-             ['<C-b>'] = cmp.mapping.scroll_docs(-4),
-             ['<C-f>'] = cmp.mapping.scroll_docs(4),
-             ['<C-Space>'] = cmp.mapping.complete(),
-             ['<C-e>'] = cmp.mapping.abort(),
-             ['<CR>'] = cmp.mapping.confirm({ select = true }), -- Enter выбирает
-             ['<Tab>'] = cmp.mapping.select_next_item(),
-           }),
-           sources = cmp.config.sources({
-             { name = 'nvim_lsp' },
-             { name = 'luasnip' },
-           }, {
-             { name = 'buffer' },
-             { name = 'path' },
-           })
-         })
-
-         -- Подключение серверов языков
-         local servers = { 
-           "clangd",         -- C, C++
-           "rust_analyzer",  -- Rust
-           "basedpyright",   -- Python
-           "asm_lsp",        -- Assembler
-           "html",           -- HTML
-           "cssls",          -- CSS
-           "ts_ls",          -- JS/TS (бывший tsserver)
-           "nixd",           -- Nix
-           "bashls"          -- Bash
-         }
-
-         for _, lsp in ipairs(servers) do
-           lspconfig[lsp].setup {
-             capabilities = capabilities,
-             on_attach = function(client, bufnr)
-                -- Бинды LSP (GD, K, и т.д.)
-                local opts = { buffer = bufnr, noremap = true, silent = true }
-                vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
-                vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
-                vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
-                vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
-                vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
-                vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, opts)
-                vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
-                vim.keymap.set('n', '<leader>f', function() vim.lsp.buf.format { async = true } end, opts)
-             end,
-           }
-         end
-
-         lspconfig.pasls.setup { capabilities = capabilities }
-
-         -- 11. DEBUGGING (DAP)
-         local dap = require('dap')
-         local dapui = require('dapui')
-         
-         dapui.setup()
-         require("nvim-dap-virtual-text").setup()
-         
-         -- Автооткрытие UI дебаггера
-         dap.listeners.after.event_initialized["dapui_config"] = function() dapui.open() end
-         dap.listeners.before.event_terminated["dapui_config"] = function() dapui.close() end
-         dap.listeners.before.event_exited["dapui_config"] = function() dapui.close() end
-         
-         -- Python Debug
-         require('dap-python').setup('${myPython}/bin/python')
-         
-         -- Бинды для дебага
-         vim.keymap.set('n', '<F5>', function() dap.continue() end, {desc = "Debug Continue"})
-         vim.keymap.set('n', '<F10>', function() dap.step_over() end, {desc = "Debug Step Over"})
-         vim.keymap.set('n', '<F11>', function() dap.step_into() end, {desc = "Debug Step Into"})
-         vim.keymap.set('n', '<leader>b', function() dap.toggle_breakpoint() end, {desc = "Toggle Breakpoint"})
+        local servers = {
+          "clangd", "rust_analyzer", "basedpyright",
+          "asm_lsp", "nixd", "bashls"
+        }
+        
+        for _, lsp in ipairs(servers) do
+          vim.lsp.config(lsp, { capabilities = capabilities })
+        end
+        
+        vim.lsp.enable(servers)
+        
+        -- Бинды LSP
+        vim.api.nvim_create_autocmd('LspAttach', {
+          callback = function(ev)
+            local opts = { buffer = ev.buf, noremap = true, silent = true }
+            vim.keymap.set('n', 'gD', vim.lsp.buf.declaration, opts)
+            vim.keymap.set('n', 'gd', vim.lsp.buf.definition, opts)
+            vim.keymap.set('n', 'K', vim.lsp.buf.hover, opts)
+            vim.keymap.set('n', 'gi', vim.lsp.buf.implementation, opts)
+            vim.keymap.set('n', '<leader>rn', vim.lsp.buf.rename, opts)
+            vim.keymap.set('n', '<leader>ca', vim.lsp.buf.code_action, opts)
+            vim.keymap.set('n', 'gr', vim.lsp.buf.references, opts)
+            vim.keymap.set('n', '<leader>f', function() vim.lsp.buf.format { async = true } end, opts)
+          end,
+        })
+        
+        -- cmp
+        local cmp = require('cmp')
+        cmp.setup({
+          snippet = {
+            expand = function(args)
+              require('luasnip').lsp_expand(args.body)
+            end,
+          },
+          mapping = cmp.mapping.preset.insert({
+            ['<C-b>'] = cmp.mapping.scroll_docs(-4),
+            ['<C-f>'] = cmp.mapping.scroll_docs(4),
+            ['<C-Space>'] = cmp.mapping.complete(),
+            ['<C-e>'] = cmp.mapping.abort(),
+            ['<CR>'] = cmp.mapping.confirm({ select = true }),
+            ['<Tab>'] = cmp.mapping.select_next_item(),
+          }),
+          sources = cmp.config.sources({
+            { name = 'nvim_lsp' },
+            { name = 'luasnip' },
+          }, {
+            { name = 'buffer' },
+            { name = 'path' },
+          })
+        })
+        
+        -- 11. DEBUGGING (DAP)
+        local dap = require('dap')
+        local dapui = require('dapui')
+        local ok, nio = pcall(require, 'nio')
+        if not ok then
+          vim.notify("nvim-nio not found, dap-ui may not work", vim.log.levels.WARN)
+        end
+        
+        dapui.setup()
+        require("nvim-dap-virtual-text").setup()
+        
+        dap.listeners.after.event_initialized["dapui_config"] = function() dapui.open() end
+        dap.listeners.before.event_terminated["dapui_config"] = function() dapui.close() end
+        dap.listeners.before.event_exited["dapui_config"] = function() dapui.close() end
+        
+        require('dap-python').setup('${myPython}/bin/python')
+        
+        vim.keymap.set('n', '<F5>', function() dap.continue() end, {desc = "Debug Continue"})
+        vim.keymap.set('n', '<F10>', function() dap.step_over() end, {desc = "Debug Step Over"})
+        vim.keymap.set('n', '<F11>', function() dap.step_into() end, {desc = "Debug Step Into"})
+        vim.keymap.set('n', '<leader>b', function() dap.toggle_breakpoint() end, {desc = "Toggle Breakpoint"})
     '';
   };
 }

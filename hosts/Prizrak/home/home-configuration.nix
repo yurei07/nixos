@@ -29,8 +29,6 @@
       blanket
       obsidian
       telegram-desktop
-      lutris
-      bottles
       nautilus
       wget
       mpv
@@ -70,11 +68,12 @@
       protontricks
       lact
       gh
+      pulseaudio
 
       # Just cool
       peaclock
       mufetch
-      neofetch
+      # neofetch
       cbonsai
       pipes
       cava
@@ -87,7 +86,7 @@
       lsp-plugins
 
       # inputs
-      inputs.niri.packages.${stdenv.hostPlatform.system}.niri
+      # inputs.niri.packages.${stdenv.hostPlatform.system}.niri
       inputs.zen-browser.packages.${stdenv.hostPlatform.system}.default
       inputs.prismlauncher.packages.${stdenv.hostPlatform.system}.default
       inputs.noctalia.packages.${stdenv.hostPlatform.system}.default

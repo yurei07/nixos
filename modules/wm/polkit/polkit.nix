@@ -13,7 +13,7 @@ systemd.user.services.polkit_mate = {
     RestartSec = 1;
   };
   Install = {
-    WantedBy = [ "niri-session.target" "graphical-session.target" ];
+    WantedBy = [ "hyprland-session.target" "graphical-session.target" ];
   };
 };
 }
