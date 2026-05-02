@@ -38,7 +38,7 @@ in
         "$mod, RETURN, exec, kitty"
         "$mod, Y, exec, ${../../../scripts/nvim.sh}"
         "$mod, E, exec, nautilus"
-        "$mod, B, exec, zen"
+        "$mod, B, exec, zen-beta"
         "$mod, D, exec, discord"
         "$mod, O, exec, obsidian"
         "$mod, Q, killactive"
@@ -95,9 +95,6 @@ in
       ];
 
       monitor = [
-        # Thinkpad
-        #"DPe-1,1920x1080@60,0x0,1.2" # FOR MY LAPTOP
-
         "DP-1,2560x1440@165.00,0x0,1"
         "DP-2,2560x1080@200,-1080x0,1, transform, 3"
 
@@ -181,7 +178,7 @@ in
       };
 
       input = {
-        kb_layout = "us,ru, de";
+        kb_layout = "us,ru";
         kb_options = "grp:alt_shift_toggle";
         follow_mouse = 1;
       };

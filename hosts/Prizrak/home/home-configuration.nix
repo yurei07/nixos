@@ -73,7 +73,7 @@
       # Just cool
       peaclock
       mufetch
-      # neofetch
+      fastfetch
       cbonsai
       pipes
       cava
