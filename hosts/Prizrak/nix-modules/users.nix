@@ -16,7 +16,7 @@
     extraGroups = [
       "wheel"
       "networkmanager"
-      "openrazer"
+      "docker"
     ];
   };
 }

@@ -43,6 +43,7 @@
       libreoffice-qt
       quickshell
       vesktop
+      drawio
 
       #themes
       gnome-themes-extra
@@ -58,6 +59,7 @@
       # Utils
       zip
       unzip
+      unrar
       git
       btop
       bash
