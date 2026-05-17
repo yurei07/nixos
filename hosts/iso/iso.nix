@@ -4,8 +4,8 @@
     "${modulesPath}/installer/cd-dvd/installation-cd-graphical-calamares-plasma6.nix"
 
     # ../../modules/wm/hyprland.nix    
-    ../../modules/gui                   
-    ../../modules/tui                  
+    # ../../modules/gui                   
+    # ../../modules/tui                  
 
     ../../materials/themes/prizrak.nix
 
