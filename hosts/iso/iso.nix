@@ -20,13 +20,7 @@
   isoImage.includeSystemBuildDependencies = false;
 
   # --- Live юзер ---
-  users.users.nixos = {
-    isNormalUser = true;
-    extraGroups = [ "wheel" "video" "audio" "input" "networkmanager" ];
-    password = "";          # без пароля для live
-    initialPassword = "nixos";
-  };
-
+  users.nixos = import ./iso-user.nix;
   # Автологин
   services.getty.autologinUser = lib.mkForce "nixos";
 

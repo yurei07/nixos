@@ -5,7 +5,7 @@
   ];
 
   home.username = "Prizrak";
-  home.homeDirectory = "/home/Prizrak";
+ home.homeDirectory = "/home/Prizrak";
 
   # Если home-конфиг зависит от hardware — лучше продублировать нужное вручную
   # например:
