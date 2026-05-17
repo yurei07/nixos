@@ -5,7 +5,7 @@
 
     # ../Prizrak/nix-modules/nvidia.nix
     ../Prizrak/nix-modules/fonts.nix
-    # ../Prizrak/nix-modules/users.nix
+    ../Prizrak/nix-modules/users.nix
     ../Prizrak/nix-modules/bluetooth.nix
 
     ../Prizrak/nix-modules/audio.nix
