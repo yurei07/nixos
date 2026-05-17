@@ -3,9 +3,13 @@
   imports = [
     "${modulesPath}/installer/cd-dvd/installation-cd-graphical-calamares-plasma6.nix"
 
-    ../../modules/wm/hyprland.nix      
-    ../../modules/gui                   
-    ../../modules/tui                   
+    # ../Prizrak/nix-modules/nvidia.nix
+    ../Prizrak/nix-modules/fonts.nix
+    # ../Prizrak/nix-modules/users.nix
+    ../Prizrak/nix-modules/bluetooth.nix
+
+    ../Prizrak/nix-modules/audio.nix
+    ../Prizrak/nix-modules/lightdm.nix
 
     ../../materials/themes/prizrak.nix
 
