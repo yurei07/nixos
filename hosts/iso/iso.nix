@@ -1,63 +1,58 @@
 { pkgs, modulesPath, inputs, lib, ... }:
 {
   imports = [
-    "${modulesPath}/installer/cd-dvd/installation-cd-graphical-calamares-plasma6.nix"
-
-    # ../../modules/wm/hyprland.nix    
-    # ../../modules/gui                   
-    # ../../modules/tui                  
-
+    "${modulesPath}/installer/cd-dvd/installation-cd-minimal.nix"
     ../../materials/themes/prizrak.nix
-
-    inputs.home-manager.nixosModules.home-manager
     inputs.stylix.nixosModules.stylix
+    inputs.home-manager.nixosModules.home-manager
   ];
 
-  # --- ISO настройки ---
   isoImage.isoName = "nixos-prizrak-live.iso";
   isoImage.squashfsCompression = "zstd -Xcompression-level 6";
-  # Включить все wifi firmware
-  isoImage.includeSystemBuildDependencies = false;
 
-  # --- Live юзер ---
-  users.nixos = import ./iso-user.nix;
-  # Автологин
+  users.users.nixos = {
+    isNormalUser = true;
+    initialPassword = "nixos";
+    extraGroups = [ "wheel" "video" "audio" "input" "networkmanager" ];
+  };
+
   services.getty.autologinUser = lib.mkForce "nixos";
 
-  # Автозапуск Hyprland после логина
   programs.bash.loginShellInit = ''
     if [ "$(tty)" = "/dev/tty1" ]; then
       exec Hyprland
     fi
   '';
 
-  # --- Home-manager для live юзера ---
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
     extraSpecialArgs = { inherit inputs; };
-    users.nixos = import ./iso-user.nix;
+    users.nixos = { pkgs, ... }: {
+      home.username = "nixos";
+      home.homeDirectory = "/home/nixos";
+      home.stateVersion = "25.05";
+    };
   };
 
-  # --- Пакеты в ISO ---
   environment.systemPackages = with pkgs; [
     git
     curl
     wget
     gptfdisk
     parted
-    # Добавь что хочешь видеть в ISO
+    hyprland
   ];
 
-  # --- Nix настройки ---
   nixpkgs.config.allowUnfree = true;
+
   nix.settings = {
     experimental-features = [ "nix-command" "flakes" ];
     substituters = [
       "https://cache.nixos.org"
       "https://nix-community.cachix.org"
-      "https://cache.garnix.io"           # Quickshell
-      "https://zen-browser.cachix.org"    # Zen Browser
+      "https://cache.garnix.io"
+      "https://zen-browser.cachix.org"
     ];
     trusted-public-keys = [
       "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
