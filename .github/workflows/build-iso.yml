@@ -1,0 +1,53 @@
+name: Build Live ISO
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+        with:
+          extra-conf: |
+            substituters = https://cache.nixos.org https://nix-community.cachix.org https://cache.garnix.io https://zen-browser.cachix.org
+            trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCUSDs= cache.garnix.io:CTFPyKSLcx5RMJKfLo5EEPUObbA78b0YQ2DTCJXqr9g= zen-browser.cachix.org-1:ePDN0rkGMKQBBkDMBNJBNmRR5jCH3cOWYL6VEwCN5E=
+
+      - name: Magic Nix Cache
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build ISO
+        run: |
+          nix build .#nixosConfigurations.iso.config.system.build.isoImage \
+            --no-link \
+            --print-out-paths \
+            -L
+
+      - name: Copy ISO
+        run: |
+          OUT=$(nix build .#nixosConfigurations.iso.config.system.build.isoImage \
+            --no-link --print-out-paths 2>/dev/null)
+          cp $OUT/iso/*.iso ./nixos-prizrak-live.iso
+          echo "ISO size: $(du -sh nixos-prizrak-live.iso)"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nixos-prizrak-live
+          path: nixos-prizrak-live.iso
+          retention-days: 14
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: nixos-prizrak-live.iso
+          generate_release_notes: true

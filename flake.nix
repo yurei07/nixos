@@ -93,6 +93,14 @@
           ];
         };
 
+        iso = inputs.nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = { inherit inputs; };
+          modules = [
+            ./hosts/iso/iso.nix
+          ];
+        };
+
         server = inputs.nixpkgs.lib.nixosSystem {
           inherit system;
           specialArgs = { inherit inputs; };
