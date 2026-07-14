@@ -25,21 +25,44 @@
     ../../modules/gui/obs/obs.nix
 
   ];
+
   replays.enable = true;
 
   virtualisation.docker.enable = true;
 
   nixpkgs.config.allowUnfree = true;
 
-  services.gvfs.enable = true;
-  services.usbmuxd.enable = true;
-  # programs.adb.enable = true;
+  services = {
+    gvfs.enable = true;
+    usbmuxd.enable = true;
+    gnome.gnome-browser-connector.enable = true;
+    gnome.gnome-keyring.enable = true;
+    dbus.packages = with pkgs; [ dconf ];
+    zerotierone.enable = true;
+    flatpak.enable = true;
+
+    hardware.openrgb = {
+      enable = true;
+      package = pkgs.openrgb-with-all-plugins;
+      motherboard = "amd";
+      server = {
+        port = 6742;
+      };
+    };
+  };
+
   users.users.Prizrak.extraGroups = [ "adbusers" ];
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
-  programs.gpu-screen-recorder.enable = true;
-  
-  programs.ssh.askPassword = ""; 
+
+  boot = {
+    loader.systemd-boot.enable = true;
+    loader.efi.canTouchEfiVariables = true;
+  };
+
+  programs = {
+    gpu-screen-recorder.enable = true;
+    ssh.askPassword = ""; 
+    dconf.enable = true;
+  };
 
   xdg.portal = {
     enable = true;
@@ -47,16 +70,6 @@
       pkgs.xdg-desktop-portal-gnome 
       pkgs.xdg-desktop-portal-gtk
     ];
-    
-    config = {
-      common = {
-        default = [ "gtk" ];
-      };
-      niri = {
-        "org.freedesktop.impl.portal.ScreenCast" = "gnome";
-        "org.freedesktop.impl.portal.Screenshot" = "gnome";
-      };
-    };
   };
 
   nix.settings.experimental-features = [
@@ -64,22 +77,6 @@
     "flakes"
   ];
 
-  services.dbus.packages = with pkgs; [ dconf ];
-  services.gnome.gnome-keyring.enable = true;
-  programs.dconf.enable = true;
-
-  services.zerotierone.enable = true;
-
-  services.flatpak.enable = true;
-
-  services.hardware.openrgb = {
-    enable = true;
-    package = pkgs.openrgb-with-all-plugins;
-    motherboard = "amd";
-    server = {
-      port = 6742;
-    };
-  };
 
   environment = {
     systemPackages = with pkgs; [
@@ -89,7 +86,5 @@
 
   # home-manager
   home-manager.users.Prizrak = import ./home/home-configuration.nix;
-
   system.stateVersion = "25.05"; # Did you read the comment?
-
 }

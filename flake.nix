@@ -5,6 +5,13 @@
     nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     nixos-hardware.url = "github:NixOS/nixos-hardware/master";
+    freesm-launcher.url = "github:FreesmTeam/FreesmLauncher";
+    spicetify-nix.url = "github:Gerg-L/spicetify-nix";
+
+    nur = {
+      url = "github:nix-community/NUR";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
 
     hyprland = {
       url = "github:hyprwm/Hyprland";
@@ -28,15 +35,6 @@
         nixpkgs.follows = "nixpkgs";
         home-manager.follows = "home-manager";
       };
-    };
-
-    prismlauncher = {
-      url = "github:Diegiwg/PrismLauncher-Cracked";
-    };
-
-    spicetify-nix = {
-      url = "github:Gerg-L/spicetify-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
 
     quickshell = {
@@ -74,6 +72,7 @@
             inherit inputs username;
           };
           modules = [
+            inputs.nur.modules.nixos.default
             ./hosts/Prizrak/configuration.nix
             stylix.nixosModules.stylix
             ./materials/themes/prizrak.nix
@@ -98,23 +97,6 @@
           specialArgs = { inherit inputs; };
           modules = [
             ./hosts/iso/iso.nix
-          ];
-        };
-
-        server = inputs.nixpkgs.lib.nixosSystem {
-          inherit system;
-          specialArgs = { inherit inputs; };
-          modules = [
-            ./hosts/server/configuration.nix
-            inputs.home-manager.nixosModules.home-manager
-            inputs.copyparty.nixosModules.default
-            {
-              home-manager = {
-                extraSpecialArgs = { inherit inputs; };
-                useGlobalPkgs = true;
-                useUserPackages = true;
-              };
-            }
           ];
         };
       };

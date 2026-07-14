@@ -29,9 +29,9 @@
       blanket
       obsidian
       telegram-desktop
-      nautilus
       wget
       mpv
+      imv
       steam
       mate-polkit
       matugen
@@ -43,7 +43,11 @@
       libreoffice-qt
       quickshell
       vesktop
+      feh
+      imagemagick     
       drawio
+      zola
+    
 
       #themes
       gnome-themes-extra
@@ -88,9 +92,8 @@
       lsp-plugins
 
       # inputs
-      # inputs.niri.packages.${stdenv.hostPlatform.system}.niri
+      inputs.freesm-launcher.packages.${stdenv.hostPlatform.system}.default
       inputs.zen-browser.packages.${stdenv.hostPlatform.system}.default
-      inputs.prismlauncher.packages.${stdenv.hostPlatform.system}.default
       inputs.noctalia.packages.${stdenv.hostPlatform.system}.default
     ];
   };

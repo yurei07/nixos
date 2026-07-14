@@ -5,10 +5,6 @@
   lib,
   ...
 }:
-let
-  crust1 = (import ../../../materials/themes { }).crust1;
-  mantle1 = (import ../../../materials/themes { }).mantle1;
-in
 {
 
   home.packages = with pkgs; [
@@ -44,9 +40,8 @@ in
         "$mod, Q, killactive"
         "$mod, W, togglefloating"
         "$mod, G, fullscreen"
-        "$mod, SPACE, exec, noctalia-shell ipc call launcher toggle"
+        "$mod, SPACE, exec, noctalia msg panel-toggle launcher"
         "$mod CTRL, R, exec, killall -SIGUSR1 gpu-screen-recorder && notify-send 'GPU-Screen-Recorder' 'Повтор успешно сохранён'"
-        # "$mod, SPACE, exec, caelestia shell drawers toggle launcher "
 
         ", Print, exec, hyprshot -m output"
         "SHIFT, Print, exec, hyprshot -m region"
@@ -76,14 +71,6 @@ in
         "$mod SHIFT, 0, movetoworkspace, 10"
         "$mod, S, togglespecialworkspace, magic"
         "$mod SHIFT, S, movetoworkspace, special:magic"
-
-        # Thinkpad
-        ", XF86MonBrightnessUp, exec, brightnessctl set 5%+"
-        ", XF86MonBrightnessDown, exec, brightnessctl set 5%-"
-        ", XF86AudioLowerVolume, exec, noctalia-shell ipc call volume decrease"
-        ", XF86AudioRaiseVolume, exec, noctalia-shell ipc call volume increase"
-        ", XF86AudioMute, exec, noctalia-shell ipc call volume muteOutpute"
-
       ];
 
       bindm = [
@@ -91,12 +78,12 @@ in
         "$mod, mouse:273, resizewindow"
       ];
       exec-once = [
-        "noctalia-shell"
+        "noctalia"
       ];
 
       monitor = [
         "DP-1,2560x1440@165.00,0x0,1"
-        "DP-2,2560x1080@200,-1080x0,1, transform, 3"
+        "HDMI-A-1,2560x1080@180,-1080x0,1, transform, 1"
 
       ];
       windowrule = [

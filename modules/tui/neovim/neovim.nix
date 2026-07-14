@@ -29,6 +29,18 @@ in
     gcc
     clang-tools # clangd (LSP)
 
+    # C#
+    icu 
+    openssl
+    zlib
+
+    # .NET SDK
+    dotnet-aspnetcore_10
+
+    # Docker
+    docker
+
+
     # Rust (Чистый Nix Way, без rustup скриптов)
     rustc
     cargo
