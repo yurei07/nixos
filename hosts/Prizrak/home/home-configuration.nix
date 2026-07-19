@@ -24,6 +24,7 @@
 
     packages = with pkgs; [
       # Apps
+      bottles
       calibre
       pomodoro-gtk
       blanket

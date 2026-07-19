@@ -165,7 +165,7 @@
       };
 
       input = {
-        kb_layout = "us,ru";
+        kb_layout = "us,ru,de";
         kb_options = "grp:alt_shift_toggle";
         follow_mouse = 1;
       };

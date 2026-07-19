@@ -4,7 +4,7 @@ terminal=$(command -v kitty)
 
 pkexec env \
     PATH="$PATH" \
-    DISPLAY="$DISPLAY" \
+    DISPLAY="DP-1" \
     WAYLAND_DISPLAY="$WAYLAND_DISPLAY" \
     XDG_RUNTIME_DIR="$XDG_RUNTIME_DIR" \
     HOME="$HOME" \
