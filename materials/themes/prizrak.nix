@@ -19,7 +19,6 @@
     base0D = "8771DA"; # Functions, Methods, Attribute IDs, Headings, Accent color
     base0E = "cba6f7"; # Keywords, Storage, Selector, Markup Italic, Diff Changed
     base0F = "f2cdcd"; # Deprecated, Opening/Closing Embedded Language Tags, e.g. <?php ?>
-
   };
     fonts = {
       monospace = {
@@ -40,14 +39,13 @@
       name = "Bibata-Modern-Ice";
       size = 24;
     };   
-    iconTheme = {
+    icons = {
       enable = true;
       package = pkgs.morewaita-icon-theme;
       dark = "Papirus-Dark";             
       light = "Papirus-Light";          
     };
   };
-
   stylix.targets.gtk.enable = true;
   stylix.targets.qt.enable = true;
   qt.platformTheme = "qt5ct";

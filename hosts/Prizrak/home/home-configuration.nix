@@ -13,8 +13,10 @@
     # tui
     ../../../modules/tui
   ];
-
-
+  xdg.userDirs = {
+    enable = true;
+    setSessionVariables = true;
+  };
   home = {
     username = "Prizrak";
     homeDirectory = "/home/Prizrak";
@@ -49,18 +51,15 @@
       drawio
       zola
     
-
       #themes
       gnome-themes-extra
       materia-theme
       arc-theme
       killall
       libnotify
-
       # icons
       papirus-icon-theme
       hicolor-icon-theme
-
       # Utils
       zip
       unzip
@@ -76,7 +75,6 @@
       lact
       gh
       pulseaudio
-
       # Just cool
       peaclock
       mufetch
@@ -91,7 +89,6 @@
       easyeffects
       rnnoise-plugin
       lsp-plugins
-
       # inputs
       inputs.freesm-launcher.packages.${stdenv.hostPlatform.system}.default
       inputs.zen-browser.packages.${stdenv.hostPlatform.system}.default

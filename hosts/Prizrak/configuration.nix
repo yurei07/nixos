@@ -73,20 +73,21 @@ in
     dconf.enable = true;
   };
 
-  xdg.portal = {
-    enable = true;
-    extraPortals = [ 
-      pkgs.xdg-desktop-portal-gnome 
-      pkgs.xdg-desktop-portal-gtk
-    ];
+  xdg = {
+    portal = {
+      enable = true;
+      extraPortals = [ 
+        pkgs.xdg-desktop-portal-gnome 
+        pkgs.xdg-desktop-portal-gtk
+      ];
+      config.common.default = "*";
+    };
   };
 
   nix.settings.experimental-features = [
     "nix-command"
     "flakes"
   ];
-
-
 
   environment = {
     systemPackages = with pkgs; [
