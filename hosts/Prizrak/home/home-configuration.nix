@@ -24,11 +24,11 @@
 
     packages = with pkgs; [
       # Apps
+      nano 
       bottles
       calibre
       pomodoro-gtk
       blanket
-      obsidian
       telegram-desktop
       wget
       mpv

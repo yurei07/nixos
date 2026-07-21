@@ -48,6 +48,7 @@ in
     dbus.packages = with pkgs; [ dconf ];
     zerotierone.enable = true;
     flatpak.enable = true;
+    tailscale.enable = true;
 
     hardware.openrgb = {
       enable = true;
@@ -95,6 +96,9 @@ in
   };
 
   # home-manager
-  home-manager.users.Prizrak = import ./home/home-configuration.nix;
+  home-manager = {
+    users.Prizrak = import ./home/home-configuration.nix;
+    backupFileExtension = "backup";
+  };
   system.stateVersion = "25.05"; # Did you read the comment?
 }
