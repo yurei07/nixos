@@ -2,6 +2,7 @@
   config,
   pkgs,
   inputs,
+  username,
   ...
 }:
 {
@@ -18,8 +19,8 @@
     setSessionVariables = true;
   };
   home = {
-    username = "Prizrak";
-    homeDirectory = "/home/Prizrak";
+    homeDirectory = "/home/${username}";
+    pointerCursor.enable = true;
     stateVersion = "25.11";
 
     file.".config/mpv".source = ../../../materials/mpv;

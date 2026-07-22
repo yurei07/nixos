@@ -7,7 +7,7 @@
       liberation_ttf
       material-symbols
       nerd-fonts.jetbrains-mono
-      vazir-fonts
+      vazirmatn
   ];
 
   fontconfig = {

@@ -20,7 +20,6 @@ sudo nixos-generate-config --show-hardware-config > hosts/<host>/hardware-config
 ```bash
 rg "CHANGEME" /etc/nixos
 ```
-(see [CONTRIBUTING.md](./CONTRIBUTING.md) for the `CHANGEME` convention)
  
 4. Build and switch:
 ```bash

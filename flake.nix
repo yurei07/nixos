@@ -61,7 +61,7 @@
     }@inputs:
     let
       system = "x86_64-linux";
-      username = "Prizrak";
+      username = "Prizrak"; # CHANGEME
     in
     {
       nixosConfigurations = {
@@ -72,7 +72,7 @@
           };
           modules = [
             inputs.nur.modules.nixos.default
-            ./hosts/Prizrak/configuration.nix
+            ./hosts/${username}/configuration.nix
             stylix.nixosModules.stylix
             ./materials/themes/prizrak.nix
             inputs.home-manager.nixosModules.home-manager
@@ -84,7 +84,7 @@
               };
               home-manager.users.${username} = {
                 imports = [
-                  ./hosts/Prizrak/home/home-configuration.nix
+                  ./hosts/${username}/home/home-configuration.nix
                 ];
               };
             }

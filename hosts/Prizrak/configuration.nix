@@ -4,6 +4,7 @@
   pkgs,
   nixpkgs,
   inputs,
+  username,
   ...
 }:
 let
@@ -34,6 +35,18 @@ in
 
   ];
 
+  nixpkgs.overlays = [
+    (final: prev: {
+      pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
+        (pyFinal: pyPrev: {
+          patool = pyPrev.patool.overridePythonAttrs (old: {
+            doCheck = false;
+          });
+        })
+      ];
+    })
+  ];
+
   replays.enable = true;
 
   virtualisation.docker.enable = true;
@@ -60,7 +73,7 @@ in
     };
   };
 
-  users.users.Prizrak.extraGroups = [ "adbusers" ];
+  users.users.${username}.extraGroups = [ "adbusers" ];
 
   boot = {
     loader.systemd-boot.enable = true;
@@ -98,7 +111,7 @@ in
 
   # home-manager
   home-manager = {
-    users.Prizrak = import ./home/home-configuration.nix;
+    users.${username}= import ./home/home-configuration.nix;
     backupFileExtension = "backup";
   };
   system.stateVersion = "25.05"; # Did you read the comment?
