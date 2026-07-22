@@ -1,7 +1,6 @@
 # Nixos
 <br>
 I created my own dotfiles on nixos :)
-- My [docs](./.github/docs/README.md) - all the information is here!
 
 ## Directory Structure
 
