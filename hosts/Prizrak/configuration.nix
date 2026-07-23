@@ -17,8 +17,6 @@ let
 in
 {
   imports = [
-    ./../../materials/themes/prizrak.nix
-
     ./hardware-configuration.nix
 
     # nixos modules

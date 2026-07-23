@@ -18,8 +18,8 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    stylix = {
-      url = "github:danth/stylix";
+    chiaroscuro = {
+      url = "github:yurei07/chiaroscuro.rht";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -56,7 +56,6 @@
     {
       self,
       nixpkgs,
-      stylix,
       ...
     }@inputs:
     let
@@ -73,8 +72,6 @@
           modules = [
             inputs.nur.modules.nixos.default
             ./hosts/${username}/configuration.nix
-            stylix.nixosModules.stylix
-            ./materials/themes/prizrak.nix
             inputs.home-manager.nixosModules.home-manager
             {
               home-manager.useGlobalPkgs = true;
@@ -85,6 +82,7 @@
               home-manager.users.${username} = {
                 imports = [
                   ./hosts/${username}/home/home-configuration.nix
+                  ./materials
                 ];
               };
             }

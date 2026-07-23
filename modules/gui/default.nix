@@ -1,7 +1,7 @@
 { ... }:
 {
   imports = [
-     ./spicetify/spicetify.nix
+     # ./spicetify/spicetify.nix
     # ./syncthing/syncthing.nix
     ./nautilus
   ];

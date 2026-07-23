@@ -20,7 +20,14 @@
   };
   home = {
     homeDirectory = "/home/${username}";
-    pointerCursor.enable = true;
+    # pointerCursor = {
+    #   enable = true;
+    #   package = pkgs.bibata-cursors;
+    #   name = "Bibata-Modern-Ink";
+    #   size = 24;
+    #   gtk.enable = true; 
+    # };
+
     stateVersion = "25.11";
 
     file.".config/mpv".source = ../../../materials/mpv;

@@ -9,8 +9,10 @@
 
       dconf-editor
     ];
-
+  
   };
+
+
 
   xdg.userDirs = {
     enable = true;
@@ -32,4 +34,16 @@
     };
   };
 
+  xdg.configFile."noctalia/config.toml".text = ''
+  [shell]
+  corner_radius_scale = 0.0
+
+  [shell.panel]
+  borders = false
+  shadow = true
+
+  [bar.main]
+  radius = 0
+  capsule = false
+'';
 }

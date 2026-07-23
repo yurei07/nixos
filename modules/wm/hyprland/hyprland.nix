@@ -137,12 +137,12 @@
         gaps_out = 25;
         gaps_in = 10;
         layout = "dwindle";
-        "col.active_border" = lib.mkForce "rgb(${config.lib.stylix.colors.base0D})"; 
+        # "col.active_border" = lib.mkForce "rgb(${config.lib.stylix.colors.base0D})"; 
       };
       decoration = {
         active_opacity = 1;
         inactive_opacity = 0.85;
-        rounding = 12;
+        rounding = 0;
         blur = {
           enabled = true;
           popups = true;
@@ -154,12 +154,7 @@
           noise = 0;
           vibrancy = 0;
         };
-        shadow = {
-          enabled = true;
-          range = 20;
-        };
       };
-
       cursor = {
         no_hardware_cursors = true;
         default_monitor = "DP-1";

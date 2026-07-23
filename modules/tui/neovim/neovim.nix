@@ -57,7 +57,6 @@ in
     # nodePackages.vscode-langservers-extracted # HTML/CSS/JSON/ESLint
     # nodePackages.typescript-language-server # JS/TS
     prettierd # Форматтер
-
     # Assembly
     asm-lsp
 
