@@ -1,15 +1,11 @@
 # Legacy
 { pkgs, ... }: {
-  home = {
-    file.".config/fastfetch/logo/".source = ./logo;
-  };
-
   xdg.configFile."fastfetch/config.jsonc".text = ''
     {
       "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
       "logo": {
-          "type": "kitty",
-          "source": "~/.config/fastfetch/logo/logo.png", 
+          "type": "file",
+          "source": "/etc/nixos/modules/tui/fastfetch/logo/logo.txt", 
           "height": 15,
           "width": 30,
           "padding": {

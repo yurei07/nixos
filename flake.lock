@@ -40,11 +40,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1784885897,
-        "narHash": "sha256-PNSej/wvFb/QlIYReRNmOHoSVp8N+LUeAODomekQkzg=",
+        "lastModified": 1784922575,
+        "narHash": "sha256-XQUkylDbjx0K0iIxM7IxnV+ybHdi5llPEH8+fg7hkHE=",
         "owner": "yurei07",
         "repo": "chiaroscuro.rht",
-        "rev": "3ccab781fb2bcd43616ea70003dd7a4ddfb8cbb5",
+        "rev": "ef922f05509cbfedbb2b2aa46bccca34f9ceec63",
         "type": "github"
       },
       "original": {

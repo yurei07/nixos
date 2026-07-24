@@ -19,11 +19,6 @@
     setSessionVariables = true;
   };
 
-  # gtk.cursorTheme = {
-  #   name = "Numix-Cursor";
-  #   package = pkgs.numix-cursor-theme;
-  #   size = 24;
-  # };
   home = {
     homeDirectory = "/home/${username}";
     stateVersion = "25.11";
@@ -40,6 +35,7 @@
       telegram-desktop
       wget
       mpv
+      mpvpaper
       imv
       steam
       mate-polkit
