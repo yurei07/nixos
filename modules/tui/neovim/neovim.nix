@@ -2,6 +2,7 @@
   config,
   pkgs,
   lib,
+  theme,
   ...
 }:
 let
@@ -88,7 +89,7 @@ in
     # --- Plugins ---
     plugins = with pkgs.vimPlugins; [
       # UI & Design
-      onedark-nvim # Тема
+      mini-nvim
       lualine-nvim # Статус бар снизу
       nvim-web-devicons # Иконки
       alpha-nvim # Дэшборд (Стартовый экран)
@@ -150,14 +151,30 @@ in
          vim.g.mapleader = " " 
          vim.g.maplocalleader = " "
 
-         -- 2. THEME (OneDark)
-         require('onedark').setup {
-             style = 'deep',
-             transparent = true, -- Прозрачный фон как ты хотел
-             term_colors = true,
-         }
-         require('onedark').load()
-
+         -- 2. THEME (Chiaroscuro / Kansō)
+         require('mini.base16').setup({
+           palette = {
+             base00 = "${theme.palette.zen0}",
+             base01 = "${theme.palette.zen1}",
+             base02 = "${theme.palette.zen2}",
+             base03 = "${theme.palette.zen3}",
+             base04 = "${theme.palette.katanaGray}",
+             base05 = "${theme.palette.oldWhite}",
+             base06 = "${theme.palette.fujiWhite}",
+             base07 = "${theme.palette.fujiWhite}",
+             base08 = "${theme.palette.zenRed}",
+             base09 = "${theme.palette.carpYellow}",
+             base0A = "${theme.palette.roninYellow}",
+             base0B = "${theme.palette.autumnGreen}",
+             base0C = "${theme.palette.zenAqua1}",
+             base0D = "${theme.palette.springBlue}",
+             base0E = "${theme.palette.springViolet1}",
+             base0F = "${theme.palette.zenAqua2}",
+           },
+         })
+         
+         vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
+         vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
          -- 3. TELESCOPE (Поиск)
          local builtin = require('telescope.builtin')
          vim.keymap.set('n', '<leader>ff', builtin.find_files, { desc = 'Find Files' })

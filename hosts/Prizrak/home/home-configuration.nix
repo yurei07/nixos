@@ -1,8 +1,8 @@
 {
-  config,
   pkgs,
   inputs,
   username,
+  lib,
   ...
 }:
 {
@@ -18,16 +18,14 @@
     enable = true;
     setSessionVariables = true;
   };
+
+  # gtk.cursorTheme = {
+  #   name = "Numix-Cursor";
+  #   package = pkgs.numix-cursor-theme;
+  #   size = 24;
+  # };
   home = {
     homeDirectory = "/home/${username}";
-    # pointerCursor = {
-    #   enable = true;
-    #   package = pkgs.bibata-cursors;
-    #   name = "Bibata-Modern-Ink";
-    #   size = 24;
-    #   gtk.enable = true; 
-    # };
-
     stateVersion = "25.11";
 
     file.".config/mpv".source = ../../../materials/mpv;
@@ -65,6 +63,7 @@
       arc-theme
       killall
       libnotify
+      numix-cursor-theme
       # icons
       papirus-icon-theme
       hicolor-icon-theme
@@ -102,5 +101,10 @@
       inputs.zen-browser.packages.${stdenv.hostPlatform.system}.default
       inputs.noctalia.packages.${stdenv.hostPlatform.system}.default
     ];
+
+    sessionVariables = {
+      XCURSOR_THEME = "Numix-Cursor";
+      XCURSOR_SIZE = "24";
+    };
   };
 }

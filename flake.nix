@@ -85,6 +85,9 @@
                   ./materials
                 ];
               };
+              home-manager.extraSpecialArgs = {
+                theme = inputs.chiaroscuro.themes.kanso-zen;
+              };
             }
           ];
         };
