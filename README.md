@@ -1,36 +1,43 @@
-<img width="100%" src="https://capsule-render.vercel.app/api?type=waving&color=0:0d1117,100:bb9af7&height=160&section=header&text=nixos&fontSize=52&fontColor=ffffff&fontAlignY=40&desc=my%20declarative%20system%20configuration&descSize=16&descAlignY=62&descColor=c0caf5&animation=fadeIn" alt="nixos header"/>
+<img width="100%" src="assets/banner.svg" alt="NixOS"/>
 
 <div align="center">
 
-![NixOS](https://img.shields.io/badge/NixOS-flakes-bb9af7?style=flat-square&logo=nixos&logoColor=0d1117)
-![Hyprland](https://img.shields.io/badge/WM-Hyprland-7aa2f7?style=flat-square)
-![Shell](https://img.shields.io/badge/shell-zsh-c0caf5?style=flat-square)
-![Editor](https://img.shields.io/badge/editor-Neovim-bb9af7?style=flat-square&logo=neovim&logoColor=0d1117)
-![License](https://img.shields.io/badge/license-MIT-7aa2f7?style=flat-square)
+<img src="https://img.shields.io/badge/NixOS-flakes-D71921?style=flat-square&labelColor=000000" alt="NixOS flakes">
+<img src="https://img.shields.io/badge/WM-Hyprland-ffffff?style=flat-square&labelColor=000000" alt="Hyprland">
+<img src="https://img.shields.io/badge/shell-zsh-8A8A8A?style=flat-square&labelColor=000000" alt="zsh">
+<img src="https://img.shields.io/badge/editor-Neovim-8A8A8A?style=flat-square&labelColor=000000" alt="Neovim">
 
 </div>
 
-## About
+<img width="100%" src="assets/divider.svg" alt=""/>
+
+### ABOUT
 
 My personal NixOS setup, written as a flake.
 The whole system (desktop, terminal, editor and tools) is described in code, so it can be rebuilt on any machine with one command.
 
-- **OS:** NixOS (flakes)
-- **WM:** Hyprland
-- **Shell / bar:** Quickshell with [Noctalia](https://github.com/Ly-sec/Noctalia)
-- **Terminal:** kitty
-- **Shell:** zsh
-- **Editor:** Neovim
-- **Media:** mpv
+| | |
+|:--|:--|
+| **OS** | NixOS (flakes) |
+| **WM** | Hyprland |
+| **Shell / bar** | Quickshell with [Noctalia](https://github.com/noctalia-dev/noctalia) |
+| **Terminal** | kitty |
+| **Shell** | zsh |
+| **Editor** | Neovim |
+| **Media** | mpv |
 
-## Gallery
+<img width="100%" src="assets/divider.svg" alt=""/>
+
+### GALLERY
 
 <p align="center">
   <img width="49%" src="assets/nixos/2026-05-06-215723_hyprshot.png" alt="Desktop 1"/>
   <img width="49%" src="assets/nixos/2026-05-06-215839_hyprshot.png" alt="Desktop 2"/>
 </p>
 
-## Structure
+<img width="100%" src="assets/divider.svg" alt=""/>
+
+### STRUCTURE
 
 ```text
 .
@@ -44,10 +51,10 @@ The whole system (desktop, terminal, editor and tools) is described in code, so 
 │   └── wm/              # Hyprland configuration
 ├── materials/           # wallpapers, theme, mpv config
 ├── scripts/             # helper scripts (e.g. nvim.sh)
-└── assets/              # screenshots for this README
+└── assets/              # screenshots and README graphics
 ```
 
-## Installation
+### INSTALLATION
 
 > Review the config before using it. Replace the hardware configuration with your own.
 
@@ -55,18 +62,16 @@ The whole system (desktop, terminal, editor and tools) is described in code, so 
 git clone https://github.com/yurei07/nixos.git
 cd nixos
 
-# generate hardware config for your machine and put it into hosts/Prizrak/
+# generate hardware config for your machine
 sudo nixos-generate-config --show-hardware-config > hosts/Prizrak/hardware-configuration.nix
 
 # build and switch
 sudo nixos-rebuild switch --flake .#Prizrak
 ```
 
-## Credits
+### CREDITS
 
-- [Noctalia](https://github.com/Ly-sec/Noctalia) for the Quickshell setup
+- [Noctalia](https://github.com/noctalia-dev/noctalia) for the Quickshell setup
 - [Hyprland](https://hyprland.org) and the NixOS community
 
-## License
-
-MIT
+<img width="100%" src="assets/divider.svg" alt=""/>

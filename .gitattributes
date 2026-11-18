@@ -1,0 +1,6 @@
+# Keep GitHub's language stats on Nix: exclude shader files that make the repo show up as GLSL
+*.frag linguist-vendored
+*.vert linguist-vendored
+*.glsl linguist-vendored
+*.fsh  linguist-vendored
+*.vsh  linguist-vendored
