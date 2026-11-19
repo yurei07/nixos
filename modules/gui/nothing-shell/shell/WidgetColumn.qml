@@ -20,4 +20,8 @@ Column {
     ScreenTimeWidget {
         implicitWidth: topRow.implicitWidth
     }
+
+    SystemWidget {
+        implicitWidth: topRow.implicitWidth
+    }
 }

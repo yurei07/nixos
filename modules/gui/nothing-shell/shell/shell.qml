@@ -50,6 +50,22 @@ ShellRoot {
             }
 
             LazyLoader {
+                active: PopupState.wifiPopupScreen === perScreen.modelData.name
+
+                WifiPopup {
+                    screen: perScreen.modelData
+                }
+            }
+
+            LazyLoader {
+                active: PopupState.batteryPopupScreen === perScreen.modelData.name
+
+                BatteryPopup {
+                    screen: perScreen.modelData
+                }
+            }
+
+            LazyLoader {
                 active: Config.glyphScreens.length === 0 || Config.glyphScreens.includes(perScreen.modelData.name)
 
                 Glyph {
@@ -123,6 +139,38 @@ ShellRoot {
         }
         function close(): void {
             ShellState.closeControlCenter();
+        }
+    }
+
+    // qs ipc -c nothing call wifi toggle / battery toggle (bar chip popovers)
+    IpcHandler {
+        target: "wifi"
+
+        function toggle(): void {
+            PopupState.toggleWifiPopup(Hyprland.focusedMonitor?.name ?? "");
+        }
+    }
+
+    IpcHandler {
+        target: "battery"
+
+        function toggle(): void {
+            PopupState.toggleBatteryPopup(Hyprland.focusedMonitor?.name ?? "");
+        }
+    }
+
+    // qs ipc -c nothing call wallpaper next|set <index>|get
+    IpcHandler {
+        target: "wallpaper"
+
+        function next(): void {
+            WallpaperService.next();
+        }
+        function set(index: int): void {
+            WallpaperService.setWallpaper(index);
+        }
+        function get(): string {
+            return WallpaperService.set[WallpaperService.current];
         }
     }
 

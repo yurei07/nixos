@@ -1,7 +1,11 @@
 import QtQuick
 
-// Ethernet / wifi strength / offline glyph. Click opens the rofi wifi menu.
+// Ethernet / wifi strength / offline glyph. Click opens the wifi popover.
 Text {
+    id: root
+
+    property string screenName: ""
+
     text: NetworkService.icon
     color: NetworkService.connected ? Theme.text : Theme.textFaint
     font.family: Theme.fontIcon
@@ -11,6 +15,6 @@ Text {
         anchors.fill: parent
         anchors.margins: -4
         cursorShape: Qt.PointingHandCursor
-        onClicked: NetworkService.openMenu()
+        onClicked: PopupState.toggleWifiPopup(root.screenName)
     }
 }

@@ -64,15 +64,16 @@ Singleton {
             "default": "pulse"
         })
 
-    // Click actions (run through sh, so $HOME works)
-    readonly property string wifiMenu: "$HOME/.config/waybar/scripts/rofi-wifi.sh"
+    // Click actions (run through sh, so $HOME works). Scripts vendored in
+    // modules/gui/nothing-shell/scripts/ and linked to ~/.config/nothing/.
+    readonly property string wifiMenu: "" // the bar wifi chip opens the in-shell popover instead
     readonly property string mixer: "pavucontrol"
     readonly property string bluetoothManager: "blueman-manager"
-    readonly property string nightLight: "$HOME/.config/hypr/scripts/Hyprsunset.sh"
-    readonly property string lockCommand: "$HOME/.config/hypr/scripts/LockScreen.sh"
-    readonly property string powerMenu: "$HOME/.config/hypr/scripts/Wlogout.sh"
-    // KooL's screenshot script: --area for a selection, --now for the whole screen
-    readonly property string screenshotCommand: "$HOME/.config/hypr/scripts/ScreenShot.sh"
+    readonly property string nightLight: "$HOME/.config/nothing/nothing-nightlight.sh"
+    readonly property string lockCommand: "$HOME/.config/nothing/nothing-lock.sh"
+    readonly property string powerMenu: "$HOME/.config/nothing/nothing-lock.sh"
+    // Nothing screenshot script: --area for a selection, --now for the whole screen
+    readonly property string screenshotCommand: "$HOME/.config/nothing/nothing-screenshot.sh"
     // hyprpicker copies the colour itself; this adds a notification with a swatch of it
     readonly property string colorPickerCommand: "hex=$(hyprpicker -a -f hex) && [ -n \"$hex\" ] && swatch=\"${XDG_RUNTIME_DIR:-/tmp}/nothing-swatch.png\" && { magick -size 64x64 \"xc:$hex\" \"$swatch\" 2>/dev/null || swatch=color-select; } && notify-send -a 'Colour picker' -i \"$swatch\" \"$hex\" 'Copied to the clipboard'"
 

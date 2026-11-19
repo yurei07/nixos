@@ -7,6 +7,7 @@ import Quickshell.Services.UPower
 Item {
     id: root
 
+    property string screenName: ""
     readonly property var device: UPower.displayDevice
     // normalized to 0..1 whether the service reports 0..1 or 0..100
     readonly property real level: {
@@ -88,5 +89,12 @@ Item {
             font.family: Theme.fontLabel
             font.pixelSize: 12
         }
+    }
+
+    MouseArea {
+        anchors.fill: parent
+        anchors.margins: -4
+        cursorShape: Qt.PointingHandCursor
+        onClicked: PopupState.toggleBatteryPopup(root.screenName)
     }
 }

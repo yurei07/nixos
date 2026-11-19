@@ -23,6 +23,28 @@ Item {
     implicitWidth: Config.dockIconSize
     implicitHeight: Config.dockIconSize
 
+    // entrance: icons fade/slide in as the dock reveals
+    opacity: dock.revealed ? 1 : 0
+    transform: Translate {
+        y: dock.revealed ? 0 : 14
+
+        Behavior on y {
+            NumberAnimation {
+                duration: Theme.animMed
+                easing.type: Theme.easing
+            }
+        }
+    }
+
+    Behavior on opacity {
+        NumberAnimation {
+            duration: Theme.animMed
+        }
+    }
+
+    // click feedback: a quick pop on top of the hover scale
+    property real popping: 0
+
     Rectangle {
         visible: root.separatorBefore
         x: -Theme.gapM / 2 - width / 2
@@ -37,13 +59,31 @@ Item {
         anchors.fill: parent
         appKey: root.appKey
         decodeSize: Config.dockIconSize * 2
-        scale: area.pressed ? 0.9 : area.containsMouse ? 1.06 : 1
+        scale: root.popping ? 1.18 : area.pressed ? 0.9 : area.containsMouse ? 1.06 : 1
 
         Behavior on scale {
             NumberAnimation {
                 duration: Theme.animFast
                 easing.type: Theme.easing
             }
+        }
+    }
+
+    SequentialAnimation {
+        id: popAnim
+
+        NumberAnimation {
+            target: root
+            property: "popping"
+            to: 1
+            duration: 90
+        }
+        NumberAnimation {
+            target: root
+            property: "popping"
+            to: 0
+            duration: 160
+            easing.type: Theme.easing
         }
     }
 
@@ -75,10 +115,13 @@ Item {
         onClicked: event => {
             if (event.button === Qt.RightButton)
                 root.menuRequested();
-            else if (event.button === Qt.MiddleButton || root.windows.length === 0)
+            else if (event.button === Qt.MiddleButton || root.windows.length === 0) {
+                popAnim.restart();
                 DockState.launch(root.appKey);
-            else
+            } else {
+                popAnim.restart();
                 DockState.focusNext(root.appKey);
+            }
         }
     }
 }

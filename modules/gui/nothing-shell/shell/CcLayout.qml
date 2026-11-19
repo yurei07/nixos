@@ -28,6 +28,8 @@ Singleton {
             colorPicker: [1, 1],
             lock: [1, 1],
             power: [1, 1],
+            wallpaper: [1, 1],
+            settings: [1, 1],
             media: [8, 2],
             remote: [4, 4],
             glyph: [4, 1],
@@ -50,6 +52,8 @@ Singleton {
             lock: [6, 3],
             power: [7, 3],
             media: [0, 4],
+            wallpaper: [0, 10],
+            settings: [1, 10],
             remote: [0, 6],
             glyph: [4, 6],
             timer: [4, 7]

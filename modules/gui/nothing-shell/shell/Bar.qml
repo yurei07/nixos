@@ -81,12 +81,44 @@ PanelWindow {
             }
             NetworkIcon {
                 anchors.verticalCenter: parent.verticalCenter
+                screenName: bar.screen?.name ?? ""
             }
             VolumeChip {
                 anchors.verticalCenter: parent.verticalCenter
             }
             BatteryChip {
                 anchors.verticalCenter: parent.verticalCenter
+                screenName: bar.screen?.name ?? ""
+            }
+            Item {
+                anchors.verticalCenter: parent.verticalCenter
+                implicitWidth: settingsGlyph.implicitWidth
+                implicitHeight: settingsGlyph.implicitHeight
+
+                Text {
+                    id: settingsGlyph
+
+                    text: Icons.cog
+                    color: settingsArea.containsMouse ? Theme.text : Theme.textDim
+                    font.family: Theme.fontIcon
+                    font.pixelSize: 14
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: Theme.animFast
+                        }
+                    }
+                }
+
+                MouseArea {
+                    id: settingsArea
+
+                    anchors.fill: parent
+                    anchors.margins: -6
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: Quickshell.execDetached(["gnome-control-center"])
+                }
             }
         }
     }

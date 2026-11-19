@@ -346,6 +346,8 @@ PanelWindow {
             colorPicker: colorPickerPiece,
             lock: lockPiece,
             power: powerPiece,
+            wallpaper: wallpaperPiece,
+            settings: settingsPiece,
             media: mediaPiece,
             remote: remotePiece,
             glyph: glyphPiece,
@@ -492,6 +494,26 @@ PanelWindow {
                 ShellState.closeControlCenter();
                 ShellState.openPowerMenu(panel.screen.name);
             }
+        }
+    }
+
+    // next Nothing wallpaper composition (right-click: open the folder)
+    Component {
+        id: wallpaperPiece
+
+        IconButton {
+            icon: Icons.wallpaper
+            onClicked: WallpaperService.next()
+            onRightClicked: panel.run(`nautilus ${WallpaperService.dir}`)
+        }
+    }
+
+    Component {
+        id: settingsPiece
+
+        IconButton {
+            icon: Icons.cog
+            onClicked: Quickshell.execDetached(["gnome-control-center"])
         }
     }
 

@@ -1,143 +1,117 @@
-# Legacy
+# fastfetch in the Nothing OS style: braille dot-matrix NixOS logo, Lettera-style
+# uppercase section labels, white values and the single red accent on the keys.
 { pkgs, ... }: {
   xdg.configFile."fastfetch/config.jsonc".text = ''
     {
       "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
       "logo": {
           "type": "file",
-          "source": "/etc/nixos/modules/tui/fastfetch/logo/logo.txt", 
-          "height": 15,
-          "width": 30,
+          "source": "/etc/nixos/modules/tui/fastfetch/logo/nixos-dots.txt",
           "padding": {
-              "top": 5,
-              "left": 0
+              "top": 2,
+              "left": 2,
+              "right": 4
           }
+      },
+      "display": {
+          "separator": "  "
       },
       "modules": [
           "break",
           {
               "type": "custom",
-              "format": "\u001b[90m┌──────────────────────Hardware──────────────────────┐"
+              "format": "\u001b[90m  S Y S T E M\u001b[0m"
           },
           {
               "type": "host",
-              "key": "󰌢  PC",
-              "keyColor": "green"
-          },
-          {
-              "type": "cpu",
-              "key": "│ ├󰻠 ",
-              "keyColor": "green"
-          },
-          {
-              "type": "gpu",
-              "key": "│ ├󰍹 ",
-              "keyColor": "green"
-          },
-          {
-              "type": "memory",
-              "key": "│ ├󰑭 ",
-              "keyColor": "green"
-          },
-          {
-              "type": "disk",
-              "key": "└ └󰋊 ",
-              "keyColor": "green"
-          },
-          {
-              "type": "custom",
-              "format": "\u001b[90m└────────────────────────────────────────────────────┘"
-          },
-          "break",
-          {
-              "type": "custom",
-              "format": "\u001b[90m┌──────────────────────Software──────────────────────┐"
+              "key": "\u001b[31m󰌢\u001b[0m  host",
+              "keyColor": "red"
           },
           {
               "type": "os",
-              "key": "  OS",
-              "keyColor": "yellow"
+              "key": "\u001b[31m󰣇\u001b[0m  os"
           },
           {
               "type": "kernel",
-              "key": "│ ├󰌽 ",
-              "keyColor": "yellow"
-          },
-          {
-              "type": "bios",
-              "key": "│ ├󰖡 ",
-              "keyColor": "yellow"
-          },
-          {
-              "type": "packages",
-              "key": "│ ├󰏗 ",
-              "keyColor": "yellow"
-          },
-          {
-              "type": "shell",
-              "key": "└ └󰞷 ",
-              "keyColor": "yellow"
-          },
-          "break",
-          {
-              "type": "de",
-              "key": "󰧨  DE",
-              "keyColor": "blue"
-          },
-          {
-              "type": "lm",
-              "key": "│ ├󰍁 ",
-              "keyColor": "blue"
-          },
-          {
-              "type": "wm",
-              "key": "│ ├󱂬 ",
-              "keyColor": "blue"
-          },
-          {
-              "type": "wmtheme",
-              "key": "│ ├󰉦 ",
-              "keyColor": "blue"
-          },
-          {
-              "type": "terminal",
-              "key": "└ └󰆍 ",
-              "keyColor": "blue"
-          },
-          {
-              "type": "custom",
-              "format": "\u001b[90m└────────────────────────────────────────────────────┘"
-          },
-          "break",
-          {
-              "type": "custom",
-              "format": "\u001b[90m┌────────────────────Uptime / Age / DT────────────────────┐"
-          },
-          {
-              "type": "command",
-              "key": "  ›  OS Age  ",
-              "keyColor": "magenta",
-              "text": "birth_install=$(stat -c %W /); current=$(date +%s); time_progression=$((current - birth_install)); days_difference=$((time_progression / 86400)); echo $days_difference days"
+              "key": "\u001b[31m󰘳\u001b[0m  kernel"
           },
           {
               "type": "uptime",
-              "key": "  ›  Uptime  ",
-              "keyColor": "magenta"
+              "key": "\u001b[31m󰅐\u001b[0m  uptime"
           },
           {
-              "type": "datetime",
-              "key": "  ›  DateTime  ",
-              "keyColor": "magenta"
+              "type": "packages",
+              "key": "\u001b[31m󰏖\u001b[0m  packages"
           },
+          "break",
           {
               "type": "custom",
-              "format": "\u001b[90m└─────────────────────────────────────────────────────────┘"
+              "format": "\u001b[90m  L O O K\u001b[0m"
           },
           {
-              "type": "colors",
-              "paddingLeft": 2,
-              "symbol": "circle"
-          }
+              "type": "wm",
+              "key": "\u001b[31m󰖰\u001b[0m  wm"
+          },
+          {
+              "type": "shell",
+              "key": "\u001b[31m󰆍\u001b[0m  shell"
+          },
+          {
+              "type": "terminal",
+              "key": "\u001b[31m󰆝\u001b[0m  terminal"
+          },
+          {
+              "type": "theme",
+              "key": "\u001b[31m󰉼\u001b[0m  theme"
+          },
+          {
+              "type": "cursor",
+              "key": "\u001b[31m󰇀\u001b[0m  cursor"
+          },
+          "break",
+          {
+              "type": "custom",
+              "format": "\u001b[90m  H A R D W A R E\u001b[0m"
+          },
+          {
+              "type": "cpu",
+              "key": "\u001b[31m󰻠\u001b[0m  cpu"
+          },
+          {
+              "type": "gpu",
+              "key": "\u001b[31m󰍹\u001b[0m  gpu"
+          },
+          {
+              "type": "memory",
+              "key": "\u001b[31m󰑭\u001b[0m  memory"
+          },
+          {
+              "type": "swap",
+              "key": "\u001b[31m󰓡\u001b[0m  swap"
+          },
+          {
+              "type": "disk",
+              "key": "\u001b[31m󰋊\u001b[0m  disk"
+          },
+          {
+              "type": "battery",
+              "key": "\u001b[31m󰁹\u001b[0m  battery",
+              "showChargeType": true
+          },
+          "break",
+          {
+              "type": "custom",
+              "format": "\u001b[90m  N E T W O R K\u001b[0m"
+          },
+          {
+              "type": "localip",
+              "key": "\u001b[31m󰩟\u001b[0m  ip"
+          },
+          {
+              "type": "wifi",
+              "key": "\u001b[31m󰤨\u001b[0m  wifi"
+          },
+          "break"
       ]
     }
   '';

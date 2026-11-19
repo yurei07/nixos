@@ -309,7 +309,7 @@ in
       ];
 
       env = [
-        { _args = [ "XCURSOR_THEME" "Numix-Cursor" ]; }
+        { _args = [ "XCURSOR_THEME" "Bibata-Modern-Ice" ]; }
         { _args = [ "XDG_CURRENT_DESKTOP" "Hyprland" ]; }
         { _args = [ "XDG_SESSION_TYPE" "wayland" ]; }
         { _args = [ "XDG_SESSION_DESKTOP" "Hyprland" ]; }

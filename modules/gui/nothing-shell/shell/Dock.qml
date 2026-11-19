@@ -133,6 +133,58 @@ PanelWindow {
                 anchors.verticalCenterOffset: -2
                 spacing: Theme.gapM
 
+                // Nothing app grid launcher: opens the rofi grid, with the same
+                // divider that separates the pinned group from running apps.
+                Item {
+                    id: launcher
+
+                    implicitWidth: Config.dockIconSize
+                    implicitHeight: Config.dockIconSize
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: Icons.apps
+                        color: launcherArea.containsMouse ? Theme.text : Theme.textDim
+                        font.family: Theme.fontIcon
+                        font.pixelSize: 22
+                        scale: launcherArea.pressed ? 0.85 : launcherArea.containsMouse ? 1.12 : 1
+
+                        Behavior on scale {
+                            NumberAnimation {
+                                duration: Theme.animFast
+                                easing.type: Theme.easing
+                            }
+                        }
+
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: Theme.animFast
+                            }
+                        }
+                    }
+
+                    Rectangle {
+                        visible: true
+                        x: parent.width + Theme.gapM / 2 - width / 2
+                        anchors.verticalCenter: parent.verticalCenter
+                        anchors.verticalCenterOffset: 2
+                        width: Theme.hairline
+                        height: 28
+                        color: Theme.outline
+                    }
+
+                    MouseArea {
+                        id: launcherArea
+
+                        anchors.fill: parent
+                        anchors.margins: -Theme.gapM / 2
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: Quickshell.execDetached(["sh", "-c",
+                            "rofi -show drun -theme $HOME/.config/rofi/nothing-grid.rasi"]);
+                    }
+                }
+
                 Repeater {
                     model: ScriptModel {
                         values: DockState.apps

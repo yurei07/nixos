@@ -45,6 +45,9 @@ Singleton {
     readonly property string pencil: glyph(0xF03EB)
     readonly property string check: glyph(0xF012C)
     readonly property string grip: glyph(0xF01DF) // two columns of dots
+    readonly property string cog: glyph(0xF0493) // settings
+    readonly property string wallpaper: glyph(0xF0E09)
+    readonly property string apps: glyph(0xF003B) // app grid
 
     // BlueZ device icon name (audio-headset, input-mouse, ...) -> glyph
     function btDevice(icon) {
