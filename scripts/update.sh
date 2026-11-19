@@ -1,20 +1,11 @@
 #!/usr/bin/env bash
-if [ -f ../check ]; then
-  echo "Critical step, do not terminate script now"
-  rm -rf ../modules ../materials ../hosts ../flake.nix ../flake.lock
-  cp -r /etc/nixos/* ../
-  git add . --all
-  echo "You can terminate now"
-  printf "Enter commit name (enter to default): "
-  read -r name
-  if [ -n "$name" ]; then
-    git commit -am "$name"
-    git push
-  else
-    git commit -am "lil update"
-    git push
-  fi
-else
-  echo "change your working directory to dotfiles already"
+# Rebuild helper. Run from the repository root.
+set -euo pipefail
+
+if [[ ! -f flake.nix ]]; then
+  echo "Run this from the repository root (where flake.nix lives)." >&2
+  exit 1
 fi
 
+nix flake update
+sudo nixos-rebuild switch --flake /etc/nixos#nixos

@@ -1,3 +1,4 @@
+# nh helper for NixOS rebuilds and garbage collection.
 {config, pkgs, ...}:{
   programs.nh = {
       enable = true;

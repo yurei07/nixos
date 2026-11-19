@@ -1,3 +1,4 @@
+# polkit authentication agent for the desktop session.
 { pkgs, ... }:
 {
 systemd.user.services.polkit_mate = {

@@ -1,3 +1,4 @@
+# OBS Studio with capture plugins and virtual camera support.
 {
   config,
   lib,

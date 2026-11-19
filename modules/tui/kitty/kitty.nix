@@ -1,5 +1,5 @@
+# kitty terminal configuration.
 { pkgs, lib, config, ... }:
-
 {
   programs.kitty = {
     enable = true;
@@ -36,9 +36,7 @@
       allow_remote_control = "yes";
       listen_on = "unix:/tmp/mykitty";
 
-      # ---- Nothing OS look -------------------------------------------------
-      # Lettera Mono (the Nothing UI font) and the static black/white/red
-      # palette: white text on true black, red accent, muted hues for ls/diff.
+      # Nothing OS look: black background, white text, red accent.
       font_family = "Lettera Mono LL";
       bold_font = "Lettera Mono LL Medium";
       italic_font = "Lettera Mono LL Italic";
@@ -83,6 +81,7 @@
   };
 
   xdg.configFile = {
+    # Kitty kittens for vim-aware window navigation.
     "kitty/pass_keys.py".text = ''
       import re
 
@@ -143,5 +142,5 @@
 
       handle_result.no_ui = True
     '';
-   };
+  };
 }

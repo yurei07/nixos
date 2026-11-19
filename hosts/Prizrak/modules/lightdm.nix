@@ -1,3 +1,4 @@
+# LightDM greeter + autologin into Hyprland.
 {
   pkgs,
   inputs,

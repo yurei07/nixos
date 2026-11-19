@@ -2,39 +2,31 @@
   config,
   lib,
   pkgs,
-  nixpkgs,
   inputs,
   username,
   ...
 }:
-let
-  creamlinux = import (pkgs.fetchFromGitHub {
-    owner = "Novattz";
-    repo = "creamlinux-installer";
-    rev = "main"; # replace with a commit hash to pin the version
-    hash = "sha256-sV23mp0XnJHf4oSqqvFLFfvSkssHzxafqYMNw3HGEdg="; # paste the value returned by the error your rebuild will output
-  }) { inherit pkgs; };
-in
 {
   imports = [
     ./hardware-configuration.nix
 
-    # nixos modules
-    ./nix-modules/gpu.nix
-    ./nix-modules/laptop.nix
-    ./nix-modules/fingerprint.nix
-    ./nix-modules/bluetooth.nix
-    ./nix-modules/users.nix
-    ./nix-modules/fonts.nix
+    # host-specific system modules
+    ./modules/gpu.nix
+    ./modules/laptop.nix
+    ./modules/fingerprint.nix
+    ./modules/bluetooth.nix
+    ./modules/users.nix
+    ./modules/fonts.nix
+    ./modules/audio.nix
+    ./modules/lightdm.nix
+    ./modules/replays.nix
 
-    ./nix-modules/audio.nix
-    ./nix-modules/lightdm.nix
-    ./nix-modules/replays.nix
-
-    ../../modules/gui/obs/obs.nix
-
+    # system-level graphical apps
+    ./modules/obs.nix
   ];
 
+  # patool is only needed for bottles; the upstream test suite fails in the Nix
+  # build environment, so skip it.
   nixpkgs.overlays = [
     (final: prev: {
       pythonPackagesExtensions = prev.pythonPackagesExtensions ++ [
@@ -62,15 +54,13 @@ in
     zerotierone.enable = true;
     flatpak.enable = true;
     tailscale.enable = true;
-    upower.enable = true; # battery info for the Nothing shell bar
+    upower.enable = true; # battery info for the nothing-shell bar
 
     hardware.openrgb = {
       enable = true;
       package = pkgs.openrgb-with-all-plugins;
       motherboard = "amd";
-      server = {
-        port = 6742;
-      };
+      server.port = 6742;
     };
   };
 
@@ -79,23 +69,22 @@ in
   boot = {
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
+    loader.systemd-boot.configurationLimit = 10;
   };
 
   programs = {
     gpu-screen-recorder.enable = true;
-    ssh.askPassword = ""; 
+    ssh.askPassword = "";
     dconf.enable = true;
   };
 
-  xdg = {
-    portal = {
-      enable = true;
-      extraPortals = [ 
-        pkgs.xdg-desktop-portal-gnome 
-        pkgs.xdg-desktop-portal-gtk
-      ];
-      config.common.default = "*";
-    };
+  xdg.portal = {
+    enable = true;
+    extraPortals = [
+      pkgs.xdg-desktop-portal-gnome
+      pkgs.xdg-desktop-portal-gtk
+    ];
+    config.common.default = "*";
   };
 
   nix.settings.experimental-features = [
@@ -103,25 +92,21 @@ in
     "flakes"
   ];
 
-  # Keep the Nix store in check (this laptop has one shared root/nix partition).
   nix.gc = {
     automatic = true;
     dates = "weekly";
     options = "--delete-older-than 14d";
   };
   nix.optimise.automatic = true;
-  boot.loader.systemd-boot.configurationLimit = 10;
 
-  environment = {
-    systemPackages = with pkgs; [
-      xwayland-satellite 
-    ];
-  };
+  environment.systemPackages = with pkgs; [
+    xwayland-satellite
+  ];
 
-  # home-manager
   home-manager = {
-    users.${username}= import ./home/home-configuration.nix;
+    users.${username} = import ./home/home-configuration.nix;
     backupFileExtension = "backup";
   };
-  system.stateVersion = "25.05"; # Did you read the comment?
+
+  system.stateVersion = "25.05";
 }

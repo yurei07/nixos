@@ -7,13 +7,11 @@
 }:
 {
   imports = [
-    # windows manager
     ../../../modules/wm
-    # gui
     ../../../modules/gui
-    # tui
     ../../../modules/tui
   ];
+
   xdg.userDirs = {
     enable = true;
     setSessionVariables = true;
@@ -25,80 +23,80 @@
 
     file.".config/mpv".source = ../../../materials/mpv;
 
-    packages = with pkgs; [
-      # Apps
-      nano 
-      bottles
-      calibre
-      pomodoro-gtk
-      blanket
-      telegram-desktop
-      wget
-      mpv
-      mpvpaper
-      imv
-      steam
-      mate-polkit
-      matugen
-      gpu-screen-recorder
-      foliate
-      scrcpy
-      usbutils
-      stress-ng
-      libreoffice-qt
-      quickshell
-      vesktop
-      feh
-      imagemagick     
-      drawio
-      zola
-      obsidian
+    packages =
+      with pkgs;
+      [
+        # desktop apps
+        calibre
+        foliate
+        libreoffice-qt
+        obsidian
+        telegram-desktop
+        vesktop
 
-      #themes
-      gnome-themes-extra
-      materia-theme
-      arc-theme
-      killall
-      libnotify
-      numix-cursor-theme
-      # icons
-      papirus-icon-theme
-      hicolor-icon-theme
-      # Utils
-      zip
-      unzip
-      unrar
-      git
-      opencode
-      btop
-      bash
-      gdu
-      dysk
-      networkmanager_dmenu
-      pavucontrol
-      protontricks
-      lact
-      gh
-      pulseaudio
-      # Just cool
-      peaclock
-      mufetch
-      fastfetch
-      cbonsai
-      pipes
-      cava
-      tree
-      cmatrix
-      yazi
-      brightnessctl
-      easyeffects
-      rnnoise-plugin
-      lsp-plugins
-      # inputs
-      inputs.freesm-launcher.packages.${pkgs.stdenv.hostPlatform.system}.default
-      inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
-      inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default
-    ];
+        # shell runtime / auth
+        quickshell
+        mate-polkit
+
+        # media
+        mpv
+        mpvpaper
+        imv
+        feh
+        imagemagick
+
+        # gaming
+        bottles
+        protontricks
+        steam
+        gpu-screen-recorder
+        scrcpy
+
+        # system / cli utils
+        nano
+        wget
+        zip
+        unzip
+        unrar
+        git
+        opencode
+        gh
+        btop
+        gdu
+        dysk
+        networkmanager_dmenu
+        pavucontrol
+        pulseaudio
+        usbutils
+        stress-ng
+        killall
+        libnotify
+        hicolor-icon-theme
+        brightnessctl
+        easyeffects
+        rnnoise-plugin
+        lsp-plugins
+
+        # fun / misc
+        peaclock
+        mufetch
+        fastfetch
+        cbonsai
+        pipes
+        cava
+        tree
+        cmatrix
+        yazi
+        matugen
+        drawio
+        zola
+        pomodoro-gtk
+        blanket
+
+        # from flakes
+        inputs.freesm-launcher.packages.${pkgs.stdenv.hostPlatform.system}.default
+        inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
+      ];
 
     sessionVariables = {
       XCURSOR_THEME = "Bibata-Modern-Ice";

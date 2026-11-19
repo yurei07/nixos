@@ -19,7 +19,7 @@ The whole system (desktop, terminal, editor and tools) is described in code, so 
 | | |
 |:--|:--|
 | **OS** | NixOS (flakes) |
-| **WM** | Hyprland |
+| **WM** | Hyprland 0.57 (Lua config) |
 | **Shell / bar** | Quickshell with [nothing-panel](https://github.com/yurei07/nothing-panel) (Nothing OS style) |
 | **Terminal** | kitty |
 | **Shell** | zsh |
@@ -31,8 +31,8 @@ The whole system (desktop, terminal, editor and tools) is described in code, so 
 ### GALLERY
 
 <p align="center">
-  <img width="49%" src="assets/nixos/2026-05-06-215723_hyprshot.png" alt="Desktop 1"/>
-  <img width="49%" src="assets/nixos/2026-05-06-215839_hyprshot.png" alt="Desktop 2"/>
+  <img width="49%" src="assets/nixos/desktop-1.png" alt="Desktop 1"/>
+  <img width="49%" src="assets/nixos/desktop-2.png" alt="Desktop 2"/>
 </p>
 
 <img width="100%" src="assets/divider.svg" alt=""/>
@@ -41,18 +41,23 @@ The whole system (desktop, terminal, editor and tools) is described in code, so 
 
 ```text
 .
-├── flake.nix            # entry point
-├── flake.lock           # pinned inputs
+├── flake.nix            # entry point, inputs and nixosConfigurations
 ├── hosts/
-│   └── Prizrak/         # machine config: configuration.nix, hardware, home, nix-modules
+│   ├── Prizrak/         # main machine: system config + home config
+│   │   ├── modules/     # host-specific system modules (audio, gpu, laptop, ...)
+│   │   └── home/        # Home Manager entry point
+│   └── server/          # optional second machine
 ├── modules/
-│   ├── gui/             # graphical apps (incl. Quickshell / Noctalia)
-│   ├── tui/             # terminal: kitty, zsh and CLI tools
-│   └── wm/              # Hyprland configuration
-├── materials/           # wallpapers, theme, mpv config
-├── scripts/             # helper scripts (e.g. nvim.sh)
-└── assets/              # screenshots and README graphics
+│   ├── wm/              # window manager (hyprland, polkit)
+│   ├── gui/             # user-level graphical apps (nothing-shell, nautilus)
+│   └── tui/             # terminal apps (kitty, zsh, neovim, fastfetch)
+├── materials/           # per-application assets (mpv)
+├── scripts/             # helper scripts (nvim.sh, update.sh)
+├── themes/              # local theme stubs (chiaroscuro)
+└── .github/             # CI + docs
 ```
+
+<img width="100%" src="assets/divider.svg" alt=""/>
 
 ### INSTALLATION
 
@@ -66,12 +71,22 @@ cd nixos
 sudo nixos-generate-config --show-hardware-config > hosts/Prizrak/hardware-configuration.nix
 
 # build and switch
-sudo nixos-rebuild switch --flake .#Prizrak
+sudo nixos-rebuild switch --flake .#nixos
 ```
+
+### UPDATING
+
+```bash
+cd /etc/nixos
+./scripts/update.sh
+```
+
+<img width="100%" src="assets/divider.svg" alt=""/>
 
 ### CREDITS
 
-- [Noctalia](https://github.com/noctalia-dev/noctalia) for the Quickshell setup
-- [Hyprland](https://hyprland.org) and the NixOS community
+- [Hyprland](https://hyprland.org)
+- [nothing-panel](https://github.com/yurei07/nothing-panel)
+- NixOS and Home Manager communities
 
 <img width="100%" src="assets/divider.svg" alt=""/>

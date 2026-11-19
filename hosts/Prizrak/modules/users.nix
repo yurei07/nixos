@@ -1,3 +1,4 @@
+# Base host identity, networking and the main user account.
 {
   config,
   pkgs,

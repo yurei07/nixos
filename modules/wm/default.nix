@@ -1,3 +1,4 @@
+# Window manager module entry point.
 { ... }:
 {
   imports = [

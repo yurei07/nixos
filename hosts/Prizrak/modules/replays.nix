@@ -1,3 +1,4 @@
+# Optional rolling gameplay replay service (enabled in configuration.nix).
 {
   config,
   lib,
@@ -9,9 +10,7 @@ let
   cfg = config.replays;
 in
 {
-  options.replays = {
-    enable = mkEnableOption "Enable replays";
-  };
+  options.replays.enable = mkEnableOption "rolling gameplay replays via gpu-screen-recorder";
 
   config = mkIf cfg.enable {
     systemd.user.services.replays = {
@@ -29,6 +28,5 @@ in
         Restart = "always";
       };
     };
-    programs.gpu-screen-recorder.enable = true;
   };
 }

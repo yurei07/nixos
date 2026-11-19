@@ -1,3 +1,4 @@
+# User-level terminal module entry point.
 { ... }:
 {
   imports = [

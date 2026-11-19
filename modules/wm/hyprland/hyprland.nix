@@ -1,3 +1,7 @@
+# Hyprland configuration.
+# Written as Hyprland 0.57 Lua: Home Manager renders every attrset below into
+# `hl.*` calls (`hl.config`, `hl.bind`, `hl.monitor`, ...). Keep helper Lua
+# snippets inline when the HM generator can't express a call directly.
 {
   pkgs,
   inputs,
@@ -8,28 +12,29 @@ let
   # Raw Lua expressions for Home Manager's Lua config generator.
   lua = lib.generators.mkLuaInline;
 
-  # Nix string -> quoted Lua string literal.
-  str = value: lua (builtins.toJSON value);
-
   exec = command: lua "hl.dsp.exec_cmd(${builtins.toJSON command})";
 
-  # Key references using the `mod` local defined in settings.
+  # Key strings built from the `mod` local in the generated Lua.
   modPlus = keys: lua "mod .. \" + ${keys}\"";
 
-  # hl.bind(key, action) / hl.bind(key, action, { mouse = true })
   bind = key: action: {
     _args = [
       key
       action
     ];
   };
-  mouseBind = key: action: {
-    _args = [
-      key
-      action
-      { mouse = true; }
-    ];
-  };
+
+  # Hyprland 0.57 Lua has no `hl.bindm`; mouse binds are normal binds with
+  # `{ mouse = true }`.
+  mouseBind =
+    key: action:
+    {
+      _args = [
+        key
+        action
+        { mouse = true; }
+      ];
+    };
 
   closeWindow = lua "hl.dsp.window.close()";
   toggleFloat = lua "hl.dsp.window.float({ action = \"toggle\" })";
@@ -42,10 +47,12 @@ let
 
   targetOpacity = "0.99 override 0.99 override";
 
-  opacityRule = match: {
-    match = match;
-    opacity = targetOpacity;
-  };
+  opacityRule =
+    match:
+    {
+      match = match;
+      opacity = targetOpacity;
+    };
 in
 {
   home.packages = with pkgs; [
@@ -66,7 +73,6 @@ in
     package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
     enable = true;
     xwayland.enable = true;
-    # Hyprland 0.57 reads hyprland.lua only; the old hyprlang .conf is ignored.
     configType = "lua";
 
     settings = {
@@ -77,7 +83,6 @@ in
         _var = "SUPER_SHIFT";
       };
 
-      # General config options -> hl.config({ ... })
       config = {
         general = {
           resize_on_border = true;
@@ -128,7 +133,6 @@ in
       };
 
       monitor = [
-        # Internal laptop panel (Huawei MateBook D, 15.6" 1920x1080).
         {
           output = "eDP-1";
           mode = "preferred";
@@ -173,8 +177,7 @@ in
                 [ 0.3 1 ]
               ];
             }
-          ]
-          ;
+          ];
         }
         {
           _args = [
@@ -250,21 +253,24 @@ in
       ];
 
       bind = [
+        # apps
         (bind (modPlus "RETURN") (exec "kitty"))
         (bind (modPlus "Y") (exec "${../../../scripts/nvim.sh}"))
         (bind (modPlus "E") (exec "nautilus"))
         (bind (modPlus "B") (exec "zen-beta"))
-        (bind (modPlus "SHIFT + D") (exec "discord"))
+        (bind (modPlus "SHIFT + D") (exec "vesktop"))
         (bind (modPlus "O") (exec "obsidian"))
+
+        # window management
         (bind (modPlus "Q") closeWindow)
         (bind (modPlus "W") toggleFloat)
         (bind (modPlus "G") toggleFullscreen)
         (bind (modPlus "SPACE") (exec "qs ipc -c nothing call controlcenter toggle"))
         (bind (modPlus "D") (exec "rofi -show drun -theme /home/Prizrak/.config/rofi/nothing-grid.rasi"))
         (bind "CTRL + ALT + P" (exec "qs ipc -c nothing call powermenu toggle"))
-        (bind (modPlus "CTRL + R") (exec "killall -SIGUSR1 gpu-screen-recorder && notify-send 'GPU-Screen-Recorder' 'Повтор успешно сохранён'"))
+        (bind (modPlus "CTRL + R") (exec "killall -SIGUSR1 gpu-screen-recorder && notify-send 'GPU-Screen-Recorder' 'Replay saved'"))
 
-        # Media / brightness keys -> wpctl + brightnessctl, OSD by the shell.
+        # media / brightness keys
         (bind "XF86AudioRaiseVolume" (exec "sh -c 'wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+; qs ipc -c nothing call osd volume'"))
         (bind "XF86AudioLowerVolume" (exec "sh -c 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-; qs ipc -c nothing call osd volume'"))
         (bind "XF86AudioMute" (exec "sh -c 'wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle; qs ipc -c nothing call osd volume'"))
@@ -272,12 +278,13 @@ in
         (bind "XF86MonBrightnessUp" (exec "sh -c 'brightnessctl -q set 5%+; qs ipc -c nothing call osd brightness'"))
         (bind "XF86MonBrightnessDown" (exec "sh -c 'brightnessctl -q set 5%-; qs ipc -c nothing call osd brightness'"))
 
+        # screenshots / monitor toggle
         (bind "Print" (exec "hyprshot -m output"))
         (bind "SHIFT + Print" (exec "hyprshot -m region"))
-
         (bind (modPlus "V") (exec "hyprctl keyword monitor 'HDMI-A-1', 2560x1080@180, -1080x0, 1, transform, 1"))
         (bind (modPlus "H") (exec "hyprctl keyword monitor 'HDMI-A-1', 2560x1080@180, -2560x0, 1, transform, 0"))
 
+        # workspaces
         (bind (modPlus "1") (focusWorkspace 1))
         (bind (modPlus "2") (focusWorkspace 2))
         (bind (modPlus "3") (focusWorkspace 3))
@@ -288,7 +295,6 @@ in
         (bind (modPlus "8") (focusWorkspace 8))
         (bind (modPlus "9") (focusWorkspace 9))
         (bind (modPlus "0") (focusWorkspace 10))
-
         (bind (modPlus "SHIFT + 1") (moveToWorkspace 1))
         (bind (modPlus "SHIFT + 2") (moveToWorkspace 2))
         (bind (modPlus "SHIFT + 3") (moveToWorkspace 3))
@@ -299,11 +305,10 @@ in
         (bind (modPlus "SHIFT + 8") (moveToWorkspace 8))
         (bind (modPlus "SHIFT + 9") (moveToWorkspace 9))
         (bind (modPlus "SHIFT + 0") (moveToWorkspace 10))
-
         (bind (modPlus "S") (lua "hl.dsp.workspace.toggle_special(\"magic\")"))
         (bind (modPlus "SHIFT + S") (lua "hl.dsp.window.move({ workspace = \"special:magic\" })"))
 
-        # Mouse binds: hl.bindm does not exist in Hyprland 0.57 Lua.
+        # mouse
         (mouseBind (modPlus "mouse:272") dragWindow)
         (mouseBind (modPlus "mouse:273") resizeWindow)
       ];
@@ -320,8 +325,8 @@ in
         { _args = [ "NIXOS_OZONE_WL" "1" ]; }
       ];
 
-      # Autostart. Home Manager already emits the systemd/dbus startup hook
-      # when systemd.enable is true (the default), so this is just your apps.
+      # Autostart: the systemd/dbus hook comes from Home Manager, this is only
+      # for user-facing daemons/apps.
       on = {
         _args = [
           "hyprland.start"

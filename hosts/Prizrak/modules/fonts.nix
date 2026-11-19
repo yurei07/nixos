@@ -1,3 +1,4 @@
+# System fonts and fontconfig defaults.
 {config, pkgs, ...}:
 {
   fonts = {
