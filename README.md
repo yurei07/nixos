@@ -31,8 +31,7 @@ The whole system (desktop, terminal, editor and tools) is described in code, so 
 ### GALLERY
 
 <p align="center">
-  <img width="49%" src="assets/nixos/desktop-1.png" alt="Desktop 1"/>
-  <img width="49%" src="assets/nixos/desktop-2.png" alt="Desktop 2"/>
+  <img width="100%" src="assets/nixos/desktop-1.png" alt="Desktop 1"/>
 </p>
 
 <img width="100%" src="assets/divider.svg" alt=""/>
