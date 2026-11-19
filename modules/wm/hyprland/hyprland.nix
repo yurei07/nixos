@@ -1,12 +1,53 @@
 {
   pkgs,
-  config,
   inputs,
   lib,
   ...
 }:
-{
+let
+  # Raw Lua expressions for Home Manager's Lua config generator.
+  lua = lib.generators.mkLuaInline;
 
+  # Nix string -> quoted Lua string literal.
+  str = value: lua (builtins.toJSON value);
+
+  exec = command: lua "hl.dsp.exec_cmd(${builtins.toJSON command})";
+
+  # Key references using the `mod` local defined in settings.
+  modPlus = keys: lua "mod .. \" + ${keys}\"";
+
+  # hl.bind(key, action) / hl.bind(key, action, { mouse = true })
+  bind = key: action: {
+    _args = [
+      key
+      action
+    ];
+  };
+  mouseBind = key: action: {
+    _args = [
+      key
+      action
+      { mouse = true; }
+    ];
+  };
+
+  closeWindow = lua "hl.dsp.window.close()";
+  toggleFloat = lua "hl.dsp.window.float({ action = \"toggle\" })";
+  toggleFullscreen = lua "hl.dsp.window.fullscreen({ action = \"toggle\" })";
+  dragWindow = lua "hl.dsp.window.drag()";
+  resizeWindow = lua "hl.dsp.window.resize()";
+
+  focusWorkspace = workspace: lua "hl.dsp.focus({ workspace = ${toString workspace} })";
+  moveToWorkspace = workspace: lua "hl.dsp.window.move({ workspace = ${toString workspace} })";
+
+  targetOpacity = "0.99 override 0.99 override";
+
+  opacityRule = match: {
+    match = match;
+    opacity = targetOpacity;
+  };
+in
+{
   home.packages = with pkgs; [
     qt5.qtwayland
     qt6.qtwayland
@@ -25,182 +66,300 @@
     package = inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland;
     enable = true;
     xwayland.enable = true;
-    configType = "hyprlang";
+    # Hyprland 0.57 reads hyprland.lua only; the old hyprlang .conf is ignored.
+    configType = "lua";
 
     settings = {
-      "$mod" = "SUPER";
-      "$shiftMod" = "SUPER_SHIFT";
+      mod = {
+        _var = "SUPER";
+      };
+      shiftMod = {
+        _var = "SUPER_SHIFT";
+      };
 
-      bind = [
-        "$mod, RETURN, exec, kitty"
-        "$mod, Y, exec, ${../../../scripts/nvim.sh}"
-        "$mod, E, exec, nautilus"
-        "$mod, B, exec, zen-beta"
-        "$mod, D, exec, discord"
-        "$mod, O, exec, obsidian"
-        "$mod, Q, killactive"
-        "$mod, W, togglefloating"
-        "$mod, G, fullscreen"
-        "$mod, SPACE, exec, noctalia msg panel-toggle launcher"
-        "$mod CTRL, R, exec, killall -SIGUSR1 gpu-screen-recorder && notify-send 'GPU-Screen-Recorder' 'Повтор успешно сохранён'"
-
-        ", Print, exec, hyprshot -m output"
-        "SHIFT, Print, exec, hyprshot -m region"
-
-        "$mod, V, exec, hyprctl keyword monitor 'HDMI-A-1', 2560x1080@180, -1080x0, 1, transform, 1'"
-        "$mod, H, exec, hyprctl keyword monitor 'HDMI-A-1', 2560x1080@180, -2560x0, 1, transform, 0'"
-
-        "$mod, 1, workspace, 1"
-        "$mod, 2, workspace, 2"
-        "$mod, 3, workspace, 3"
-        "$mod, 4, workspace, 4"
-        "$mod, 5, workspace, 5"
-        "$mod, 6, workspace, 6"
-        "$mod, 7, workspace, 7"
-        "$mod, 8, workspace, 8"
-        "$mod, 9, workspace, 9"
-        "$mod, 0, workspace, 10"
-        "$mod SHIFT, 1, movetoworkspace, 1"
-        "$mod SHIFT, 2, movetoworkspace, 2"
-        "$mod SHIFT, 3, movetoworkspace, 3"
-        "$mod SHIFT, 4, movetoworkspace, 4"
-        "$mod SHIFT, 5, movetoworkspace, 5"
-        "$mod SHIFT, 6, movetoworkspace, 6"
-        "$mod SHIFT, 7, movetoworkspace, 7"
-        "$mod SHIFT, 8, movetoworkspace, 8"
-        "$mod SHIFT, 9, movetoworkspace, 9"
-        "$mod SHIFT, 0, movetoworkspace, 10"
-        "$mod, S, togglespecialworkspace, magic"
-        "$mod SHIFT, S, movetoworkspace, special:magic"
-      ];
-
-      bindm = [
-        "$mod, mouse:272, movewindow"
-        "$mod, mouse:273, resizewindow"
-      ];
-      exec-once = [
-        "noctalia"
-      ];
+      # General config options -> hl.config({ ... })
+      config = {
+        general = {
+          resize_on_border = true;
+          border_size = 2;
+          gaps_out = 25;
+          gaps_in = 10;
+          layout = "dwindle";
+        };
+        decoration = {
+          active_opacity = 1;
+          inactive_opacity = 0.85;
+          rounding = 0;
+          blur = {
+            enabled = true;
+            popups = true;
+            popups_ignorealpha = 0;
+            ignore_opacity = true;
+            size = 10;
+            brightness = 0.6;
+            passes = 4;
+            noise = 0;
+            vibrancy = 0;
+          };
+        };
+        cursor = {
+          no_hardware_cursors = 1;
+          default_monitor = "DP-1";
+        };
+        input = {
+          kb_layout = "us,ru";
+          kb_options = "grp:alt_shift_toggle";
+          follow_mouse = 1;
+        };
+        misc = {
+          enable_swallow = true;
+          animate_manual_resizes = false;
+          animate_mouse_windowdragging = false;
+          swallow_regex = "^(kitty|lutris|bottles|alacritty)$";
+          swallow_exception_regex = "^(ncspot)$";
+          force_default_wallpaper = 2;
+          disable_hyprland_logo = true;
+        };
+        animations = {
+          enabled = true;
+        };
+      };
 
       monitor = [
-        "DP-1,2560x1440@165.00,0x0,1"
-        "HDMI-A-1,2560x1080@180,-1080x0,1, transform, 1"
+        # Internal laptop panel (Huawei MateBook D, 15.6" 1920x1080).
+        {
+          output = "eDP-1";
+          mode = "preferred";
+          position = "0x0";
+          scale = 1;
+        }
+        {
+          output = "DP-1";
+          mode = "2560x1440@165.00";
+          position = "0x0";
+          scale = 1;
+        }
+        {
+          output = "HDMI-A-1";
+          mode = "2560x1080@180";
+          position = "-1080x0";
+          scale = 1;
+          transform = 1;
+        }
+      ];
 
+      curve = [
+        {
+          _args = [
+            "easein"
+            {
+              type = "bezier";
+              points = [
+                [ 0.11 0 ]
+                [ 0.5 0 ]
+              ];
+            }
+          ];
+        }
+        {
+          _args = [
+            "easeout"
+            {
+              type = "bezier";
+              points = [
+                [ 0.5 1 ]
+                [ 0.89 1 ]
+              ];
+            }
+          ];
+        }
+        {
+          _args = [
+            "easeinout"
+            {
+              type = "bezier";
+              points = [
+                [ 0.65 0 ]
+                [ 0.35 1 ]
+              ];
+            }
+          ];
+        }
       ];
-      windowrule = [
-        "no_max_size on, match:class polkit-mate-authentication-agent-1"
-        "pin on, match:class polkit-mate-authentication-agent-1"
-        "opacity 0.99 override 0.99 override, match:title QDiskInfo"
-        "opacity 0.99 override 0.99 override, match:title MainPicker"
-        "opacity 0.99 override 0.99 override, match:class thunderbird"
-        "opacity 0.99 override 0.99 override, match:class spotify"
-        "opacity 0.99 override 0.99 override, match:class org.prismlauncher.PrismLauncher"
-        "opacity 0.99 override 0.99 override, match:class mpv"
-        "opacity 0.99 override 0.99 override, match:class org.qbittorrent.qBittorrent"
-        "opacity 0.99 override 0.99 override, match:class die"
+
+      animation = [
+        {
+          leaf = "windows";
+          enabled = true;
+          speed = 3;
+          bezier = "easeout";
+          style = "slide";
+        }
+        {
+          leaf = "windowsOut";
+          enabled = true;
+          speed = 3;
+          bezier = "easein";
+          style = "slide";
+        }
+        {
+          leaf = "border";
+          enabled = true;
+          speed = 10;
+          bezier = "default";
+        }
+        {
+          leaf = "fade";
+          enabled = true;
+          speed = 5;
+          bezier = "default";
+        }
+        {
+          leaf = "workspaces";
+          enabled = true;
+          speed = 4;
+          bezier = "easeinout";
+          style = "slide";
+        }
       ];
-      layerrule = [
-        # "blur on, match:namespace .*"
-        "blur_popups on, match:namespace .*"
-        "no_anim on, match:namespace selection"
-        "ignore_alpha 0.9, match:namespace selection"
-        "ignore_alpha 0, match:namespace corner0"
-        "ignore_alpha 0, match:namespace overview"
-        "ignore_alpha 0, match:namespace indicator0"
-        "ignore_alpha 0, match:namespace datemenu"
-        "ignore_alpha 0, match:namespace launcher"
-        "ignore_alpha 0, match:namespace quicksettings"
-        "ignore_alpha 0, match:namespace swaync-control-center"
-        "ignore_alpha 0, match:namespace swaync-notification-window"
-        "animation popin 90%, match:namespace logout_dialog"
-        "animation slide left, match:namespace swaync-control-center"
+
+      bind = [
+        (bind (modPlus "RETURN") (exec "kitty"))
+        (bind (modPlus "Y") (exec "${../../../scripts/nvim.sh}"))
+        (bind (modPlus "E") (exec "nautilus"))
+        (bind (modPlus "B") (exec "zen-beta"))
+        (bind (modPlus "D") (exec "discord"))
+        (bind (modPlus "O") (exec "obsidian"))
+        (bind (modPlus "Q") closeWindow)
+        (bind (modPlus "W") toggleFloat)
+        (bind (modPlus "G") toggleFullscreen)
+        (bind (modPlus "SPACE") (exec "noctalia msg panel-toggle launcher"))
+        (bind (modPlus "CTRL + R") (exec "killall -SIGUSR1 gpu-screen-recorder && notify-send 'GPU-Screen-Recorder' 'Повтор успешно сохранён'"))
+
+        (bind "Print" (exec "hyprshot -m output"))
+        (bind "SHIFT + Print" (exec "hyprshot -m region"))
+
+        (bind (modPlus "V") (exec "hyprctl keyword monitor 'HDMI-A-1', 2560x1080@180, -1080x0, 1, transform, 1"))
+        (bind (modPlus "H") (exec "hyprctl keyword monitor 'HDMI-A-1', 2560x1080@180, -2560x0, 1, transform, 0"))
+
+        (bind (modPlus "1") (focusWorkspace 1))
+        (bind (modPlus "2") (focusWorkspace 2))
+        (bind (modPlus "3") (focusWorkspace 3))
+        (bind (modPlus "4") (focusWorkspace 4))
+        (bind (modPlus "5") (focusWorkspace 5))
+        (bind (modPlus "6") (focusWorkspace 6))
+        (bind (modPlus "7") (focusWorkspace 7))
+        (bind (modPlus "8") (focusWorkspace 8))
+        (bind (modPlus "9") (focusWorkspace 9))
+        (bind (modPlus "0") (focusWorkspace 10))
+
+        (bind (modPlus "SHIFT + 1") (moveToWorkspace 1))
+        (bind (modPlus "SHIFT + 2") (moveToWorkspace 2))
+        (bind (modPlus "SHIFT + 3") (moveToWorkspace 3))
+        (bind (modPlus "SHIFT + 4") (moveToWorkspace 4))
+        (bind (modPlus "SHIFT + 5") (moveToWorkspace 5))
+        (bind (modPlus "SHIFT + 6") (moveToWorkspace 6))
+        (bind (modPlus "SHIFT + 7") (moveToWorkspace 7))
+        (bind (modPlus "SHIFT + 8") (moveToWorkspace 8))
+        (bind (modPlus "SHIFT + 9") (moveToWorkspace 9))
+        (bind (modPlus "SHIFT + 0") (moveToWorkspace 10))
+
+        (bind (modPlus "S") (lua "hl.dsp.workspace.toggle_special(\"magic\")"))
+        (bind (modPlus "SHIFT + S") (lua "hl.dsp.window.move({ workspace = \"special:magic\" })"))
+
+        # Mouse binds: hl.bindm does not exist in Hyprland 0.57 Lua.
+        (mouseBind (modPlus "mouse:272") dragWindow)
+        (mouseBind (modPlus "mouse:273") resizeWindow)
       ];
 
       env = [
-        "XCURSOR_THEME,Numix-Cursor"
-        "XDG_CURRENT_DESKTOP,Hyprland"
-        "XDG_SESSION_TYPE,wayland"
-        "XDG_SESSION_DESKTOP,Hyprland"
-        "__GLX_VENDOR_LIBRARY_NAME,nvidia"
-        "__GL_GSYNC_ALLOWED,0"
-        "__GL_VRR_ALLOWED,0"
-        "QT_QPA_PLATFORM,wayland"
-        "QT_WAYLAND_DISABLE_WINDOWDECORATION,1"
-        "QT_AUTO_SCREEN_SCALE_FACTOR,1"
-        "XCURSOR_SIZE,24"
-        "NIXOS_OZONE_WL,1"
-        "WLR_NO_HARDWARE_CURSORS,1"
+        { _args = [ "XCURSOR_THEME" "Numix-Cursor" ]; }
+        { _args = [ "XDG_CURRENT_DESKTOP" "Hyprland" ]; }
+        { _args = [ "XDG_SESSION_TYPE" "wayland" ]; }
+        { _args = [ "XDG_SESSION_DESKTOP" "Hyprland" ]; }
+        { _args = [ "QT_QPA_PLATFORM" "wayland" ]; }
+        { _args = [ "QT_WAYLAND_DISABLE_WINDOWDECORATION" "1" ]; }
+        { _args = [ "QT_AUTO_SCREEN_SCALE_FACTOR" "1" ]; }
+        { _args = [ "XCURSOR_SIZE" "24" ]; }
+        { _args = [ "NIXOS_OZONE_WL" "1" ]; }
       ];
 
-      general = {
-        resize_on_border = true;
-        border_size = 2;
-        gaps_out = 25;
-        gaps_in = 10;
-        layout = "dwindle";
-        # "col.active_border" = lib.mkForce "rgb(${config.lib.stylix.colors.base0D})"; 
-      };
-      decoration = {
-        active_opacity = 1;
-        inactive_opacity = 0.85;
-        rounding = 0;
-        blur = {
-          enabled = true;
-          popups = true;
-          popups_ignorealpha = 0;
-          ignore_opacity = true;
-          size = 10;
-          brightness = 0.6;
-          passes = 4;
-          noise = 0;
-          vibrancy = 0;
-        };
-      };
-      cursor = {
-        no_hardware_cursors = true;
-        default_monitor = "DP-1";
-      };
-
-      input = {
-        kb_layout = "us,ru,de";
-        kb_options = "grp:alt_shift_toggle";
-        follow_mouse = 1;
-      };
-
-      misc = {
-        enable_swallow = true;
-        animate_manual_resizes = false;
-        animate_mouse_windowdragging = false;
-        swallow_regex = "^(kitty|lutris|bottles|alacritty)$";
-        swallow_exception_regex = "^(ncspot)$";
-        force_default_wallpaper = 2;
-      };
-
-      animations = {
-        enabled = true;
-        bezier = [
-          "easein, 0.11, 0, 0.5, 0"
-          "easeout, 0.5, 1, 0.89, 1"
-          "easeinout, 0.65, 0, 0.35, 1"
-        ];
-        animation = [
-          "windows, 1, 3, easeout, slide"
-          "windowsOut, 1, 3, easein, slide"
-          "border, 1, 10, default"
-          "fade, 1, 5, default"
-          "workspaces, 1, 4, easeinout, slide"
+      # Autostart. Home Manager already emits the systemd/dbus startup hook
+      # when systemd.enable is true (the default), so this is just your app.
+      on = {
+        _args = [
+          "hyprland.start"
+          (lua "function() hl.exec_cmd(\"noctalia\") end")
         ];
       };
 
-      windowrulev2 = [
-        # "noborder, fullscreen:1"
-        # "opacity 0.95 0.90, class:^(kitty)$"
-        # "opacity 0.92 0.88, class:^(Code)$"
+      window_rule = [
+        {
+          match.class = "polkit-mate-authentication-agent-1";
+          no_max_size = true;
+          pin = true;
+        }
+        (opacityRule { title = "QDiskInfo"; })
+        (opacityRule { title = "MainPicker"; })
+        (opacityRule { class = "thunderbird"; })
+        (opacityRule { class = "spotify"; })
+        (opacityRule { class = "org.prismlauncher.PrismLauncher"; })
+        (opacityRule { class = "mpv"; })
+        (opacityRule { class = "org.qbittorrent.qBittorrent"; })
+        (opacityRule { class = "die"; })
       ];
 
-      misc = {
-        disable_hyprland_logo = true;
-      };
+      layer_rule = [
+        {
+          match.namespace = ".*";
+          blur_popups = true;
+        }
+        {
+          match.namespace = "selection";
+          no_anim = true;
+          ignore_alpha = 0.9;
+        }
+        {
+          match.namespace = "corner0";
+          ignore_alpha = 0;
+        }
+        {
+          match.namespace = "overview";
+          ignore_alpha = 0;
+        }
+        {
+          match.namespace = "indicator0";
+          ignore_alpha = 0;
+        }
+        {
+          match.namespace = "datemenu";
+          ignore_alpha = 0;
+        }
+        {
+          match.namespace = "launcher";
+          ignore_alpha = 0;
+        }
+        {
+          match.namespace = "quicksettings";
+          ignore_alpha = 0;
+        }
+        {
+          match.namespace = "swaync-control-center";
+          ignore_alpha = 0;
+        }
+        {
+          match.namespace = "swaync-notification-window";
+          ignore_alpha = 0;
+        }
+        {
+          match.namespace = "logout_dialog";
+          animation = "popin 90%";
+        }
+        {
+          match.namespace = "swaync-control-center";
+          animation = "slide left";
+        }
+      ];
     };
   };
 }

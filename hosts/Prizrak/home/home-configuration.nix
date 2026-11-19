@@ -52,7 +52,8 @@
       imagemagick     
       drawio
       zola
-    
+      obsidian
+
       #themes
       gnome-themes-extra
       materia-theme
@@ -68,6 +69,7 @@
       unzip
       unrar
       git
+      opencode
       btop
       bash
       gdu
@@ -93,9 +95,9 @@
       rnnoise-plugin
       lsp-plugins
       # inputs
-      inputs.freesm-launcher.packages.${stdenv.hostPlatform.system}.default
-      inputs.zen-browser.packages.${stdenv.hostPlatform.system}.default
-      inputs.noctalia.packages.${stdenv.hostPlatform.system}.default
+      inputs.freesm-launcher.packages.${pkgs.stdenv.hostPlatform.system}.default
+      inputs.zen-browser.packages.${pkgs.stdenv.hostPlatform.system}.default
+      inputs.noctalia.packages.${pkgs.stdenv.hostPlatform.system}.default
     ];
 
     sessionVariables = {

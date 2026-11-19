@@ -19,7 +19,7 @@
     };
 
     chiaroscuro = {
-      url = "github:yurei07/chiaroscuro.rht";
+      url = "path:./themes/chiaroscuro-stub";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -78,15 +78,13 @@
               home-manager.useUserPackages = true;
               home-manager.extraSpecialArgs = {
                 inherit inputs username;
+                theme = inputs.chiaroscuro.themes.kanso-zen;
               };
               home-manager.users.${username} = {
                 imports = [
                   ./hosts/${username}/home/home-configuration.nix
-                  ./materials
+#                  ./materials
                 ];
-              };
-              home-manager.extraSpecialArgs = {
-                theme = inputs.chiaroscuro.themes.kanso-zen;
               };
             }
           ];

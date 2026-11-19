@@ -20,7 +20,9 @@ in
     ./hardware-configuration.nix
 
     # nixos modules
-    ./nix-modules/nvidia.nix
+    ./nix-modules/gpu.nix
+    ./nix-modules/laptop.nix
+    ./nix-modules/fingerprint.nix
     ./nix-modules/bluetooth.nix
     ./nix-modules/users.nix
     ./nix-modules/fonts.nix
@@ -100,10 +102,18 @@ in
     "flakes"
   ];
 
+  # Keep the Nix store in check (this laptop has one shared root/nix partition).
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 14d";
+  };
+  nix.optimise.automatic = true;
+  boot.loader.systemd-boot.configurationLimit = 10;
+
   environment = {
     systemPackages = with pkgs; [
-      xwayland-satellite
-      creamlinux 
+      xwayland-satellite 
     ];
   };
 
