@@ -5,13 +5,15 @@
 # The shell starts via Hyprland autostart: `qs -c nothing`.
 # Notifications: swaync, skinned with the same palette (right side, Lettera Mono).
 {
+  inputs,
   lib,
   pkgs,
   ...
 }:
 {
-  # The Quickshell shell itself (read-only symlink into the Nix store).
-  home.file.".config/quickshell/nothing".source = ./shell;
+  # The Quickshell shell itself, pulled from the panel's own repository and
+  # hot-reloadable. Edit the panel repo, push, rebuild.
+  home.file.".config/quickshell/nothing".source = "${inputs."nothing-panel"}/shell";
 
   # Nothing brand fonts: Ndot 57 (dot-matrix), NType 82 (widget serif),
   # Lettera Mono LL (UI labels).

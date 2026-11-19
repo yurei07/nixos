@@ -626,6 +626,22 @@
         "type": "github"
       }
     },
+    "nothing-panel": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795081847,
+        "narHash": "sha256-DNIC7/BMpkY3NxT8qq7KRR7rhgPcjtG0VzivQIIx7+E=",
+        "owner": "yurei07",
+        "repo": "nothing-panel",
+        "rev": "2837d75eb66c804cc5a076d3417799527985c0a1",
+        "type": "github"
+      },
+      "original": {
+        "owner": "yurei07",
+        "repo": "nothing-panel",
+        "type": "github"
+      }
+    },
     "nur": {
       "inputs": {
         "flake-parts": "flake-parts",
@@ -700,6 +716,7 @@
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_3",
         "noctalia": "noctalia",
+        "nothing-panel": "nothing-panel",
         "nur": "nur",
         "quickshell": "quickshell",
         "spicetify-nix": "spicetify-nix",

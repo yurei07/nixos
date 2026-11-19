@@ -20,7 +20,7 @@ The whole system (desktop, terminal, editor and tools) is described in code, so 
 |:--|:--|
 | **OS** | NixOS (flakes) |
 | **WM** | Hyprland |
-| **Shell / bar** | Quickshell with [Noctalia](https://github.com/noctalia-dev/noctalia) |
+| **Shell / bar** | Quickshell with [nothing-panel](https://github.com/yurei07/nothing-panel) (Nothing OS style) |
 | **Terminal** | kitty |
 | **Shell** | zsh |
 | **Editor** | Neovim |

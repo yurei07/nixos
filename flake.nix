@@ -28,6 +28,11 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    nothing-panel = {
+      url = "github:yurei07/nothing-panel";
+      flake = false; # plain repo: the QML shell is used straight from the source tree
+    };
+
     zen-browser = {
       url = "github:0xc000022070/zen-browser-flake";
       inputs = {
