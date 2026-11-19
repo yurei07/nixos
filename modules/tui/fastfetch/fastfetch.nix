@@ -1,31 +1,15 @@
-# fastfetch in the Nothing OS style: braille dot-matrix NixOS logo, a live Ndot
-# clock (the same white dots as the desktop widget), Lettera-style uppercase
-# section labels, white values and the single red accent on the keys.
-{ pkgs, ... }:
-let
-  # The fastfetch logo: braille NixOS snowflake + the current time in white
-  # Ndot 57 dots (the same look as the desktop clock widget).
-  nothingLogo = pkgs.writers.writePython3Bin "nothing-logo" {
-    libraries = [ pkgs.python3Packages.pillow ];
-    flakeIgnore = [ "E265" "E501" ];
-  } (builtins.readFile ./nothing-logo.py);
-  # standalone: HH:MM in white braille dots (kept for terminals / scripts)
-  nothingClock = pkgs.writers.writePython3Bin "nothing-clock" {
-    libraries = [ pkgs.python3Packages.pillow ];
-    flakeIgnore = [ "E265" "E501" ];
-  } (builtins.readFile ./nothing-clock.py);
-in
-{
-  home.packages = [ nothingLogo nothingClock ];
-
+# fastfetch in the Nothing OS style: braille dot-matrix NixOS logo,
+# Lettera-style uppercase section labels, white values and the single red
+# accent on the keys.
+{ pkgs, ... }: {
   xdg.configFile."fastfetch/config.jsonc".text = ''
     {
       "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
       "logo": {
-          "type": "command-raw",
-          "source": "nothing-logo",
+          "type": "file",
+          "source": "/etc/nixos/modules/tui/fastfetch/logo/nixos-dots.txt",
           "padding": {
-              "top": 1,
+              "top": 2,
               "left": 2,
               "right": 4
           }
