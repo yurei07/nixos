@@ -35,6 +35,50 @@
       open_url_with = "default";
       allow_remote_control = "yes";
       listen_on = "unix:/tmp/mykitty";
+
+      # ---- Nothing OS look -------------------------------------------------
+      # Lettera Mono (the Nothing UI font) and the static black/white/red
+      # palette: white text on true black, red accent, muted hues for ls/diff.
+      font_family = "Lettera Mono LL";
+      bold_font = "Lettera Mono LL Medium";
+      italic_font = "Lettera Mono LL Italic";
+      bold_italic_font = "Lettera Mono LL Medium Italic";
+      font_size = 13;
+
+      foreground = "#E8E8E8";
+      background = "#000000";
+      cursor = "#D71921";
+
+      active_tab_foreground = "#000000";
+      active_tab_background = "#FFFFFF";
+      inactive_tab_foreground = "#8C8C8C";
+      inactive_tab_background = "#000000";
+      active_border_color = "#FFFFFF";
+      inactive_border_color = "#2E2E2E";
+      bell_border_color = "#D71921";
+
+      color0 = "#000000";
+      color1 = "#D71921";
+      color2 = "#A3BE9A";
+      color3 = "#D8C27E";
+      color4 = "#8FA6BD";
+      color5 = "#B69CB8";
+      color6 = "#92B8B4";
+      color7 = "#BDBDBD";
+      color8 = "#4D4D4D";
+      color9 = "#FF4D4D";
+      color10 = "#C2D9BA";
+      color11 = "#E9D9A6";
+      color12 = "#B3C4D6";
+      color13 = "#D0BBD2";
+      color14 = "#B6D3CF";
+      color15 = "#FFFFFF";
+
+      selection_foreground = "#000000";
+      selection_background = "#FFFFFF";
+      background_opacity = 0.95;
+      tab_bar_style = "powerline";
+      tab_powerline_style = "round";
     };
   };
 

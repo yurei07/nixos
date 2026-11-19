@@ -6,5 +6,6 @@
     ./kitty/kitty.nix
     ./neovim/neovim.nix
     ./fastfetch/fastfetch.nix
+    ./nothing-themes.nix
   ];
 }
