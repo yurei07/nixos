@@ -629,11 +629,11 @@
     "nothing-panel": {
       "flake": false,
       "locked": {
-        "lastModified": 1795082367,
-        "narHash": "sha256-U/8d8BRczq1VZn6OgpwaimhlMh3mNU8gK2jLYFp5lq8=",
+        "lastModified": 1795083363,
+        "narHash": "sha256-kLUU/h+sKqQNfuUMEWqOSTEZN7Jjt7Reex25CLiuKiw=",
         "owner": "yurei07",
         "repo": "nothing-panel",
-        "rev": "b30dc459b01cca7c85d41e1fbea61edec41509bf",
+        "rev": "655fdb3e3a106b04ce6b6593f7dd275412984404",
         "type": "github"
       },
       "original": {
