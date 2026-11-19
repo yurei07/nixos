@@ -62,6 +62,7 @@ in
     zerotierone.enable = true;
     flatpak.enable = true;
     tailscale.enable = true;
+    upower.enable = true; # battery info for the Nothing shell bar
 
     hardware.openrgb = {
       enable = true;

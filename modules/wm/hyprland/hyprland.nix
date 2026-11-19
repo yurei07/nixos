@@ -81,23 +81,25 @@ in
       config = {
         general = {
           resize_on_border = true;
-          border_size = 2;
-          gaps_out = 25;
-          gaps_in = 10;
+          border_size = 1;
+          gaps_out = 14;
+          gaps_in = 7;
           layout = "dwindle";
         };
         decoration = {
           active_opacity = 1;
-          inactive_opacity = 0.85;
-          rounding = 0;
+          inactive_opacity = 0.9;
+          dim_inactive = true;
+          dim_strength = 0.1;
+          rounding = 16;
           blur = {
             enabled = true;
             popups = true;
             popups_ignorealpha = 0;
             ignore_opacity = true;
-            size = 10;
-            brightness = 0.6;
-            passes = 4;
+            size = 6;
+            passes = 3;
+            xray = true;
             noise = 0;
             vibrancy = 0;
           };
@@ -151,36 +153,37 @@ in
       curve = [
         {
           _args = [
-            "easein"
+            "nothingOut"
             {
               type = "bezier";
               points = [
-                [ 0.11 0 ]
-                [ 0.5 0 ]
+                [ 0.22 1 ]
+                [ 0.36 1 ]
               ];
             }
           ];
         }
         {
           _args = [
-            "easeout"
+            "nothingExpo"
             {
               type = "bezier";
               points = [
-                [ 0.5 1 ]
-                [ 0.89 1 ]
+                [ 0.16 1 ]
+                [ 0.3 1 ]
               ];
             }
-          ];
+          ]
+          ;
         }
         {
           _args = [
-            "easeinout"
+            "linear"
             {
               type = "bezier";
               points = [
-                [ 0.65 0 ]
-                [ 0.35 1 ]
+                [ 0 0 ]
+                [ 1 1 ]
               ];
             }
           ];
@@ -189,36 +192,59 @@ in
 
       animation = [
         {
+          leaf = "global";
+          enabled = true;
+          speed = 2;
+          bezier = "nothingOut";
+        }
+        {
           leaf = "windows";
           enabled = true;
-          speed = 3;
-          bezier = "easeout";
-          style = "slide";
+          speed = 2.5;
+          bezier = "nothingOut";
+          style = "popin 90%";
         }
         {
           leaf = "windowsOut";
           enabled = true;
-          speed = 3;
-          bezier = "easein";
-          style = "slide";
+          speed = 1.8;
+          bezier = "nothingExpo";
+          style = "popin 90%";
         }
         {
-          leaf = "border";
+          leaf = "windowsMove";
           enabled = true;
-          speed = 10;
-          bezier = "default";
+          speed = 2.5;
+          bezier = "nothingOut";
+        }
+        {
+          leaf = "layers";
+          enabled = true;
+          speed = 1.8;
+          bezier = "nothingExpo";
+          style = "fade";
         }
         {
           leaf = "fade";
           enabled = true;
-          speed = 5;
-          bezier = "default";
+          speed = 2;
+          bezier = "nothingOut";
+        }
+        {
+          leaf = "border";
+          enabled = true;
+          speed = 1.5;
+          bezier = "linear";
+        }
+        {
+          leaf = "borderangle";
+          enabled = false;
         }
         {
           leaf = "workspaces";
           enabled = true;
-          speed = 4;
-          bezier = "easeinout";
+          speed = 3;
+          bezier = "nothingOut";
           style = "slide";
         }
       ];
@@ -228,13 +254,23 @@ in
         (bind (modPlus "Y") (exec "${../../../scripts/nvim.sh}"))
         (bind (modPlus "E") (exec "nautilus"))
         (bind (modPlus "B") (exec "zen-beta"))
-        (bind (modPlus "D") (exec "discord"))
+        (bind (modPlus "SHIFT + D") (exec "discord"))
         (bind (modPlus "O") (exec "obsidian"))
         (bind (modPlus "Q") closeWindow)
         (bind (modPlus "W") toggleFloat)
         (bind (modPlus "G") toggleFullscreen)
-        (bind (modPlus "SPACE") (exec "noctalia msg panel-toggle launcher"))
+        (bind (modPlus "SPACE") (exec "qs ipc -c nothing call controlcenter toggle"))
+        (bind (modPlus "D") (exec "rofi -show drun -theme /home/Prizrak/.config/rofi/nothing-grid.rasi"))
+        (bind "CTRL + ALT + P" (exec "qs ipc -c nothing call powermenu toggle"))
         (bind (modPlus "CTRL + R") (exec "killall -SIGUSR1 gpu-screen-recorder && notify-send 'GPU-Screen-Recorder' 'Повтор успешно сохранён'"))
+
+        # Media / brightness keys -> wpctl + brightnessctl, OSD by the shell.
+        (bind "XF86AudioRaiseVolume" (exec "sh -c 'wpctl set-volume -l 1.0 @DEFAULT_AUDIO_SINK@ 5%+; qs ipc -c nothing call osd volume'"))
+        (bind "XF86AudioLowerVolume" (exec "sh -c 'wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-; qs ipc -c nothing call osd volume'"))
+        (bind "XF86AudioMute" (exec "sh -c 'wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle; qs ipc -c nothing call osd volume'"))
+        (bind "XF86AudioMicMute" (exec "sh -c 'wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle; qs ipc -c nothing call osd mic'"))
+        (bind "XF86MonBrightnessUp" (exec "sh -c 'brightnessctl -q set 5%+; qs ipc -c nothing call osd brightness'"))
+        (bind "XF86MonBrightnessDown" (exec "sh -c 'brightnessctl -q set 5%-; qs ipc -c nothing call osd brightness'"))
 
         (bind "Print" (exec "hyprshot -m output"))
         (bind "SHIFT + Print" (exec "hyprshot -m region"))
@@ -285,11 +321,18 @@ in
       ];
 
       # Autostart. Home Manager already emits the systemd/dbus startup hook
-      # when systemd.enable is true (the default), so this is just your app.
+      # when systemd.enable is true (the default), so this is just your apps.
       on = {
         _args = [
           "hyprland.start"
-          (lua "function() hl.exec_cmd(\"noctalia\") end")
+          (lua ''
+            function()
+              hl.exec_cmd("awww-daemon")
+              hl.exec_cmd("sh $HOME/Pictures/wallpapers/nothing/nothing-wallpaper.sh")
+              hl.exec_cmd("swaync")
+              hl.exec_cmd("qs -c nothing")
+            end
+          '')
         ];
       };
 
@@ -320,44 +363,47 @@ in
           ignore_alpha = 0.9;
         }
         {
-          match.namespace = "corner0";
-          ignore_alpha = 0;
+          match.namespace = "nothing-widgets";
+          blur = true;
+          ignore_alpha = 0.2;
         }
         {
-          match.namespace = "overview";
-          ignore_alpha = 0;
+          match.namespace = "nothing-dock";
+          blur = true;
+          ignore_alpha = 0.3;
+          xray = false;
+          no_anim = true;
         }
         {
-          match.namespace = "indicator0";
-          ignore_alpha = 0;
+          match.namespace = "nothing-controlcenter";
+          blur = true;
+          ignore_alpha = 0.3;
+          xray = false;
+          no_anim = true;
         }
         {
-          match.namespace = "datemenu";
-          ignore_alpha = 0;
+          match.namespace = "nothing-osd";
+          blur = true;
+          ignore_alpha = 0.3;
+          xray = false;
         }
         {
-          match.namespace = "launcher";
-          ignore_alpha = 0;
+          match.namespace = "nothing-powermenu";
+          blur = true;
+          xray = false;
+          no_anim = true;
         }
         {
-          match.namespace = "quicksettings";
-          ignore_alpha = 0;
-        }
-        {
-          match.namespace = "swaync-control-center";
-          ignore_alpha = 0;
-        }
-        {
-          match.namespace = "swaync-notification-window";
-          ignore_alpha = 0;
-        }
-        {
-          match.namespace = "logout_dialog";
+          match.namespace = "rofi";
           animation = "popin 90%";
         }
         {
           match.namespace = "swaync-control-center";
-          animation = "slide left";
+          animation = "slide right";
+        }
+        {
+          match.namespace = "swaync-notification-window";
+          animation = "slide top";
         }
       ];
     };

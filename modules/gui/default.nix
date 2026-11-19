@@ -2,5 +2,6 @@
 {
   imports = [
     ./nautilus
+    ./nothing-shell
   ];
 }
