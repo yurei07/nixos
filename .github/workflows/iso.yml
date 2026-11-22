@@ -1,0 +1,34 @@
+name: Build live ISO
+
+# Manual build: Actions → Build live ISO → Run workflow.
+# The finished nixos-nothing.iso is attached to the run as an artifact.
+
+on:
+  workflow_dispatch:
+
+jobs:
+  iso:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Nix
+        uses: DeterminateSystems/nix-installer-action@main
+
+      - name: Enable Magic Nix Cache (speeds up repeat builds)
+        uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build the live ISO
+        run: |
+          nix build --out-link iso \
+            '.#nixosConfigurations.live.config.system.build.isoImage' \
+            --print-build-logs
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nixos-nothing-iso
+          path: iso/iso/*.iso
+          retention-days: 7
+          compression-level: 0
