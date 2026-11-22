@@ -1,0 +1,47 @@
+{
+	"version": 1,
+	"user": { "name": "Prizrak", "fullName": "Prizrak" },
+	"host": { "name": "pc" },
+	"language": "en",
+	"locale": "en_US.UTF-8",
+	"timeZone": "Europe/Berlin",
+	"keyboard": { "layout": "us,ru", "variant": "", "model": "" },
+	"outputs": {
+		"DP-1": { "width": 2560, "height": 1440 },
+		"HDMI-A-1": { "width": 2560, "height": 1080 }
+	},
+	"wallpaper": "night",
+	"nilo": { "enable": false, "acceleration": "cpu", "integratedGpu": false },
+	"binds":
+	{
+		"launcher": "SUPER + Space",
+		"dashboard": "SUPER + D",
+		"panel": "SUPER + P",
+		"colourPicker": "SUPER + H",
+		"lock": "SUPER + K",
+		"nilo": "SUPER + I",
+		"settings": "SUPER + O",
+		"wallpapers": "SUPER + W",
+		"copy": "SUPER + C",
+		"clipboard": "SUPER + V",
+		"close": "SUPER + Q",
+		"float": "SUPER + SHIFT + Space",
+		"maximize": "SUPER + F",
+		"fullscreen": "SUPER + SHIFT + F",
+		"special": "SUPER + Escape",
+		"toSpecial": "SUPER + SHIFT + Escape",
+		"nextWorkspace": "SUPER + Tab",
+		"overview": "SUPER + A",
+		"screenshot": "PRINT",
+		"snip": "XF86SelectiveScreenshot"
+	},
+	"gestures": { "workspaces": 3, "close": 3, "launcher": 3, "maximize": 3, "special": 4 },
+	"programs":
+	[
+		{ "name": "Terminal", "exec": "kitty", "keys": "SUPER + Super_L" },
+		{ "name": "Files", "exec": "thunar", "keys": "SUPER + E" },
+		{ "name": "Zen", "exec": "zen-beta", "keys": "SUPER + X" }
+	],
+	"fingerprint": false,
+	"ssh": true
+}
