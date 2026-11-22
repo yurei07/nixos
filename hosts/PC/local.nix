@@ -5,7 +5,6 @@
 		./modules/arduino.nix
 		./modules/fonts.nix
 		./modules/gpu.nix
-		./modules/laptop.nix
 		./modules/obs.nix
 	];
 
