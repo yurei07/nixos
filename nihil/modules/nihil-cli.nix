@@ -58,13 +58,33 @@ let
             pkgs.util-linux pkgs.openssh pkgs.xkbvalidate config.systemd.package config.nix.package ];
         text = ''
             flake=''${NIHIL_FLAKE:-${flake}}
-            # The machine's settings.json: in its hosts/<name>/ folder when the flake keeps it
-            # there (machine layout), else at the flake root.
-            hostdir_candidates=("$flake"/hosts/*/settings.json)
-            if [ -e "''${hostdir_candidates[0]}" ]; then
-                settings_json="''${hostdir_candidates[0]}"
-            else
-                settings_json="$flake/settings.json"
+            # The machine's settings.json: the one whose host.name is this running system's
+            # (stamped at /etc/nihil/settings.json when it was built), else one matching the
+            # hostname, else the flake root's. A machine's flake keeps it in hosts/<name>/.
+            run_host=$(jq -r '.host.name // empty' /etc/nihil/settings.json 2>/dev/null || true)
+            settings_json=""
+            for candidate in "$flake"/hosts/*/settings.json "$flake"/settings.json; do
+                [ -f "$candidate" ] || continue
+                if [ -n "$run_host" ] && [ "$(jq -r '.host.name // empty' "$candidate" 2>/dev/null)" = "$run_host" ]; then
+                    settings_json="$candidate"
+                    break
+                fi
+            done
+            if [ -z "$settings_json" ]; then
+                for candidate in "$flake"/hosts/*/settings.json "$flake"/settings.json; do
+                    [ -f "$candidate" ] || continue
+                    if [ "$(jq -r '.host.name // empty' "$candidate" 2>/dev/null)" = "$(hostname)" ]; then
+                        settings_json="$candidate"
+                        break
+                    fi
+                done
+            fi
+            if [ -z "$settings_json" ]; then
+                for candidate in "$flake"/hosts/*/settings.json "$flake"/settings.json; do
+                    [ -f "$candidate" ] || continue
+                    settings_json="$candidate"
+                    break
+                done
             fi
             run=/run/nihil
             aside=$run/aside
@@ -797,5 +817,8 @@ in
         nihil.cli = nihil;
         environment.systemPackages = [ nihil ];
         environment.etc."nihil/revision".text = config.nihil.revision + "\n";
+        # The machine's own settings, stamped at build time: nihil finds the machine's
+        # settings.json in its flake by the host.name this system was built with.
+        environment.etc."nihil/settings.json".text = builtins.toJSON config.nihil.settings;
     };
 }
