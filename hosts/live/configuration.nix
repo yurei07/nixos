@@ -47,6 +47,13 @@
       export HYPRLAND_STARTED=1
       exec ${inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland}/bin/Hyprland
     fi
+
+    # live ISO on NVIDIA: mesa's GBM cannot talk to nvidia-drm, use the
+    # vendor GBM backend instead
+    if [ -d /run/opengl-driver/lib/gbm ]; then
+      export GBM_BACKEND=nvidia-drm
+      export __GBM_BACKENDS_PATH=/run/opengl-driver/lib/gbm
+    fi
   '';
 
   users.users.nixos.extraGroups = [
@@ -83,6 +90,15 @@
     nvidiaSettings = true;
     package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
+
+  # aquamarine needs a modeset-enabled nvidia-drm for GBM; kernel params make
+  # sure the module comes up with it on the live boot
+  boot.kernelParams = [
+    "nvidia-drm.modeset=1"
+    "nvidia_drm.fbdev=1"
+  ];
+
+  # point libgbm at NVIDIA's own GBM backend — handled in environment.extraInit above
 
   # installer tooling
   environment.systemPackages = with pkgs; [
