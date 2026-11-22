@@ -117,7 +117,10 @@ wipefs -a "$ROOT" >/dev/null 2>&1 || true
 mkfs.ext4 -F -L nixos-root "$ROOT"
 
 step "Mounting..."
-mount /dev/disk/by-label/nixos-root "$MNT"
+# make sure udev has processed the new partitions before mounting
+partprobe "$DISK" 2>/dev/null || true
+udevadm settle
+mount "$ROOT" "$MNT"
 mkdir -p "$MNT/boot"
 mount "$ESP" "$MNT/boot"
 ok "mounted"
