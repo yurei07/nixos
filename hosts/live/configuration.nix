@@ -93,6 +93,10 @@
     package = config.boot.kernelPackages.nvidiaPackages.stable;
   };
 
+  # REQUIRED: the nvidia module only adds extraPackages; without this
+  # /run/opengl-driver is never created and GBM has no backends at all
+  hardware.graphics.enable = true;
+
   # aquamarine needs a modeset-enabled nvidia-drm for GBM; kernel params make
   # sure the module comes up with it on the live boot
   boot.kernelParams = [
