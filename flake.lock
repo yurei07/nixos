@@ -87,7 +87,6 @@
     "flake-parts": {
       "inputs": {
         "nixpkgs-lib": [
-          "nihil",
           "stylix",
           "nixpkgs"
         ]
@@ -162,16 +161,15 @@
     "home-manager": {
       "inputs": {
         "nixpkgs": [
-          "nihil",
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1794251182,
-        "narHash": "sha256-R2sZBXiOJo3HAnvTiVkbbHDJy//JMlAwUKEiPbfqPXk=",
+        "lastModified": 1795325060,
+        "narHash": "sha256-XYoMPsqRFZ6jOaYI1KAAu8fzqif4tkCX8mhEKrViDXQ=",
         "owner": "nix-community",
         "repo": "home-manager",
-        "rev": "6eb2d33d1d0c95a37ef6443c88e6c1686012ee8b",
+        "rev": "6480d7d8533b88c78cc6dcda395ab89cd546e450",
         "type": "github"
       },
       "original": {
@@ -195,24 +193,6 @@
         "owner": "FreesmTeam",
         "repo": "libnbtplusplus",
         "type": "github"
-      }
-    },
-    "nihil": {
-      "inputs": {
-        "home-manager": "home-manager",
-        "nixpkgs": "nixpkgs_2",
-        "stylix": "stylix",
-        "zen-browser": "zen-browser"
-      },
-      "locked": {
-        "lastModified": 1795365529,
-        "narHash": "sha256-LveFOZC6G1I+CbXKgunISZ37+HNLnFdDO0DoIdz7Y40=",
-        "path": "/home/Prizrak/Nihil-Shell",
-        "type": "path"
-      },
-      "original": {
-        "path": "/home/Prizrak/Nihil-Shell",
-        "type": "path"
       }
     },
     "nix-filter": {
@@ -265,12 +245,10 @@
     "nur": {
       "inputs": {
         "flake-parts": [
-          "nihil",
           "stylix",
           "flake-parts"
         ],
         "nixpkgs": [
-          "nihil",
           "stylix",
           "nixpkgs"
         ]
@@ -292,8 +270,10 @@
     "root": {
       "inputs": {
         "freesm-launcher": "freesm-launcher",
-        "nihil": "nihil",
-        "theme": "theme"
+        "home-manager": "home-manager",
+        "nixpkgs": "nixpkgs_2",
+        "stylix": "stylix",
+        "zen-browser": "zen-browser"
       }
     },
     "stylix": {
@@ -306,7 +286,6 @@
         "flake-parts": "flake-parts",
         "gnome-shell": "gnome-shell",
         "nixpkgs": [
-          "nihil",
           "nixpkgs"
         ],
         "nur": "nur",
@@ -345,23 +324,6 @@
         "repo": "default",
         "type": "github"
       }
-    },
-    "theme": {
-      "inputs": {
-        "nixpkgs": [
-          "nihil",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "path": "./themes/chiaroscuro-stub",
-        "type": "path"
-      },
-      "original": {
-        "path": "./themes/chiaroscuro-stub",
-        "type": "path"
-      },
-      "parent": []
     },
     "tinted-kitty": {
       "flake": false,
@@ -430,20 +392,18 @@
     "zen-browser": {
       "inputs": {
         "home-manager": [
-          "nihil",
           "home-manager"
         ],
         "nixpkgs": [
-          "nihil",
           "nixpkgs"
         ]
       },
       "locked": {
-        "lastModified": 1794805570,
-        "narHash": "sha256-sG0P1rHWgbPQIeR+peNmapCWQKf0nauyDl500JhX9Qo=",
+        "lastModified": 1795333741,
+        "narHash": "sha256-xJaT+L8DeMR0TJjAOlrjGqaRG2AjZrjivQfCtiLRtlY=",
         "owner": "0xc000022070",
         "repo": "zen-browser-flake",
-        "rev": "cb44a9fc1faa18c55dde38a8338f6d46fa2bc6de",
+        "rev": "81376950ac382a96b965f9d6f8bf60354ad99c2f",
         "type": "github"
       },
       "original": {
