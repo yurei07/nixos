@@ -33,6 +33,13 @@ Item {
         }
 
         Ico {
+            anchors.horizontalCenter: parent.horizontalCenter
+            visible: Battery.present
+            glyph: Battery.charging ? Icons.batteryCharging : Icons.battery
+            color: Battery.low ? Tokens.interrupt : Tokens.ink
+        }
+
+        Ico {
             id: speaker
             anchors.horizontalCenter: parent.horizontalCenter
             glyph: Icons.volume(Audio.volume, Audio.muted)

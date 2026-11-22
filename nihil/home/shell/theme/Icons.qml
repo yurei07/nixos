@@ -28,6 +28,8 @@ Singleton {
     readonly property string btOff: g(0xF00B2)
     readonly property string btOn: g(0xF00AF)
     readonly property string btConnected: g(0xF00B1)
+    readonly property string battery: g(0xF007A)
+    readonly property string batteryCharging: g(0xF0085)
     readonly property string volLow: g(0xF057F)
     readonly property string volMid: g(0xF0580)
     readonly property string volHigh: g(0xF057E)
