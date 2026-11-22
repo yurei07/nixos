@@ -9,7 +9,7 @@ Item {
 
     required property string output
 
-    implicitWidth: 24
+    implicitWidth: Math.max(24, batteryRow.implicitWidth)
     implicitHeight: column.implicitHeight
 
     Column {
@@ -32,11 +32,25 @@ Item {
             color: Bt.connected.length > 0 ? Tokens.ink : Tokens.muted
         }
 
-        Ico {
+        // The battery: glyph and percent, in the alert colour when it runs low. Clicking it
+        // opens the panel, where NIHIL's power actions live.
+        Row {
+            id: batteryRow
             anchors.horizontalCenter: parent.horizontalCenter
             visible: Battery.present
-            glyph: Battery.charging ? Icons.batteryCharging : Icons.battery
-            color: Battery.low ? Tokens.interrupt : Tokens.ink
+            spacing: 4
+
+            Ico {
+                anchors.verticalCenter: parent.verticalCenter
+                glyph: Battery.charging ? Icons.batteryCharging : Icons.battery
+                color: Battery.low ? Tokens.interrupt : Tokens.ink
+            }
+
+            Label {
+                anchors.verticalCenter: parent.verticalCenter
+                text: Math.round(Battery.level * 100) + "%"
+                color: Battery.low ? Tokens.interrupt : Tokens.muted
+            }
         }
 
         Ico {
