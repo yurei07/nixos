@@ -1,0 +1,212 @@
+#!/usr/bin/env bash
+# Nothing NixOS guided installer (run from the live ISO: `sudo nixinstall`).
+# Partitions the chosen disk, copies this flake to the target and runs
+# nixos-install against the generic `pc` host. Everything is asked interactively.
+set -euo pipefail
+
+RED=$'\e[38;5;196m'
+ACC=$'\e[38;5;203m'
+TXT=$'\e[38;5;15m'
+DIM=$'\e[38;5;245m'
+OK=$'\e[38;5;114m'
+WARN=$'\e[38;5;214m'
+END=$'\e[0m'
+
+msg() { printf '%s\n' "${TXT}$1${END}"; }
+step() { printf '%s\n' "${ACC}▸${END} ${TXT}$1${END}"; }
+ok() { printf '%s\n' "${OK}✓${END} ${DIM}$1${END}"; }
+fail() { printf '%s\n' "${RED}✗ $1${END}" >&2; exit 1; }
+
+banner() {
+  printf '%s\n' "${ACC}"
+  cat <<'EOF'
+     _   ___ _  _  ___ _  _
+    | | | __| || |/ _ \ || |
+    | |_| _||__ | \_, /\_, |
+    |___|___|__/_/ /_/ |__/
+       N i x O S   i n s t a l l e r
+EOF
+  printf '%s\n' "${END}"
+}
+
+[ "$(id -u)" -eq 0 ] || exec sudo "$0" "$@"
+banner
+
+HOST_TARGET="pc"
+REPO="/etc/nixos"
+MNT="/mnt"
+
+# ---------------------------------------------------------------- network ----
+step "Checking network..."
+if ! ping -c1 -W3 github.com >/dev/null 2>&1; then
+  printf '%s\n' "${WARN}No internet. Wi-Fi: run 'nmtui' in another terminal (Activate a connection), then re-run nixinstall.${END}"
+  read -r -p "$(printf '%s' "${DIM}Retry network check? [y/N] ${END}")" RETRY
+  [[ "${RETRY,,}" == "y" ]] && { ping -c1 -W3 github.com >/dev/null 2>&1 || fail "still offline"; } || fail "offline"
+fi
+ok "online"
+
+# ------------------------------------------------------------------- disk ----
+printf '\n%s\n' "${TXT}Available disks:${END}"
+lsblk -d -o NAME,SIZE,MODEL,TYPE | sed 1d | grep disk || true
+printf '\n'
+read -r -p "$(printf '%s' "${ACC}Target disk${END} ${DIM}(e.g. /dev/nvme0n1 or /dev/sda)${END}: ")" DISK
+[ -b "$DISK" ] || fail "$DISK is not a block device"
+
+printf '%s\n' "${RED}WARNING: everything on $DISK will be destroyed.${END}"
+read -r -p "$(printf '%s' "${DIM}Type the disk name to confirm (${DISK##*/}): ${END}")" CONFIRM
+[ "$CONFIRM" = "${DISK##*/}" ] || fail "aborted"
+
+# ------------------------------------------------------------------ other ----
+read -r -p "$(printf '%s' "${ACC}Hostname${END} ${DIM}[nixos]${END}: ")" HOSTNAME
+HOSTNAME=${HOSTNAME:-nixos}
+
+read -r -p "$(printf '%s' "${ACC}Timezone${END} ${DIM}[Europe/Berlin]${END}: ")" TZ
+TZ=${TZ:-Europe/Berlin}
+
+printf '%s\n' "${DIM}GPU: 1) AMD  2) Intel  3) NVIDIA${END}"
+read -r -p "$(printf '%s' "${ACC}Choose [1]${END}: ")" GPU_CHOICE
+GPU_CHOICE=${GPU_CHOICE:-1}
+
+read -r -p "$(printf '%s' "${ACC}Swap partition size in GB${END} ${DIM}[0 = none]${END}: ")" SWAP_GB
+SWAP_GB=${SWAP_GB:-0}
+
+printf '%s\n' "${DIM}Your login will be 'Prizrak' (same as this config). You'll set its password below.${END}"
+while true; do
+  read -r -s -p "$(printf '%s' "${ACC}User password${END}: ")" PW1; printf '\n'
+  read -r -s -p "$(printf '%s' "${ACC}Repeat${END}: ")" PW2; printf '\n'
+  [ "$PW1" = "$PW2" ] && [ -n "$PW1" ] && break
+  printf '%s\n' "${WARN}Passwords don't match, try again.${END}"
+done
+HASH=$(openssl passwd -6 "$PW1")
+unset PW1 PW2
+
+# ------------------------------------------------------------- partition -----
+step "Partitioning $DISK..."
+parted --script "$DISK" mklabel gpt
+parted --script "$DISK" mkpart ESP fat32 1MiB 1024MiB
+parted --script "$DISK" set 1 esp on
+if [ "$SWAP_GB" -gt 0 ] 2>/dev/null; then
+  SWAP_END=$((1024 + SWAP_GB * 1024))
+  parted --script "$DISK" mkpart swap linux-swap 1024MiB "${SWAP_END}MiB"
+  ROOT_START=$SWAP_END
+else
+  ROOT_START=1024
+fi
+parted --script "$DISK" mkpart root ext4 "${ROOT_START}MiB" 100%
+sleep 1
+
+case "$DISK" in
+  *nvme* | *mmcblk*) PART_PREFIX="${DISK}p" ;;
+  *) PART_PREFIX="${DISK}" ;;
+esac
+ESP="${PART_PREFIX}1"
+ROOT="${PART_PREFIX}3"
+SWAP="${PART_PREFIX}2"
+
+step "Creating filesystems..."
+wipefs -a "$ESP" >/dev/null 2>&1 || true
+mkfs.vfat -F32 -n nixos-esp "$ESP"
+if [ "$SWAP_GB" -gt 0 ] 2>/dev/null; then
+  wipefs -a "$SWAP" >/dev/null 2>&1 || true
+  mkswap -L nixos-swap "$SWAP"
+  ROOT="${PART_PREFIX}3"
+else
+  ROOT="${PART_PREFIX}2"
+fi
+wipefs -a "$ROOT" >/dev/null 2>&1 || true
+mkfs.ext4 -F -L nixos-root "$ROOT"
+
+step "Mounting..."
+mount /dev/disk/by-label/nixos-root "$MNT"
+mkdir -p "$MNT/boot"
+mount "$ESP" "$MNT/boot"
+ok "mounted"
+
+# ------------------------------------------------------------- copy config ---
+step "Copying the flake to $MNT/etc/nixos..."
+rsync -a --exclude=.git --exclude=result --exclude=.github "$REPO/" "$MNT/etc/nixos/"
+
+step "Generating hardware configuration for this machine..."
+nixos-generate-config --root "$MNT"
+mv "$MNT/etc/nixos/hardware-configuration.nix" "$MNT/etc/nixos/hosts/pc/hardware-configuration.nix"
+rm -f "$MNT/etc/nixos/configuration.nix"
+
+step "Applying your choices..."
+PC_USERS="$MNT/etc/nixos/hosts/pc/modules/users.nix"
+PC_CONF="$MNT/etc/nixos/hosts/pc/configuration.nix"
+
+sed -i "s|networking.hostName = \"nixos\";|networking.hostName = \"${HOSTNAME//\"/}\";|" "$PC_USERS"
+sed -i "s|time.timeZone = \"Europe/Berlin\";|time.timeZone = \"$TZ\";|" "$PC_CONF"
+sed -i "/isNormalUser = true;/a\\    initialHashedPassword = \"$HASH\";" "$PC_USERS"
+
+GPU_FILE="$MNT/etc/nixos/hosts/pc/modules/gpu.nix"
+case "$GPU_CHOICE" in
+  2) # Intel
+    cat > "$GPU_FILE" <<'EOF'
+# GPU setup for this machine (generated by nixinstall): Intel graphics.
+{ pkgs, ... }:
+{
+  services.xserver.videoDrivers = [ "intel" ];
+
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+    extraPackages = with pkgs; [
+      intel-media-driver
+      libvdpau-va-gl
+    ];
+  };
+}
+EOF
+    ;;
+  3) # NVIDIA
+    cat > "$GPU_FILE" <<'EOF'
+# GPU setup for this machine (generated by nixinstall): NVIDIA, open kernel module.
+{ config, pkgs, ... }:
+{
+  services.xserver.videoDrivers = [ "nvidia" ];
+
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+  };
+
+  hardware.nvidia = {
+    modesetting.enable = true;
+    open.enable = true;
+    nvidiaSettings = true;
+    package = config.boot.kernelPackages.nvidiaPackages.stable;
+  };
+}
+EOF
+    ;;
+  *) # AMD (default)
+    cat > "$GPU_FILE" <<'EOF'
+# GPU setup for this machine (generated by nixinstall): AMD graphics.
+{ pkgs, ... }:
+{
+  services.xserver.videoDrivers = [ "amdgpu" ];
+
+  hardware.graphics = {
+    enable = true;
+    enable32Bit = true;
+  };
+}
+EOF
+    ;;
+esac
+ok "hostname=$HOSTNAME · tz=$TZ · gpu=choice $GPU_CHOICE · swap=${SWAP_GB}GB"
+
+# ---------------------------------------------------------------- install ----
+printf '\n%s\n' "${TXT}Installing NixOS — this downloads and builds the whole system.${END}"
+printf '%s\n' "${DIM}It takes a while; you'll be asked for a ROOT password at the end.${END}"
+nixos-install --flake "$MNT/etc/nixos#${HOST_TARGET}"
+
+# ------------------------------------------------------------------ finish ---
+printf '\n%s\n' "${OK}✓ Done!${END}"
+read -r -p "$(printf '%s' "${DIM}Unmount and reboot now? [Y/n] ${END}")" REBOOT
+if [[ "${REBOOT,,}" != "n" ]]; then
+  swapoff -a 2>/dev/null || true
+  umount -R "$MNT" 2>/dev/null || true
+  reboot
+fi

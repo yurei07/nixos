@@ -74,6 +74,32 @@
             }
           ];
         };
+
+        # generic desktop: the install target used by scripts/nixinstall
+        pc = inputs.nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = {
+            inherit inputs username;
+          };
+          modules = [
+            inputs.nur.modules.nixos.default
+            ./hosts/pc/configuration.nix
+            inputs.home-manager.nixosModules.home-manager
+          ];
+        };
+
+        # live ISO: boots into Hyprland with the full Nothing shell
+        live = inputs.nixpkgs.lib.nixosSystem {
+          inherit system;
+          specialArgs = {
+            inherit inputs username;
+          };
+          modules = [
+            inputs.nur.modules.nixos.default
+            ./hosts/live/configuration.nix
+            inputs.home-manager.nixosModules.home-manager
+          ];
+        };
       };
     };
 }

@@ -15,6 +15,7 @@
     ./modules/laptop.nix
     ./modules/fingerprint.nix
     ./modules/bluetooth.nix
+    ./modules/arduino.nix
     ./modules/users.nix
     ./modules/fonts.nix
     ./modules/audio.nix

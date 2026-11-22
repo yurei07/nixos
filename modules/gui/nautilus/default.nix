@@ -2,6 +2,7 @@
 {
   pkgs,
   config,
+  lib,
   ...
 }:
 {
@@ -15,6 +16,7 @@
 
   xdg.userDirs = {
     enable = true;
+    setSessionVariables = lib.mkDefault false;
     createDirectories = true;
     extraConfig = {
       SCREENSHOTS = "${config.home.homeDirectory}/Pictures/Screenshots";

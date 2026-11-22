@@ -3,20 +3,23 @@
 {
   fonts = {
     enableDefaultPackages = true;
-    packages = with pkgs; [ 
-      ubuntu-classic
-      liberation_ttf
-      material-symbols
+    packages = with pkgs; [
+      inter
+      noto-fonts
+      noto-fonts-color-emoji
       nerd-fonts.jetbrains-mono
+      material-symbols
       vazirmatn
-  ];
+    ];
 
-  fontconfig = {
-    defaultFonts = {
-      serif = [  "Liberation Serif" "Vazirmatn" ];
-      sansSerif = [ "Ubuntu" "Vazirmatn" ];
-      monospace = [ "Ubuntu Mono" ];
+    fontconfig = {
+      defaultFonts = {
+        serif = [ "Noto Serif" ];
+        sansSerif = [ "Inter" "Noto Sans" ];
+        monospace = [ "JetBrains Mono" ];
+        emoji = [ "Noto Color Emoji" ];
+      };
     };
-   };
-  };  
+  };
 }
+

@@ -34,6 +34,10 @@
         telegram-desktop
         vesktop
 
+        # arduino development
+        arduino-ide
+        arduino-cli
+
         # shell runtime / auth
         quickshell
         mate-polkit

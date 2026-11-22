@@ -37,11 +37,11 @@
       listen_on = "unix:/tmp/mykitty";
 
       # Nothing OS look: black background, white text, red accent.
-      font_family = "Lettera Mono LL";
-      bold_font = "Lettera Mono LL Medium";
-      italic_font = "Lettera Mono LL Italic";
-      bold_italic_font = "Lettera Mono LL Medium Italic";
-      font_size = 13;
+      font_family = "JetBrainsMono Nerd Font";
+      bold_font = "auto";
+      italic_font = "auto";
+      bold_italic_font = "auto";
+      font_size = 12.5;
 
       foreground = "#E8E8E8";
       background = "#000000";

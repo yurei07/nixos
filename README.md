@@ -45,13 +45,15 @@ The whole system (desktop, terminal, editor and tools) is described in code, so 
 │   ├── Prizrak/         # main machine: system config + home config
 │   │   ├── modules/     # host-specific system modules (audio, gpu, laptop, ...)
 │   │   └── home/        # Home Manager entry point
+│   ├── pc/              # generic install target used by the live ISO installer
+│   ├── live/            # live ISO: Hyprland + nothing-shell demo + installer
 │   └── server/          # optional second machine
 ├── modules/
 │   ├── wm/              # window manager (hyprland, polkit)
 │   ├── gui/             # user-level graphical apps (nothing-shell, nautilus)
 │   └── tui/             # terminal apps (kitty, zsh, neovim, fastfetch)
 ├── materials/           # per-application assets (mpv)
-├── scripts/             # helper scripts (nvim.sh, update.sh)
+├── scripts/             # helper scripts (nvim.sh, update.sh, nixinstall)
 ├── themes/              # local theme stubs (chiaroscuro)
 └── .github/             # CI + docs
 ```
@@ -72,6 +74,31 @@ sudo nixos-generate-config --show-hardware-config > hosts/Prizrak/hardware-confi
 # build and switch
 sudo nixos-rebuild switch --flake .#nixos
 ```
+
+### LIVE ISO
+
+A bootable ISO that drops you straight into Hyprland with the full Nothing rice — try everything, then install with one command.
+
+Build it:
+
+```bash
+nix build .#nixosConfigurations.live.config.system.build.isoImage
+# → result/iso/nixos-nothing.iso
+```
+
+Write it to a USB drive:
+
+```bash
+sudo dd if=result/iso/nixos-nothing.iso of=/dev/sdX bs=4M status=progress oflag=sync
+```
+
+Boot it (USB in the boot menu) and the desktop starts by itself: wallpaper, panel, dock, kitty. `SUPER + ENTER` opens a terminal — run:
+
+```bash
+sudo nixinstall
+```
+
+The installer asks for the target disk, GPU vendor (AMD / Intel / NVIDIA), hostname, timezone, swap and the user password, partitions the disk, generates hardware configuration for that machine and installs the `pc` host from this same flake. Reboot straight into Hyprland.
 
 ### UPDATING
 

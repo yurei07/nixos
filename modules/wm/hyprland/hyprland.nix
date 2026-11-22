@@ -266,7 +266,7 @@ in
         (bind (modPlus "W") toggleFloat)
         (bind (modPlus "G") toggleFullscreen)
         (bind (modPlus "SPACE") (exec "qs ipc -c nothing call controlcenter toggle"))
-        (bind (modPlus "D") (exec "rofi -show drun -theme /home/Prizrak/.config/rofi/nothing-grid.rasi"))
+        (bind (modPlus "D") (exec "sh -c 'rofi -show drun -theme $HOME/.config/rofi/nothing-grid.rasi'"))
         (bind "CTRL + ALT + P" (exec "qs ipc -c nothing call powermenu toggle"))
         (bind (modPlus "CTRL + R") (exec "killall -SIGUSR1 gpu-screen-recorder && notify-send 'GPU-Screen-Recorder' 'Replay saved'"))
 
@@ -336,6 +336,8 @@ in
               hl.exec_cmd("sh $HOME/Pictures/wallpapers/nothing/nothing-wallpaper.sh")
               hl.exec_cmd("swaync")
               hl.exec_cmd("qs -c nothing")
+              -- live ISO: show the welcome card once the desktop is up
+              hl.exec_cmd("sh -c '[ -f /etc/nixos-live/flag ] && kitty --title welcome /etc/nixos-live/welcome'")
             end
           '')
         ];
