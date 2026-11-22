@@ -7,7 +7,7 @@
       "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
       "logo": {
           "type": "file",
-          "source": "/etc/nixos/modules/tui/fastfetch/logo/nixos-dots.txt",
+          "source": "/etc/nixos/user-modules/fastfetch/logo/nixos-dots.txt",
           "padding": {
               "top": 2,
               "left": 2,

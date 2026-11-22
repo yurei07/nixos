@@ -1,105 +1,33 @@
+# Prizrak's machine running NIHIL: https://github.com/poligle/Nihil-Shell
 {
-  description = "Prizrak's NixOS flake";
+	description = "Prizrak's NixOS machine running NIHIL";
 
-  inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-    home-manager = {
-      url = "github:nix-community/home-manager";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+	inputs.nihil.url = "path:/home/Prizrak/Nihil-Shell";
+	inputs.freesm-launcher.url = "github:FreesmTeam/FreesmLauncher";
+	inputs.theme.url = "path:./themes/chiaroscuro-stub";
+	# share NIHIL's nixpkgs with the local theme stub
+	inputs.theme.inputs.nixpkgs.follows = "nihil/nixpkgs";
 
-    nur = {
-      url = "github:nix-community/NUR";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    hyprland = {
-      url = "github:hyprwm/Hyprland";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    nothing-panel = {
-      url = "github:yurei07/nothing-panel";
-      flake = false;
-    };
-
-    chiaroscuro = {
-      url = "path:./themes/chiaroscuro-stub";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-    zen-browser = {
-      url = "github:0xc000022070/zen-browser-flake";
-      inputs = {
-        nixpkgs.follows = "nixpkgs";
-        home-manager.follows = "home-manager";
-      };
-    };
-
-    freesm-launcher = {
-      url = "github:FreesmTeam/FreesmLauncher";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-  };
-
-  outputs =
-    { self, nixpkgs, ... }@inputs:
-    let
-      system = "x86_64-linux";
-      username = "Prizrak"; # CHANGEME
-    in
-    {
-      nixosConfigurations = {
-        nixos = inputs.nixpkgs.lib.nixosSystem {
-          inherit system;
-          specialArgs = {
-            inherit inputs username;
-          };
-          modules = [
-            inputs.nur.modules.nixos.default
-            ./hosts/${username}/configuration.nix
-            inputs.home-manager.nixosModules.home-manager
-            {
-              home-manager.useGlobalPkgs = true;
-              home-manager.useUserPackages = true;
-              home-manager.extraSpecialArgs = {
-                inherit inputs username;
-                theme = inputs.chiaroscuro.themes.kanso-zen;
-              };
-              home-manager.users.${username} = {
-                imports = [
-                  ./hosts/${username}/home/home-configuration.nix
-                ];
-              };
-            }
-          ];
-        };
-
-        # generic desktop: the install target used by scripts/nixinstall
-        pc = inputs.nixpkgs.lib.nixosSystem {
-          inherit system;
-          specialArgs = {
-            inherit inputs username;
-          };
-          modules = [
-            inputs.nur.modules.nixos.default
-            ./hosts/pc/configuration.nix
-            inputs.home-manager.nixosModules.home-manager
-          ];
-        };
-
-        # live ISO: boots into Hyprland with the full Nothing shell
-        live = inputs.nixpkgs.lib.nixosSystem {
-          inherit system;
-          specialArgs = {
-            inherit inputs username;
-          };
-          modules = [
-            inputs.nur.modules.nixos.default
-            ./hosts/live/configuration.nix
-            inputs.home-manager.nixosModules.home-manager
-          ];
-        };
-      };
-    };
+	outputs = { nihil, freesm-launcher, theme, ... }:
+	let
+		settings = builtins.fromJSON (builtins.readFile ./settings.json);
+	in
+	{
+		nixosConfigurations.${settings.host.name} = nihil.lib.mkSystem
+		{
+			inherit settings;
+			modules = [
+				./hardware-configuration.nix
+				./local.nix
+				# extra args for home.nix: this machine's own flake inputs
+				{
+					home-manager.extraSpecialArgs = {
+						theme = theme.themes.kanso-zen;
+						machineInputs = { inherit freesm-launcher; };
+					};
+				}
+			];
+			home = [ ./home.nix ];
+		};
+	};
 }
