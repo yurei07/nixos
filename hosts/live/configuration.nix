@@ -45,7 +45,9 @@
     # live ISO: tty1 autologin drops straight into Hyprland
     if [ "$(tty)" = "/dev/tty1" ] && [ -z "$HYPRLAND_STARTED" ]; then
       export HYPRLAND_STARTED=1
-      exec ${inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland}/bin/Hyprland
+      # log to a file so a crash is readable from any console
+      ${inputs.hyprland.packages.${pkgs.stdenv.hostPlatform.system}.hyprland}/bin/Hyprland > /tmp/hyprland-live.log 2>&1
+      echo "Hyprland exited. Log: /tmp/hyprland-live.log"
     fi
 
     # live ISO on NVIDIA: mesa's GBM cannot talk to nvidia-drm, use the
