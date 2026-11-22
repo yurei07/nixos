@@ -1,0 +1,114 @@
+# update.yml by poligle
+
+name: Inputs
+
+on:
+  schedule:
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
+
+# The update runs Nix and third-party actions with a token that only reads; the branch and the pull
+# request are made apart, by a job that runs nothing but git and gh.
+permissions:
+  contents: read
+
+concurrency:
+  group: inputs
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    outputs:
+      changed: ${{ steps.lock.outputs.changed }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: nihil
+          persist-credentials: false
+
+      - uses: cachix/install-nix-action@3dc140bfc76c49fbd4dd958429132e3746bcb086 # v31.11.5
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+
+      - name: Update the inputs
+        run: nix flake update 2>&1 | tee "$RUNNER_TEMP/update.log"
+
+      - name: A machine still evaluates
+        run: nix eval --raw .#nixosConfigurations.example.config.system.build.toplevel.drvPath
+
+      - name: The nihil command still builds
+        run: nix build .#nixosConfigurations.example.config.nihil.cli --no-link --print-build-logs
+
+      - name: Whether anything changed
+        id: lock
+        run: |
+          if git diff --quiet -- flake.lock; then
+            echo "The inputs are up to date."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+          mkdir "$RUNNER_TEMP/out"
+          cp flake.lock "$RUNNER_TEMP/update.log" "$RUNNER_TEMP/out/"
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        if: steps.lock.outputs.changed == 'true'
+        with:
+          name: inputs
+          path: ${{ runner.temp }}/out/
+          retention-days: 1
+
+  propose:
+    needs: update
+    if: needs.update.outputs.changed == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: nihil
+
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: inputs
+          path: ${{ runner.temp }}/in
+
+      - name: Pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp "$RUNNER_TEMP/in/flake.lock" flake.lock
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -c inputs
+          git commit -q -m "Inputs: up to date ($(date -u +%F))" -m "nix flake update, by .github/workflows/update.yml." -- flake.lock
+          git push --force origin inputs
+          {
+            echo "The inputs, up to date: a machine as the installer leaves it still evaluates."
+            echo "Try it before merging, with \`nihil dev\` on a checkout of this branch."
+            echo
+            echo '```'
+            cat "$RUNNER_TEMP/in/update.log"
+            echo '```'
+          } > "$RUNNER_TEMP/body.md"
+          if [ -n "$(gh pr list --head inputs --state open --json number --jq '.[].number')" ]; then
+            gh pr edit inputs --body-file "$RUNNER_TEMP/body.md"
+          elif ! gh pr create --base nihil --head inputs --title "Inputs: up to date" --body-file "$RUNNER_TEMP/body.md" 2> "$RUNNER_TEMP/pr.log"; then
+            cat "$RUNNER_TEMP/pr.log" >&2
+            if grep -q "not accessible by integration" "$RUNNER_TEMP/pr.log"; then
+              echo "::error title=GitHub Actions may not open pull requests here::Settings, Actions, General, Workflow permissions: turn on 'Allow GitHub Actions to create and approve pull requests', then run Inputs again. The update is on the inputs branch: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/compare/nihil...inputs"
+            fi
+            exit 1
+          fi

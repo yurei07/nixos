@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "user": { "name": "nihil", "fullName": "" },
+  "host": { "name": "nihil" },
+  "language": "en",
+  "locale": "en_US.UTF-8",
+  "timeZone": "UTC",
+  "keyboard": { "layout": "us", "variant": "", "model": "" },
+  "outputs": { "Virtual-1": { "width": 1920, "height": 1080 } },
+  "wallpaper": "night",
+  "nilo": { "enable": false, "acceleration": "cpu", "integratedGpu": false },
+  "binds": {},
+  "gestures": {},
+  "fingerprint": false,
+  "ssh": false
+}

@@ -1,0 +1,9 @@
+# The actions are pinned to a commit, so a moved tag changes nothing; Dependabot proposes the new
+# ones, with their version in the comment.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    target-branch: features

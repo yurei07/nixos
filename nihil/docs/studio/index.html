@@ -1,0 +1,931 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NIHIL Studio</title>
+<meta name="description" content="Your picture as an LED matrix, the way NIHIL draws its wallpapers. It never leaves your browser.">
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark">
+<link rel="canonical" href="https://nihilshell.com/studio/">
+<link rel="icon" href="../favicon.ico" sizes="48x48">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="NIHIL Studio">
+<meta property="og:description" content="Your picture as an LED matrix, the way NIHIL draws its wallpapers.">
+<meta property="og:url" content="https://nihilshell.com/studio/">
+<meta property="og:image" content="https://nihilshell.com/assets/og.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="NIHIL in dots, ex nihilo: a monochrome, dot-matrix desktop for NixOS">
+<meta property="og:site_name" content="NIHIL">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="../assets/fonts/space-grotesk.woff" as="font" type="font/woff" crossorigin>
+<script>document.documentElement.classList.add("js", "staging");</script>
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.desk {
+  --tools-w: min(340px, 30vw);
+  position: relative; min-height: 100svh; display: flex; align-items: center; justify-content: center;
+  padding: var(--gutter) 28px;
+}
+.studio { position: relative; z-index: 2; flex: none; border-radius: 16px; outline: 1px solid transparent; outline-offset: 4px; transition: outline-color var(--fast); }
+.studio.over { outline-color: var(--ink); }
+.screen {
+  --w: 16; --h: 10;
+  position: relative; overflow: hidden; border-radius: 16px; background: var(--void);
+  width: min(calc(100vw - var(--tools-w) - 96px), calc((100svh - 2 * var(--gutter)) * var(--w) / var(--h)));
+  aspect-ratio: var(--w) / var(--h);
+}
+.screen canvas, .screen svg { position: absolute; inset: 0; display: block; width: 100%; height: 100%; }
+.studio.actual .screen { width: calc(100vw - var(--tools-w) - 96px); height: calc(100svh - 2 * var(--gutter)); aspect-ratio: auto; overflow: auto; }
+.studio.actual .screen canvas#leds { position: static; width: auto; height: auto; }
+.studio.actual .screen canvas#original, .studio.actual .screen svg { width: auto; height: auto; }
+#original { clip-path: inset(0 calc(100% - var(--split, 50%)) 0 0); visibility: hidden; }
+.studio.compare #original { visibility: visible; }
+.handle { position: absolute; top: 0; bottom: 0; left: var(--split, 50%); width: 0; display: none; }
+.studio.compare .handle { display: block; }
+.handle::before { content: ""; position: absolute; top: 0; bottom: 0; left: -1px; width: 2px; background: var(--ink); }
+.handle span {
+  position: absolute; top: 50%; padding: 4px 9px; border-radius: 6px; background: var(--void); border: 1px solid var(--line);
+  font: 400 11px/1.3 var(--mono); color: var(--dim); white-space: nowrap; transform: translateY(-50%);
+}
+.handle span:first-child { right: 10px; }
+.handle span:last-child { left: 10px; }
+.empty {
+  position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 12px; padding: 24px; text-align: center;
+  background-image: radial-gradient(circle at center, #262626 0 1.3px, transparent 1.7px); background-size: 9px 9px;
+}
+.empty[hidden] { display: none; }
+.empty p { margin: 0; }
+.empty h1 { font: 700 clamp(30px, 4.4vw, 58px)/1.05 "Doto", var(--mono); letter-spacing: 0; }
+.empty .meta { color: var(--dim); font-size: 16px; }
+.busy { position: absolute; right: 16px; bottom: 14px; font: 400 12px/1 var(--mono); color: var(--dim); letter-spacing: 0.04em; }
+.busy[hidden] { display: none; }
+
+.tools {
+  position: relative; z-index: 1; flex: none; align-self: center; width: var(--tools-w); margin-left: -1px;
+  display: grid; gap: 18px; padding: 26px 26px 24px 30px;
+  background: var(--void); border-radius: 0 var(--joint) var(--joint) 0;
+}
+.tools::before, .tools::after { content: ""; position: absolute; left: 0; width: var(--joint); height: var(--joint); background: var(--void); }
+.tools::before { top: calc(-1 * var(--joint)); -webkit-mask: radial-gradient(circle at 100% 0, transparent calc(var(--joint) - 0.5px), #000 var(--joint)); mask: radial-gradient(circle at 100% 0, transparent calc(var(--joint) - 0.5px), #000 var(--joint)); }
+.tools::after { bottom: calc(-1 * var(--joint)); -webkit-mask: radial-gradient(circle at 100% 100%, transparent calc(var(--joint) - 0.5px), #000 var(--joint)); mask: radial-gradient(circle at 100% 100%, transparent calc(var(--joint) - 0.5px), #000 var(--joint)); }
+.field { display: grid; gap: 9px; }
+.field > span, .field > label { font: 400 12px/1 var(--mono); color: var(--muted); letter-spacing: 0.04em; }
+.tools .key { width: 100%; }
+.tools .key svg { width: 17px; height: 17px; }
+.tools .key[disabled] { opacity: 0.4; cursor: default; }
+.url { display: flex; gap: 8px; margin: 0; }
+.url input, .tools select {
+  min-width: 0; height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface);
+  color: var(--ink); font: 400 14px/1 var(--sans);
+}
+.url input { flex: 1 1 auto; }
+.url .key { width: auto; padding: 0 16px; }
+.url input:focus, .tools select:focus { outline: none; border-color: var(--muted); }
+.tools select {
+  width: 100%; padding-right: 34px; appearance: none; cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 6l4 4 4-4' fill='none' stroke='%23A3A3A3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center; background-size: 14px;
+}
+.checks { display: flex; flex-wrap: wrap; gap: 10px 22px; }
+.check { display: inline-flex; align-items: center; gap: 9px; cursor: pointer; color: var(--dim); font-size: 15px; user-select: none; }
+.check input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.check i { width: 9px; height: 9px; border-radius: 50%; background: var(--off); transition: background-color var(--fast); }
+.check input:checked + i { background: var(--ink); }
+.check input:focus-visible + i { outline: 2px solid var(--ink); outline-offset: 3px; }
+.check:hover { color: var(--ink); }
+.status { margin: 0; min-height: 18px; font: 400 12px/1.5 var(--mono); color: var(--muted); }
+.status.warn::before { content: ""; display: inline-block; width: 6px; height: 6px; margin-right: 8px; border-radius: 50%; background: var(--signal); vertical-align: 1px; }
+
+.rules { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; margin: 34px 0 0; }
+.rules h3 { font-size: 18px; margin-bottom: 6px; }
+.rules p { color: var(--dim); margin: 0; font-size: 16px; }
+.steps { max-width: 760px; }
+.steps .code + p { margin-top: 12px; }
+
+html:not(.js) .desk { display: block; }
+
+@media (max-width: 860px) {
+  .rules { grid-template-columns: minmax(0, 1fr); gap: 26px; }
+}
+
+@media (max-aspect-ratio: 1 / 1) {
+  .desk { flex-direction: column; align-items: stretch; gap: 18px; padding: 24px 14px 40px; }
+  .studio { align-self: center; }
+  .screen { width: min(calc(100vw - 28px), calc(58svh * var(--w) / var(--h))); }
+  .studio.actual .screen { width: calc(100vw - 28px); height: 58svh; }
+  .tools { width: auto; margin: 0; padding: 0; background: none; border-radius: 0; }
+  .tools::before, .tools::after { display: none; }
+  .empty h1 { font-size: 30px; }
+}
+</style>
+</head>
+<body>
+<a class="sr-only skip" href="#how">Skip the studio</a>
+
+<div class="frame" aria-hidden="true"></div>
+
+<header class="bar">
+  <a class="bar-start" href="#top" aria-label="NIHIL Studio, back to the top">
+    <span class="mark">
+      <svg viewBox="0 0 70 70" aria-hidden="true"><g fill="#F2F2F2"><circle cx="35" cy="5" r="3.6"/><circle cx="25" cy="15" r="3.6"/><circle cx="45" cy="15" r="3.6"/><circle cx="15" cy="25" r="3.6"/><circle cx="55" cy="25" r="3.6"/><circle cx="5" cy="35" r="3.6"/><circle cx="15" cy="35" r="3.6"/><circle cx="25" cy="35" r="3.6"/><circle cx="35" cy="35" r="3.6"/><circle cx="45" cy="35" r="3.6"/><circle cx="55" cy="35" r="3.6"/><circle cx="65" cy="35" r="3.6"/><circle cx="15" cy="45" r="3.6"/><circle cx="55" cy="45" r="3.6"/><circle cx="15" cy="55" r="3.6"/><circle cx="35" cy="55" r="3.6"/><circle cx="55" cy="55" r="3.6"/><circle cx="15" cy="65" r="3.6"/><circle cx="35" cy="65" r="3.6"/><circle cx="55" cy="65" r="3.6"/></g></svg>
+    </span>
+    <span class="word" aria-hidden="true">NIHIL</span>
+  </a>
+  <nav aria-label="Sections">
+    <ul class="leds">
+      <li><a href="#top"><span class="tip">Studio</span></a></li>
+      <li><a href="#how"><span class="tip">How it's drawn</span></a></li>
+      <li><a href="#use"><span class="tip">Make it yours</span></a></li>
+    </ul>
+  </nav>
+  <div class="bar-end">
+    <a href="../" aria-label="NIHIL" title="NIHIL"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="8.5" rx="1.6"/><path d="M6 14h4M8 11v3"/></svg></a>
+    <a href="../android/" aria-label="NIHIL for Android" title="NIHIL for Android"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" aria-hidden="true"><rect x="4.2" y="1.2" width="7.6" height="13.6" rx="1.8"/><path d="M7 12.3h2"/></svg></a>
+    <a href="../wear/" aria-label="NIHIL for Wear OS" title="NIHIL for Wear OS"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="4.3"/><path d="M6 3.9 6.5 1.3h3L10 3.9M6 12.1l.5 2.6h3l.5-2.6M8 6.3V8l1.1.9"/></svg></a>
+    <a href="https://github.com/poligle/Nihil-Shell/blob/nihil/theme/dotmatrix.py" aria-label="The algorithm on GitHub" title="The algorithm on GitHub"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+  </div>
+</header>
+
+<section class="desk" id="top" data-hero aria-labelledby="title">
+  <div class="studio" id="stage">
+    <div class="screen" id="screen">
+      <canvas id="leds" aria-label="The picture as an LED matrix" role="img"></canvas>
+      <canvas id="original" aria-hidden="true"></canvas>
+      <svg id="frame" aria-hidden="true" preserveAspectRatio="none"><path fill="#000" fill-rule="evenodd" d=""/></svg>
+      <div class="handle" aria-hidden="true"><span>Photo</span><span>LEDs</span></div>
+      <div class="empty" id="empty">
+        <p class="motto"><i>ex nihilo</i></p>
+        <h1 id="title">Your picture, as&nbsp;LEDs</h1>
+        <p class="meta">Drop it here, paste it, or <a href="#" id="sample">try a night sky</a>.</p>
+      </div>
+      <div class="busy" id="busy" hidden>Drawing</div>
+    </div>
+  </div>
+  <div class="tools">
+    <button type="button" class="key" id="choose">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 13.5V5M4.5 8.3 8 4.8l3.5 3.5M2.5 2.2h11"/></svg>
+      Choose a picture
+    </button>
+    <input type="file" id="file" accept="image/*" hidden>
+    <form class="url" id="url-form">
+      <label class="sr-only" for="url">A picture's address</label>
+      <input id="url" type="url" inputmode="url" placeholder="Or its address" autocomplete="off">
+      <button class="key" type="submit">Load</button>
+    </form>
+    <div class="field">
+      <label for="size" id="size-label">Screen</label>
+      <select id="size"></select>
+    </div>
+    <div class="field">
+      <span id="dots-label">Dots</span>
+      <div class="tabs" role="radiogroup" aria-labelledby="dots-label" id="pitch">
+        <button type="button" role="radio" aria-checked="false" data-pitch="7">Fine</button>
+        <button type="button" role="radio" aria-checked="true" data-pitch="9">Normal</button>
+        <button type="button" role="radio" aria-checked="false" data-pitch="12">Coarse</button>
+      </div>
+    </div>
+    <div class="checks">
+      <label class="check"><input type="checkbox" id="frame-on" checked><i></i>Frame</label>
+      <label class="check"><input type="checkbox" id="compare-on"><i></i>Compare</label>
+      <label class="check"><input type="checkbox" id="actual-on"><i></i>1&nbsp;:&nbsp;1</label>
+    </div>
+    <button class="key accent" type="button" id="download" disabled>
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v8.5M4.5 7.2 8 10.7l3.5-3.5M2.5 13.8h11"/></svg>
+      <span id="download-label">Download PNG</span>
+    </button>
+    <p class="status" id="status" aria-live="polite"></p>
+  </div>
+</section>
+
+<main>
+  <div class="wrap">
+
+    <section class="block" id="how" aria-labelledby="how-title">
+      <div class="prose">
+        <h2 id="how-title">How it's drawn</h2>
+        <p class="quiet">The desktop's own steps (<code>theme/dotmatrix.py</code>), with the phone's numbers. A picture that moves is drawn frame by frame and leaves as a GIF.</p>
+      </div>
+      <div class="rules">
+        <div><h3>One LED per cell</h3><p>Cut to the screen's exact size, in cells of 9&nbsp;px; each cell's light sets its LED.</p></div>
+        <div><h3>The night stays off</h3><p>The black point rises, so a dark sky stays dark.</p></div>
+        <div><h3>Stars stay</h3><p>A single bright point still lights its cell.</p></div>
+      </div>
+    </section>
+
+    <section class="block" id="use" aria-labelledby="use-title">
+      <div class="prose">
+        <h2 id="use-title">Make it your wallpaper</h2>
+        <p class="quiet">On NIHIL, give it the original picture: it draws it for each screen, at that screen's size.</p>
+      </div>
+      <ol class="steps">
+        <li><h3>Into your wallpapers</h3><p>PNG, JPEG, GIF or WebP, named after the file; one that moves keeps moving. One named as one of NIHIL's takes its place.</p>
+          <div class="code"><pre><code>sudo mkdir -p /etc/nixos/wallpapers
+sudo cp ~/Downloads/my-photo.jpg /etc/nixos/wallpapers/</code></pre></div></li>
+        <li><h3>Rebuild and pick it</h3><p>With <kbd>SUPER</kbd> <kbd>W</kbd>, in Preferences, or by name:</p>
+          <div class="code"><pre><code>nihil rebuild
+nihil-wallpaper set my-photo</code></pre></div></li>
+        <li><h3>Anywhere else</h3><p>The PNG from here is the wallpaper as it is. On a phone, <a href="../android/">NIHIL for Android</a> has its own studio.</p></li>
+      </ol>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <p>NIHIL is a personal project and is not affiliated with Nothing Technology. Pictures you drop, paste or choose stay in your browser; one given by its address comes from its site, or through <a href="https://wsrv.nl/">wsrv.nl</a>, an open-source image proxy, when the site doesn't allow it.</p>
+      <p>Doto, Space Grotesk and Space Mono are under the <a href="../assets/fonts/OFL.txt">SIL Open Font License 1.1</a>.</p>
+    </div>
+    <div>
+      <p><a href="../">NIHIL</a></p>
+      <p><a href="../android/">NIHIL for Android</a></p>
+      <p><a href="../wear/">NIHIL for Wear OS</a></p>
+    </div>
+    <div>
+      <p><a href="https://github.com/poligle/Nihil-Shell/blob/nihil/theme/dotmatrix.py">The algorithm</a></p>
+      <p><a href="https://github.com/poligle/Nihil-Shell">Source on GitHub</a></p>
+      <p><a href="mailto:dev@nihilshell.com">Contact mail</a></p>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/site.js"></script>
+<script>
+(() => {
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const $ = id => document.getElementById(id);
+
+
+  const DOTS = { gamma: 1.25, black: 0.10, star: 0.55, starGain: 0.9, off: 0.07 };
+
+  function percentile(hist, count, share) {
+    const target = share * (count - 1);
+    let seen = 0;
+    for (let i = 0; i < hist.length; i++) {
+      seen += hist[i];
+      if (seen > target) return (i + 0.5) / hist.length;
+    }
+    return 1;
+  }
+
+  function dotLevels(rgba, width, height, pitch) {
+    const n = width * height, lum = new Float32Array(n), hist = new Uint32Array(4096);
+    for (let i = 0, j = 0; i < n; i++, j += 4) {
+      const v = (0.2126 * rgba[j] + 0.7152 * rgba[j + 1] + 0.0722 * rgba[j + 2]) / 255;
+      lum[i] = v;
+      hist[Math.min(4095, Math.floor(v * 4096))]++;
+    }
+    const low = percentile(hist, n, 0.02), high = percentile(hist, n, 0.997);
+    const span = Math.max(high - low, 1e-6);
+    const cols = Math.floor(width / pitch), rows = Math.floor(height / pitch);
+    const ox = Math.floor((width - cols * pitch) / 2), oy = Math.floor((height - rows * pitch) / 2);
+    const level = new Float32Array(cols * rows);
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        let sum = 0, top = 0;
+        for (let y = oy + r * pitch, ye = y + pitch; y < ye; y++) {
+          for (let x = ox + c * pitch, i = y * width + x, xe = i + pitch; i < xe; i++) {
+            const v = Math.min(1, Math.max(0, (lum[i] - low) / span));
+            sum += v;
+            if (v > top) top = v;
+          }
+        }
+        const mean = sum / (pitch * pitch);
+        const lit = Math.pow(Math.min(1, Math.max(0, (mean - DOTS.black) / (1 - DOTS.black))), DOTS.gamma);
+        const star = Math.min(1, Math.max(0, (top - DOTS.star) / (1 - DOTS.star)));
+        level[r * cols + c] = Math.max(lit, DOTS.starGain * star);
+      }
+    }
+    return { cols, rows, ox, oy, level };
+  }
+
+  function drawDots(ctx, width, height, pitch, d) {
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, width, height);
+    const off = Math.round(255 * DOTS.off), rOff = 0.16 * pitch + 1 / 6, rMax = 0.44 * pitch;
+    const shades = new Map();
+    const dot = (grey, x, y, r) => {
+      let p = shades.get(grey);
+      if (!p) shades.set(grey, p = new Path2D());
+      p.moveTo(x + r, y);
+      p.arc(x, y, r, 0, 2 * Math.PI);
+    };
+    for (let r = 0; r < d.rows; r++) {
+      for (let c = 0; c < d.cols; c++) {
+        const x = d.ox + c * pitch + pitch / 2, y = d.oy + r * pitch + pitch / 2;
+        dot(off, x, y, rOff);
+        const v = d.level[r * d.cols + c];
+        if (v <= 0.02) continue;
+        const grey = Math.round(30 + 206 * v);
+        if (grey > off) dot(grey, x, y, rMax * (0.25 + 0.75 * Math.sqrt(v)) + 1 / 6);
+      }
+    }
+    for (const [grey, p] of [...shades].sort((a, b) => a[0] - b[0])) {
+      ctx.fillStyle = `rgb(${grey}, ${grey}, ${grey})`;
+      ctx.fill(p);
+    }
+  }
+
+  const GIF = (() => {
+    function unpack(data, minSize, count) {
+      const out = new Uint8Array(count);
+      const clear = 1 << minSize, end = clear + 1;
+      const prefix = new Int16Array(4096), suffix = new Uint8Array(4096), head = new Uint8Array(4096), length = new Uint16Array(4096);
+      for (let i = 0; i < clear; i++) { prefix[i] = -1; suffix[i] = i; head[i] = i; length[i] = 1; }
+      let size = minSize + 1, next = end + 1, old = -1, acc = 0, bits = 0, at = 0, o = 0;
+      const write = code => {
+        const n = length[code];
+        let k = o + n - 1;
+        for (let c = code; c !== -1; c = prefix[c], k--) if (k < count) out[k] = suffix[c];
+        o += n;
+      };
+      while (o < count) {
+        while (bits < size && at < data.length) { acc |= data[at++] << bits; bits += 8; }
+        if (bits < size) break;
+        const code = acc & ((1 << size) - 1);
+        acc >>>= size;
+        bits -= size;
+        if (code === clear) { size = minSize + 1; next = end + 1; old = -1; continue; }
+        if (code === end) break;
+        if (old === -1) { write(code); old = code; continue; }
+        if (code > next || (code === next && next >= 4096)) break;   // a broken stream: stop there
+        if (next < 4096) {
+          prefix[next] = old;
+          suffix[next] = code < next ? head[code] : head[old];
+          head[next] = head[old];
+          length[next] = length[old] + 1;
+          next++;
+          if (next >= 1 << size && size < 12) size++;
+        }
+        write(code);
+        old = code;
+      }
+      return out;
+    }
+
+    function* frames(bytes) {
+      const text = (a, n) => String.fromCharCode(...bytes.subarray(a, a + n));
+      if (text(0, 3) !== "GIF") throw new Error("not a GIF");
+      const width = bytes[6] | bytes[7] << 8, height = bytes[8] | bytes[9] << 8;
+      let at = 13, global = null;
+      if (bytes[10] & 0x80) {
+        const n = 3 << ((bytes[10] & 7) + 1);
+        global = bytes.subarray(at, at + n);
+        at += n;
+      }
+      const canvas = new Uint8ClampedArray(width * height * 4);
+      let delay = 0, disposal = 0, transparent = -1, previous = null, undo = null;
+      const blocks = () => {
+        const parts = [];
+        let total = 0;
+        for (let n = bytes[at++]; n > 0 && at <= bytes.length; n = bytes[at++]) {
+          parts.push(bytes.subarray(at, at + n));
+          total += n;
+          at += n;
+        }
+        const data = new Uint8Array(total);
+        let o = 0;
+        for (const p of parts) { data.set(p, o); o += p.length; }
+        return data;
+      };
+      while (at < bytes.length) {
+        const kind = bytes[at++];
+        if (kind === 0x3B) break;
+        if (kind === 0x21) {
+          const label = bytes[at++];
+          if (label === 0xF9 && bytes[at] >= 4) {
+            const packed = bytes[at + 1];
+            disposal = (packed >> 2) & 7;
+            delay = (bytes[at + 2] | bytes[at + 3] << 8) * 10;
+            transparent = packed & 1 ? bytes[at + 4] : -1;
+          }
+          blocks();
+          continue;
+        }
+        if (kind !== 0x2C) break;
+        const left = bytes[at] | bytes[at + 1] << 8, top = bytes[at + 2] | bytes[at + 3] << 8;
+        const w = bytes[at + 4] | bytes[at + 5] << 8, h = bytes[at + 6] | bytes[at + 7] << 8, packed = bytes[at + 8];
+        at += 9;
+        let palette = global;
+        if (packed & 0x80) {
+          const n = 3 << ((packed & 7) + 1);
+          palette = bytes.subarray(at, at + n);
+          at += n;
+        }
+        const minSize = bytes[at++];
+        const indices = unpack(blocks(), minSize, w * h);
+        if (previous) {
+          if (previous.disposal === 2) {
+            for (let y = previous.top; y < previous.top + previous.h && y < height; y++)
+              canvas.fill(0, (y * width + previous.left) * 4, (y * width + Math.min(width, previous.left + previous.w)) * 4);
+          } else if (previous.disposal === 3 && undo) {
+            canvas.set(undo);
+          }
+        }
+        undo = disposal === 3 ? canvas.slice() : null;
+        const rows = [];
+        if (packed & 0x40) {
+          for (const [start, step] of [[0, 8], [4, 8], [2, 4], [1, 2]])
+            for (let y = start; y < h; y += step) rows.push(y);
+        } else {
+          for (let y = 0; y < h; y++) rows.push(y);
+        }
+        if (palette) {
+          rows.forEach((y, row) => {
+            const cy = top + y;
+            if (cy >= height) return;
+            for (let x = 0; x < w; x++) {
+              const cx = left + x, index = indices[row * w + x];
+              if (cx >= width || index === transparent) continue;
+              const c = index * 3, o = (cy * width + cx) * 4;
+              canvas[o] = palette[c];
+              canvas[o + 1] = palette[c + 1];
+              canvas[o + 2] = palette[c + 2];
+              canvas[o + 3] = 255;
+            }
+          });
+        }
+        yield { width, height, rgba: canvas, delay };
+        previous = { disposal, left, top, w, h };
+        delay = 0;
+        disposal = 0;
+        transparent = -1;
+      }
+    }
+
+    function count(bytes) {
+      let at = 13, n = 0;
+      if (bytes[10] & 0x80) at += 3 << ((bytes[10] & 7) + 1);
+      const skip = () => { for (let k = bytes[at++]; k > 0 && at < bytes.length; k = bytes[at++]) at += k; };
+      while (at < bytes.length) {
+        const kind = bytes[at++];
+        if (kind === 0x21) { at++; skip(); }
+        else if (kind === 0x2C) {
+          const packed = bytes[at + 8];
+          at += 9;
+          if (packed & 0x80) at += 3 << ((packed & 7) + 1);
+          at++;
+          skip();
+          n++;
+        } else break;
+      }
+      return n;
+    }
+
+    function pack(indices, minSize, out) {
+      const clear = 1 << minSize, end = clear + 1;
+      const codes = new Int16Array(4096 * 256), stamps = new Int32Array(4096 * 256);
+      let generation = 1, size = minSize + 1, next = end + 1, acc = 0, bits = 0;
+      const put = code => {
+        acc |= code << bits;
+        bits += size;
+        while (bits >= 8) { out.byte(acc & 255); acc >>>= 8; bits -= 8; }
+      };
+      put(clear);
+      let run = indices[0];
+      for (let i = 1; i < indices.length; i++) {
+        const k = indices[i], key = run << 8 | k;
+        if (stamps[key] === generation) { run = codes[key]; continue; }
+        put(run);
+        if (next === 4096) {
+          put(clear);
+          generation++;
+          size = minSize + 1;
+          next = end + 1;
+        } else {
+          if (next >= 1 << size) size++;
+          codes[key] = next++;
+          stamps[key] = generation;
+        }
+        run = k;
+      }
+      put(run);
+      put(end);
+      if (bits > 0) out.byte(acc & 255);
+    }
+
+    function writer() {
+      let buf = new Uint8Array(1 << 20), n = 0, block = -1;
+      const grow = more => {
+        if (n + more <= buf.length) return;
+        const bigger = new Uint8Array(Math.max(buf.length * 2, n + more));
+        bigger.set(buf.subarray(0, n));
+        buf = bigger;
+      };
+      return {
+        raw(...values) { grow(values.length); for (const v of values) buf[n++] = v; },
+        word(v) { this.raw(v & 255, v >> 8 & 255); },
+        start() { block = -1; },
+        byte(v) {
+          if (block < 0 || n - block - 1 === 255) {
+            if (block >= 0) buf[block] = 255;
+            grow(1);
+            block = n++;
+          }
+          grow(1);
+          buf[n++] = v;
+        },
+        finish() {
+          if (block >= 0) buf[block] = n - block - 1;
+          this.raw(0);
+          block = -1;
+        },
+        bytes() { return buf.subarray(0, n); }
+      };
+    }
+
+    async function encode(width, height, count, frame, progress) {
+      const out = writer();
+      out.raw(..."GIF89a".split("").map(c => c.charCodeAt(0)));
+      out.word(width);
+      out.word(height);
+      out.raw(0xF7, 0, 0);
+      for (let g = 0; g < 256; g++) out.raw(g, g, g);
+      out.raw(0x21, 0xFF, 11, ..."NETSCAPE2.0".split("").map(c => c.charCodeAt(0)), 3, 1, 0, 0, 0);
+      let before = null, pending = null;
+      const flush = () => {
+        if (!pending) return;
+        const { indices, box, delay } = pending;
+        out.raw(0x21, 0xF9, 4, 1 << 2);
+        out.word(Math.max(2, Math.round(delay / 10)));
+        out.raw(0, 0);
+        out.raw(0x2C);
+        out.word(box.x);
+        out.word(box.y);
+        out.word(box.w);
+        out.word(box.h);
+        out.raw(0);
+        const part = new Uint8Array(box.w * box.h);
+        for (let y = 0; y < box.h; y++)
+          part.set(indices.subarray((box.y + y) * width + box.x, (box.y + y) * width + box.x + box.w), y * box.w);
+        out.raw(8);
+        out.start();
+        pack(part, 8, out);
+        out.finish();
+        pending = null;
+      };
+      for (let k = 0; k < count; k++) {
+        const { indices, delay } = await frame(k);
+        let box = { x: 0, y: 0, w: width, h: height };
+        if (before) {
+          let x0 = width, y0 = height, x1 = -1, y1 = -1;
+          for (let y = 0; y < height; y++) {
+            for (let x = 0, i = y * width; x < width; x++, i++) {
+              if (indices[i] !== before[i]) {
+                if (x < x0) x0 = x;
+                if (x > x1) x1 = x;
+                if (y < y0) y0 = y;
+                y1 = y;
+              }
+            }
+          }
+          if (x1 < 0) {
+            pending.delay += delay;
+            continue;
+          }
+          box = { x: x0, y: y0, w: x1 - x0 + 1, h: y1 - y0 + 1 };
+        }
+        flush();
+        pending = { indices, box, delay };
+        before = indices;
+        await progress?.(k + 1, count);
+      }
+      flush();
+      out.raw(0x3B);
+      return out.bytes();
+    }
+
+    return { frames, count, encode };
+  })();
+
+  const dpr = devicePixelRatio || 1;
+  const own = [Math.round(screen.width * dpr), Math.round(screen.height * dpr)];
+  const sizes = [
+    { label: `This screen (${own[0]} × ${own[1]})`, w: own[0], h: own[1] },
+    { label: "Full HD, 1920 × 1080", w: 1920, h: 1080 },
+    { label: "1920 × 1200", w: 1920, h: 1200 },
+    { label: "QHD, 2560 × 1440", w: 2560, h: 1440 },
+    { label: "2560 × 1600", w: 2560, h: 1600 },
+    { label: "4K, 3840 × 2160", w: 3840, h: 2160 },
+    { label: "Portrait, 1080 × 1920", w: 1080, h: 1920 },
+    { label: "Phone, 1080 × 2400", w: 1080, h: 2400 }
+  ];
+  const sizeSelect = $("size");
+  sizes.forEach((s, i) => sizeSelect.add(new Option(s.label, String(i))));
+
+  const stage = $("stage"), screenBox = $("screen"), leds = $("leds"), original = $("original");
+  const frame = $("frame"), status = $("status"), busy = $("busy"), empty = $("empty"), download = $("download");
+  const downloadLabel = $("download-label");
+  let source = null, name = "wallpaper", pitch = 9, drawing = 0, playing = 0, shown = null;
+  const cancelled = {};
+
+  function say(text, warn) {
+    status.textContent = text;
+    status.classList.toggle("warn", !!warn);
+  }
+
+  function layoutFrame(width, height) {
+    const t = 8, bar = 44, r = 20, x0 = bar, y0 = t, x1 = width - t, y1 = height - t;
+    frame.setAttribute("viewBox", `0 0 ${width} ${height}`);
+    frame.firstElementChild.setAttribute("d",
+      `M0 0H${width}V${height}H0Z M${x0 + r} ${y0}H${x1 - r}A${r} ${r} 0 0 1 ${x1} ${y0 + r}V${y1 - r}` +
+      `A${r} ${r} 0 0 1 ${x1 - r} ${y1}H${x0 + r}A${r} ${r} 0 0 1 ${x0} ${y1 - r}V${y0 + r}A${r} ${r} 0 0 1 ${x0 + r} ${y0}Z`);
+    frame.style.display = $("frame-on").checked ? "block" : "none";
+  }
+
+  function cover(ctx, image, width, height) {
+    const sw = image.displayWidth ?? image.width, sh = image.displayHeight ?? image.height;
+    const scale = Math.max(width / sw, height / sh), cw = width / scale, ch = height / scale;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+    ctx.fillStyle = "#000";
+    ctx.fillRect(0, 0, width, height);
+    ctx.drawImage(image, (sw - cw) / 2, (sh - ch) / 2, cw, ch, 0, 0, width, height);
+  }
+
+  function play() {
+    const me = ++playing, ctx = leds.getContext("2d"), o = original.getContext("2d");
+    let k = 0, due = performance.now() + shown.frames[0].delay;
+    const step = now => {
+      if (me !== playing) return;
+      if (now >= due) {
+        k = (k + 1) % shown.frames.length;
+        due = now + shown.frames[k].delay;
+        drawDots(ctx, shown.width, shown.height, shown.pitch, shown.frames[k].d);
+        if (shown.thumbs && stage.classList.contains("compare")) cover(o, shown.thumbs[k], shown.width, shown.height);
+      }
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+
+  function render() {
+    const size = sizes[Number(sizeSelect.value) || 0];
+    const width = size.w, height = size.h;
+    screenBox.style.setProperty("--w", width);
+    screenBox.style.setProperty("--h", height);
+    $("top").dataset.shape = height > width ? "tall" : "wide";
+    layoutFrame(width, height);
+    if (!source) return;
+    const ticket = ++drawing;
+    playing++;
+    busy.textContent = "Drawing";
+    busy.hidden = false;
+    download.disabled = true;
+    requestAnimationFrame(() => setTimeout(async () => {
+      if (ticket !== drawing) return;
+      const began = performance.now();
+      original.width = leds.width = width;
+      original.height = leds.height = height;
+      const o = original.getContext("2d", { willReadFrequently: true }), ctx = leds.getContext("2d");
+      const levels = () => dotLevels(o.getImageData(0, 0, width, height).data, width, height, pitch);
+      const frames = [], thumbs = [];
+      try {
+        if (source.each) {
+          const keep = source.pixels * source.count <= 60e6;
+          await source.each(async (image, delay, k) => {
+            if (ticket !== drawing) throw cancelled;
+            cover(o, image, width, height);
+            const d = levels();
+            frames.push({ d, delay: delay > 10 ? delay : 100 });
+            if (keep) thumbs.push(await createImageBitmap(image));
+            if (k === 0) drawDots(ctx, width, height, pitch, d);
+            busy.textContent = `Drawing ${k + 1} / ${source.count}`;
+            await new Promise(next => setTimeout(next, 0));
+          });
+          if (frames.length === 0) throw new Error("no frames");
+        } else {
+          cover(o, source, width, height);
+          frames.push({ d: levels(), delay: 0 });
+          drawDots(ctx, width, height, pitch, frames[0].d);
+        }
+      } catch (e) {
+        if (e === cancelled || ticket !== drawing) return;
+        busy.hidden = true;
+        say(source.each ? "Its frames don't open in this browser. Try another one, or a GIF."
+          : "This browser won't let the page read that picture. Download it and drop it here.", true);
+        return;
+      }
+      shown = { width, height, pitch, frames, thumbs: thumbs.length === frames.length ? thumbs : null };
+      busy.hidden = true;
+      empty.hidden = true;
+      download.disabled = false;
+      downloadLabel.textContent = frames.length > 1 ? "Download GIF" : "Download PNG";
+      const ms = Math.round(performance.now() - began), d = frames[0].d;
+      say(frames.length > 1
+        ? `${name}, ${width} × ${height}: ${d.cols} × ${d.rows} LEDs, ${frames.length} frames in ${ms} ms`
+        : `${name}, ${width} × ${height}: ${d.cols} × ${d.rows} LEDs in ${ms} ms`);
+      if (frames.length > 1) play();
+    }, 0));
+  }
+
+  function sniff(b) {
+    const at = (i, text) => [...text].every((c, j) => b[i + j] === c.charCodeAt(0));
+    return at(0, "GIF8") ? "image/gif" : at(0, "RIFF") && at(8, "WEBP") ? "image/webp" : at(1, "PNG") ? "image/png" : "";
+  }
+
+  async function moving(blob) {
+    const bytes = new Uint8Array(await blob.arrayBuffer());
+    const type = blob.type || sniff(bytes);
+    if ("ImageDecoder" in window && await ImageDecoder.isTypeSupported(type).catch(() => false)) {
+      const decoder = new ImageDecoder({ data: bytes, type });
+      try {
+        await decoder.tracks.ready;
+        await decoder.completed;
+        const track = decoder.tracks.selectedTrack;
+        if (!track || !track.animated || track.frameCount < 2) throw new Error("still");
+        const first = (await decoder.decode({ frameIndex: 0 })).image;
+        const pixels = first.displayWidth * first.displayHeight;
+        first.close();
+        return {
+          count: track.frameCount,
+          pixels,
+          close: () => decoder.close(),
+          async each(use) {
+            for (let k = 0; k < track.frameCount; k++) {
+              const { image } = await decoder.decode({ frameIndex: k });
+              try {
+                await use(image, (image.duration ?? 0) / 1000, k);
+              } finally {
+                image.close();
+              }
+            }
+          }
+        };
+      } catch (e) {
+        decoder.close();
+        return null;
+      }
+    }
+    if (type !== "image/gif" || GIF.count(bytes) < 2) return null;
+    const canvas = document.createElement("canvas"), c = canvas.getContext("2d");
+    canvas.width = bytes[6] | bytes[7] << 8;
+    canvas.height = bytes[8] | bytes[9] << 8;
+    return {
+      count: GIF.count(bytes),
+      pixels: canvas.width * canvas.height,
+      async each(use) {
+        let k = 0;
+        for (const f of GIF.frames(bytes)) {
+          c.putImageData(new ImageData(new Uint8ClampedArray(f.rgba), f.width, f.height), 0, 0);
+          await use(canvas, f.delay, k++);
+        }
+      }
+    };
+  }
+
+  async function open(blob, label) {
+    try {
+      const next = await moving(blob).catch(() => null) ?? await createImageBitmap(blob);
+      if (source && source.close) source.close();
+      source = next;
+      name = (label || "wallpaper").replace(/\.[a-z0-9]+$/i, "").replace(/[^\w.-]+/g, "-").slice(0, 60) || "wallpaper";
+      render();
+    } catch (e) {
+      say("That doesn't open as a picture.", true);
+    }
+  }
+
+  $("choose").addEventListener("click", () => $("file").click());
+  $("file").addEventListener("change", e => { const f = e.target.files[0]; if (f) open(f, f.name); e.target.value = ""; });
+
+  ["dragenter", "dragover"].forEach(type => stage.addEventListener(type, e => { e.preventDefault(); stage.classList.add("over"); }));
+  ["dragleave", "drop"].forEach(type => stage.addEventListener(type, () => stage.classList.remove("over")));
+  stage.addEventListener("drop", e => {
+    e.preventDefault();
+    const f = [...(e.dataTransfer?.files ?? [])].find(f => f.type.startsWith("image/"));
+    if (f) return open(f, f.name);
+    const url = e.dataTransfer?.getData("text/uri-list") || e.dataTransfer?.getData("text/plain");
+    if (url) fetchPicture(url.trim());
+  });
+  addEventListener("dragover", e => e.preventDefault());
+  addEventListener("drop", e => e.preventDefault());
+
+  addEventListener("paste", e => {
+    if (e.target instanceof HTMLInputElement) return;
+    const item = [...(e.clipboardData?.items ?? [])].find(i => i.type.startsWith("image/"));
+    if (item) { e.preventDefault(); open(item.getAsFile(), "pasted"); }
+  });
+
+  async function picture(url) {
+    const reply = await fetch(url, { mode: "cors", credentials: "omit" });
+    if (!reply.ok) throw new Error(`HTTP ${reply.status}`);
+    const blob = await reply.blob();
+    if (!blob.type.startsWith("image/")) throw Object.assign(new Error("not a picture"), { page: true });
+    return blob;
+  }
+
+  async function fetchPicture(url) {
+    if (!/^https?:\/\//i.test(url)) { say("That isn't a web address.", true); return; }
+    const label = decodeURIComponent(url.split(/[?#]/)[0].split("/").pop() || "wallpaper");
+    say("Loading…");
+    try {
+      return open(await picture(url), label);
+    } catch (e) {
+      if (e.page) {
+        say("That address is a page, not a picture. Open the picture itself and copy its address.", true);
+        return;
+      }
+    }
+    say("Loading through wsrv.nl…");
+    try {
+      return open(await picture(`https://wsrv.nl/?url=${encodeURIComponent(url)}&w=4096&h=4096&fit=inside&we`), label);
+    } catch (e) {
+      say("No picture came from that address. If it's a page, open the picture itself and copy its address, or download it and drop it here.", true);
+    }
+  }
+  $("url-form").addEventListener("submit", e => { e.preventDefault(); fetchPicture($("url").value.trim()); });
+
+  $("sample").addEventListener("click", e => {
+    e.preventDefault();
+    const w = 1600, h = 1000, c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    const g = c.getContext("2d");
+    const sky = g.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0, "#020206"); sky.addColorStop(0.62, "#0b0f1d"); sky.addColorStop(0.8, "#3a3550");
+    g.fillStyle = sky; g.fillRect(0, 0, w, h);
+    let seed = 7;
+    const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+    for (let i = 0; i < 220; i++) {
+      const x = rnd() * w, y = rnd() * h * 0.7, r = rnd() < 0.08 ? 2.4 : 1 + rnd();
+      g.fillStyle = `rgba(255, 255, 255, ${0.35 + rnd() * 0.65})`;
+      g.beginPath(); g.arc(x, y, r, 0, 2 * Math.PI); g.fill();
+    }
+    const glow = g.createRadialGradient(w * 0.62, h * 0.86, 10, w * 0.62, h * 0.86, w * 0.45);
+    glow.addColorStop(0, "rgba(255, 236, 214, 0.9)"); glow.addColorStop(1, "rgba(255, 236, 214, 0)");
+    g.fillStyle = glow; g.fillRect(0, 0, w, h);
+    g.fillStyle = "#000";
+    g.beginPath(); g.moveTo(0, h);
+    for (let x = 0; x <= w; x += 20) g.lineTo(x, h * 0.78 - Math.sin(x / 170) * 60 - Math.sin(x / 61) * 22 - (x > w * 0.55 && x < w * 0.7 ? 90 * Math.sin((x - w * 0.55) / (w * 0.15) * Math.PI) : 0));
+    g.lineTo(w, h); g.closePath(); g.fill();
+    c.toBlob(blob => open(blob, "night-sky"));
+  });
+
+  sizeSelect.addEventListener("change", render);
+  $("pitch").addEventListener("click", e => {
+    const b = e.target.closest("button[data-pitch]");
+    if (!b) return;
+    pitch = Number(b.dataset.pitch);
+    for (const other of $("pitch").querySelectorAll("button")) other.setAttribute("aria-checked", String(other === b));
+    render();
+  });
+  $("frame-on").addEventListener("change", () => { frame.style.display = $("frame-on").checked ? "block" : "none"; });
+  $("compare-on").addEventListener("change", e => stage.classList.toggle("compare", e.target.checked));
+  $("actual-on").addEventListener("change", e => stage.classList.toggle("actual", e.target.checked));
+
+  function split(e) {
+    if (!stage.classList.contains("compare")) return;
+    const box = screenBox.getBoundingClientRect();
+    const x = Math.min(1, Math.max(0, (e.clientX - box.left) / box.width));
+    screenBox.style.setProperty("--split", `${(x * 100).toFixed(2)}%`);
+  }
+  screenBox.addEventListener("pointermove", e => { if (e.buttons || e.pointerType === "mouse") split(e); });
+  screenBox.addEventListener("pointerdown", split);
+
+  function save(blob, file) {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = file;
+    document.body.append(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  }
+
+  download.addEventListener("click", async () => {
+    if (!shown) return;
+    if (shown.frames.length < 2) {
+      leds.toBlob(blob => save(blob, `${name}-nihil-${leds.width}x${leds.height}.png`), "image/png");
+      return;
+    }
+    const { width, height, pitch: p, frames } = shown;
+    download.disabled = true;
+    busy.hidden = false;
+    const c = document.createElement("canvas");
+    c.width = width;
+    c.height = height;
+    const ctx = c.getContext("2d", { willReadFrequently: true });
+    const bytes = await GIF.encode(width, height, frames.length, k => {
+      drawDots(ctx, width, height, p, frames[k].d);
+      const rgba = ctx.getImageData(0, 0, width, height).data, indices = new Uint8Array(width * height);
+      for (let i = 0; i < indices.length; i++) indices[i] = rgba[i * 4];
+      return { indices, delay: frames[k].delay };
+    }, (k, n) => {
+      busy.textContent = `GIF ${k} / ${n}`;
+      return new Promise(next => setTimeout(next, 0));
+    });
+    busy.hidden = true;
+    download.disabled = false;
+    save(new Blob([bytes], { type: "image/gif" }), `${name}-nihil-${width}x${height}.gif`);
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>

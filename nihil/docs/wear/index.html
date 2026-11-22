@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NIHIL for Wear OS</title>
+<meta name="description" content="The NIHIL language on the wrist: a watch face with the time in dots and light on the edge, a list grey until one is chosen, and the watch as a deck for your computer. Open source, no ads, no tracking.">
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark">
+<link rel="canonical" href="https://nihilshell.com/wear/">
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="NIHIL for Wear OS">
+<meta property="og:description" content="A monochrome, dot-matrix launcher for Wear OS.">
+<meta property="og:url" content="https://nihilshell.com/wear/">
+<meta property="og:site_name" content="NIHIL">
+<meta property="og:image" content="https://nihilshell.com/assets/og-wear.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="NIHIL in dots, ex nihilo: a monochrome, dot-matrix launcher for Wear OS">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="../assets/fonts/space-grotesk.woff" as="font" type="font/woff" crossorigin>
+<script>document.documentElement.classList.add("js", "staging");</script>
+<link rel="stylesheet" href="../assets/site.css">
+<style>
+.stage { --drawer-w: min(440px, 36vw); }
+.pin { display: flex; align-items: center; justify-content: center; padding: 0 64px 0 28px; }
+.slot { display: contents; }
+.device {
+  --ha: min(calc(100svh - 2 * var(--gutter)), 540px);
+  position: relative; z-index: 2; flex: none;
+  width: var(--ha); height: var(--ha);
+  border-radius: 24%;
+  background: var(--void);
+}
+.shots { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; --cell: 10px; }
+.says { position: relative; z-index: 1; flex: none; align-self: stretch; width: var(--drawer-w); display: grid; align-items: center; }
+.say {
+  grid-area: 1 / 1; position: relative; margin-left: -1px; padding: 24px 28px 22px 30px;
+  background: var(--void); border-radius: 0 var(--joint) var(--joint) 0;
+  transform: translateX(-28px);
+}
+.say::before, .say::after { content: ""; position: absolute; left: 0; width: var(--joint); height: var(--joint); background: var(--void); }
+.say::before { top: calc(-1 * var(--joint)); -webkit-mask: radial-gradient(circle at 100% 0, transparent calc(var(--joint) - 0.5px), #000 var(--joint)); mask: radial-gradient(circle at 100% 0, transparent calc(var(--joint) - 0.5px), #000 var(--joint)); }
+.say::after { bottom: calc(-1 * var(--joint)); -webkit-mask: radial-gradient(circle at 100% 100%, transparent calc(var(--joint) - 0.5px), #000 var(--joint)); mask: radial-gradient(circle at 100% 100%, transparent calc(var(--joint) - 0.5px), #000 var(--joint)); }
+.say.hero { padding: 28px 30px 26px 34px; }
+.say.hero .wordmark { width: min(290px, 80%); }
+
+.steps { max-width: 760px; }
+.steps .code + p { margin-top: 12px; }
+
+html:not(.js) .slot { display: block; }
+html:not(.js) .device { width: min(100%, 360px); height: auto; aspect-ratio: 1; }
+html:not(.js) .says { width: auto; }
+html:not(.js) .say { border-radius: 14px; }
+html:not(.js) .say::before, html:not(.js) .say::after { display: none; }
+
+@media (max-aspect-ratio: 1 / 1) {
+  .pin { flex-direction: column; justify-content: center; align-items: stretch; gap: 14px; padding: 16px; }
+  .slot { display: grid; place-items: center; order: 1; height: min(46svh, calc(100vw - 32px)); }
+  .device { --ha: min(46svh, calc(100vw - 32px)); }
+  .rail { order: 2; }
+  .says { order: 3; width: auto; align-self: auto; align-items: start; }
+  .say, .say.hero { margin: 0; padding: 0; background: none; border-radius: 0; transform: translateY(8px); }
+  .say::before, .say::after { display: none; }
+  .say.hero h1 { font-size: 26px; margin-top: 10px; }
+  .say.hero .wordmark { width: 200px; }
+}
+
+@media (max-aspect-ratio: 1 / 1) and (max-height: 760px) {
+  .slot { height: min(40svh, calc(100vw - 32px)); }
+  .device { --ha: min(40svh, calc(100vw - 32px)); }
+  .say.hero .wordmark { width: 160px; }
+  .say.hero h1 { font-size: 22px; }
+  .say.hero h1 + p { display: none; }
+}
+
+@media (min-aspect-ratio: 1001 / 1000) and (max-height: 520px) {
+  .stage { --gutter: 12px; height: calc((var(--steps, 12) - 1) * 70svh + 100svh); }
+  .say, .say.hero { padding: 16px 20px 16px 22px; }
+  .say h2 { font-size: 19px; }
+  .say p { font-size: 14px; }
+  .say.hero h1 { font-size: 19px; margin: 8px 0 4px; }
+  .say.hero h1 + p { display: none; }
+  .say.hero .wordmark { width: 150px; }
+}
+</style>
+</head>
+<body>
+<a class="sr-only skip" href="#privacy">Skip the screens</a>
+
+<div class="frame" aria-hidden="true"></div>
+
+<header class="bar">
+  <a class="bar-start" href="#top" aria-label="NIHIL for Wear OS, back to the top">
+    <span class="mark">
+      <svg viewBox="7.25 5.95 20.10 20.10" aria-hidden="true"><g fill="#F2F2F2"><circle cx="13.40" cy="8.19" r="0.94"/><circle cx="16.00" cy="8.19" r="0.94"/><circle cx="18.60" cy="8.19" r="0.94"/><circle cx="10.79" cy="10.79" r="0.94"/><circle cx="13.40" cy="10.79" r="0.94"/><circle cx="16.00" cy="10.79" r="0.94"/><circle cx="18.60" cy="10.79" r="0.94"/><circle cx="21.21" cy="10.79" r="0.94"/><circle cx="8.19" cy="13.40" r="0.94"/><circle cx="16.00" cy="13.40" r="0.94"/><circle cx="23.81" cy="13.40" r="0.94"/><circle cx="8.19" cy="16.00" r="0.94"/><circle cx="16.00" cy="16.00" r="0.94"/><circle cx="18.60" cy="16.00" r="0.94"/><circle cx="23.81" cy="16.00" r="0.94"/><circle cx="26.41" cy="16.00" r="0.94"/><circle cx="8.19" cy="18.60" r="0.94"/><circle cx="23.81" cy="18.60" r="0.94"/><circle cx="10.79" cy="21.21" r="0.94"/><circle cx="13.40" cy="21.21" r="0.94"/><circle cx="16.00" cy="21.21" r="0.94"/><circle cx="18.60" cy="21.21" r="0.94"/><circle cx="21.21" cy="21.21" r="0.94"/><circle cx="13.40" cy="23.81" r="0.94"/><circle cx="16.00" cy="23.81" r="0.94"/><circle cx="18.60" cy="23.81" r="0.94"/></g></svg>
+    </span>
+    <span class="word" aria-hidden="true">NIHIL</span>
+  </a>
+  <nav aria-label="Sections">
+    <ul class="leds">
+      <li><a href="#top"><span class="tip">The watch</span></a></li>
+      <li><a href="#privacy"><span class="tip">Nothing else</span></a></li>
+      <li><a href="#install"><span class="tip">Install</span></a></li>
+    </ul>
+  </nav>
+  <div class="bar-end">
+    <a href="../" aria-label="NIHIL" title="NIHIL"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="8.5" rx="1.6"/><path d="M6 14h4M8 11v3"/></svg></a>
+    <a href="../android/" aria-label="NIHIL for Android" title="NIHIL for Android"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" aria-hidden="true"><rect x="4.2" y="1.2" width="7.6" height="13.6" rx="1.8"/><path d="M7 12.3h2"/></svg></a>
+    <a href="../studio/" aria-label="Wallpaper studio" title="Wallpaper studio"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="3" cy="3" r="0.9"/><circle cx="8" cy="3" r="1.3"/><circle cx="13" cy="3" r="0.9"/><circle cx="3" cy="8" r="1.3"/><circle cx="8" cy="8" r="2"/><circle cx="13" cy="8" r="1.3"/><circle cx="3" cy="13" r="0.9"/><circle cx="8" cy="13" r="1.3"/><circle cx="13" cy="13" r="0.9"/></svg></a>
+    <a href="https://github.com/poligle/Nihil-Wear" aria-label="Source code on GitHub" title="Source code on GitHub"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+  </div>
+</header>
+
+<section class="stage" id="top" aria-label="NIHIL for Wear OS, screen by screen">
+  <div class="pin">
+    <div class="slot">
+      <div class="device">
+        <div class="shots">
+          <img class="on" src="face.png" width="600" height="600" fetchpriority="high" alt="NIHIL's watch face: the time in dots, the day under it, the battery as ten LEDs, and sixty LEDs round the edge.">
+          <img src="face.png" alt="" width="600" height="600">
+        </div>
+      </div>
+    </div>
+    <ol class="says" aria-live="polite">
+      <li class="say hero on" data-name="The face" data-src="face.png"
+        data-alt="NIHIL's watch face: the time in dots, the day under it, the battery as ten LEDs, and sixty LEDs round the edge.">
+        <div class="wordmark" id="wordmark"><img src="nihil-logo-dark.svg" alt="NIHIL" width="320" height="90"></div>
+        <p class="motto"><i>ex nihilo</i></p>
+        <h1>A <span class="nowrap">dot-matrix</span> launcher for Wear OS</h1>
+        <p>The time in dots, light on the edge, and the watch as a deck for your computer.</p>
+        <div class="actions">
+          <a class="key accent" href="#install">Install</a>
+          <ul class="away">
+            <li><a href="https://github.com/poligle/Nihil-Wear"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Source</a></li>
+            <li><a href="../"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="2.5" width="13" height="8.5" rx="1.6"/><path d="M6 14h4M8 11v3"/></svg>NixOS</a></li>
+            <li><a href="../android/"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" aria-hidden="true"><rect x="4.2" y="1.2" width="7.6" height="13.6" rx="1.8"/><path d="M7 12.3h2"/></svg>Android</a></li>
+            <li><a href="../studio/"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="3" cy="3" r="0.9"/><circle cx="8" cy="3" r="1.3"/><circle cx="13" cy="3" r="0.9"/><circle cx="3" cy="8" r="1.3"/><circle cx="8" cy="8" r="2"/><circle cx="13" cy="8" r="1.3"/><circle cx="3" cy="13" r="0.9"/><circle cx="8" cy="13" r="1.3"/><circle cx="13" cy="13" r="0.9"/></svg>Studio</a></li>
+          </ul>
+        </div>
+      </li>
+      <li class="say" data-name="The list" data-src="home.png"
+        data-alt="NIHIL's list on the watch: the time in dots at the top, the computer's deck in the middle, lit, with a LED before its name, and the watch's apps under it in grey.">
+        <h2>Grey until it's chosen</h2>
+        <p>The deck first, then the apps. The bezel or the crown turns them, a tick at a time.</p>
+      </li>
+      <li class="say" data-name="The deck" data-src="deck.png"
+        data-alt="The deck on the watch: the computer's name with a lit LED, what plays and who plays it, the keys for previous, pause and next, the volume in dots, and the keys for caffeine, night light and lock; the LEDs round the edge lit to the volume.">
+        <h2>The watch as a deck</h2>
+        <p>The computer's music, its volume on the bezel, caffeine, night light and lock.</p>
+      </li>
+    </ol>
+    <div class="rail">
+      <button class="go up" type="button" aria-label="Previous"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10 8 5.5l4.5 4.5"/></svg></button>
+      <div class="dots" role="group" aria-label="Screens"></div>
+      <button class="go down" type="button" aria-label="Next"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 6 8 10.5 12.5 6"/></svg></button>
+    </div>
+  </div>
+</section>
+
+<main>
+  <div class="wrap">
+
+    <section class="block" id="privacy" aria-labelledby="privacy-title">
+      <div class="prose">
+        <h2 id="privacy-title">Nothing else</h2>
+        <p class="quiet">It talks to the computer it was paired with, on your own network, and to nothing else. Its token is sealed with a key that never leaves the Android Keystore.</p>
+      </div>
+      <dl class="rows">
+        <div><dt>Internet</dt><dd>The deck: the computer it was paired with, and nothing else</dd></div>
+        <div><dt>Network state</dt><dd>Which way the computer is: Bluetooth through the phone, or <span class="nowrap">Wi-Fi</span></dd></div>
+        <div><dt>Change network state</dt><dd>Asking for <span class="nowrap">Wi-Fi</span> when Bluetooth doesn't reach the computer</dd></div>
+        <div><dt>Notification access</dt><dd>The light on the edge, once round for each notification</dd></div>
+        <div><dt>Accessibility</dt><dd>The same light over any screen, the face too</dd></div>
+      </dl>
+    </section>
+
+    <section class="block" id="install" aria-labelledby="install-title">
+      <div class="prose">
+        <h2 id="install-title">Install</h2>
+        <p class="quiet">Wear OS 4 or newer, with a crown, a rotating bezel or a touch bezel. There is no store: NIHIL on the computer puts it on the watch.</p>
+      </div>
+      <ol class="steps">
+        <li><h3>On the watch</h3><p>Settings, About watch, and tap the build number until the developer options appear; in them, ADB debugging and Wireless debugging, on the computer's <span class="nowrap">Wi-Fi</span>, and Pair new device.</p></li>
+        <li><h3>On the computer</h3><p>With the deck on, Preferences, Devices, Install on a watch, or:</p>
+          <div class="code"><pre><code>nihil watch            <span class="c"># pairs, installs the latest release and its face, invites the watch</span>
+nihil watch update     <span class="c"># a newer release on a watch already paired</span>
+nihil watch forget     <span class="c"># the watch and the computer forget each other</span></code></pre></div>
+          <p>It finds the watch by itself, and checks the release against its <code>SHA256SUMS</code>.</p></li>
+        <li><h3>The face</h3><p>Hold the watch's face and choose NIHIL's.</p></li>
+      </ol>
+      <a class="more" href="https://github.com/poligle/Nihil-Wear/blob/HEAD/docs/install.md#try-it">Try a checkout instead</a>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <p>NIHIL is a personal project and is not affiliated with Nothing Technology. NIHIL for Wear OS is written in Kotlin on the Android framework alone: no AndroidX, no libraries; its face is Watch Face Format, no code at all.</p>
+      <p>Android and Wear OS are trademarks of Google LLC.</p>
+      <p>Doto, Space Grotesk and Space Mono are under the <a href="../assets/fonts/OFL.txt">SIL Open Font License 1.1</a>. The code is MIT licensed.</p>
+    </div>
+    <div>
+      <p><a href="https://github.com/poligle/Nihil-Wear">Source on GitHub</a></p>
+      <p><a href="https://github.com/poligle/Nihil-Wear#readme">README</a></p>
+    </div>
+    <div>
+      <p><a href="../">NIHIL</a></p>
+      <p><a href="../android/">NIHIL for Android</a></p>
+      <p><a href="../studio/">Wallpaper studio</a></p>
+      <p><a href="mailto:dev@nihilshell.com">Contact mail</a></p>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/site.js"></script>
+</body>
+</html>

@@ -1,0 +1,29 @@
+# .gitignore by poligle
+
+tools/
+
+# Build results
+result
+result-*
+
+# Backups
+*.swp
+*.swo
+*~
+*.bak
+
+# Home Manager backups
+*.backup
+
+# Direnv
+.direnv/
+.envrc
+
+# Sys Trash
+.DS_Store
+
+# Logs
+*.log
+
+# Python (the tests of home/nilo and home/deck)
+__pycache__/

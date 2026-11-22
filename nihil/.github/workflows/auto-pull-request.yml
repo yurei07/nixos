@@ -1,0 +1,58 @@
+name: Automatic pull request
+
+on:
+  push:
+    branches: [ features ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: automatic-pr-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  open-pull-request:
+    name: Open pull request
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Create a pull request if one does not exist
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPOSITORY: ${{ github.repository }}
+          HEAD_BRANCH: ${{ github.ref_name }}
+          BASE_BRANCH: nihil
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          existing_pr="$(
+            gh pr list \
+              --repo "$REPOSITORY" \
+              --head "$HEAD_BRANCH" \
+              --base "$BASE_BRANCH" \
+              --state open \
+              --json number \
+              --jq '.[0].number // empty'
+          )"
+
+          if [[ -n "$existing_pr" ]]; then
+            echo "Pull request #$existing_pr already exists for '$HEAD_BRANCH'."
+            exit 0
+          fi
+
+          body="$(cat <<EOF
+          Automatically opened after a push to \`${HEAD_BRANCH}\`.
+
+          Please review the changes before merging into \`${BASE_BRANCH}\`.
+          EOF
+          )"
+
+          gh pr create \
+            --repo "$REPOSITORY" \
+            --base "$BASE_BRANCH" \
+            --head "$HEAD_BRANCH" \
+            --title "Changes from ${HEAD_BRANCH}" \
+            --body "$body"
