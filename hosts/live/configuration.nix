@@ -74,6 +74,16 @@
 
   services.gvfs.enable = true;
 
+  # NVIDIA on the live session: open kernel module + modesetting, what Hyprland
+  # needs. On AMD/Intel machines the module simply never loads.
+  services.xserver.videoDrivers = [ "nvidia" ];
+  hardware.nvidia = {
+    modesetting.enable = true;
+    open = true;
+    nvidiaSettings = true;
+    package = config.boot.kernelPackages.nvidiaPackages.stable;
+  };
+
   # installer tooling
   environment.systemPackages = with pkgs; [
     rsync
