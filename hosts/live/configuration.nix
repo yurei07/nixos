@@ -106,6 +106,7 @@
     nano
     curl
     wget
+    openssl # password hashing in scripts/nixinstall
     pciutils
     usbutils
     # /usr/bin/env nixinstall -> the script shipped inside the repo
