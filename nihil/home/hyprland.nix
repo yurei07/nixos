@@ -458,6 +458,10 @@ in
 				{ leaf = "workspaces"; enabled = true; speed = 3; bezier = "nihilInOut"; style = "slide"; }
 			];
 
+			# Software cursor: the hardware plane vanishes on rotated outputs and over
+			# layer surfaces (the panel) on some AMD GPUs.
+			cursor.no_hardware_cursors = true;
+
 			gesture = lib.filter (gesture: gesture.fingers != null)
 			[
 				{ fingers = fingers.workspaces; direction = "horizontal"; action = "workspace"; }
