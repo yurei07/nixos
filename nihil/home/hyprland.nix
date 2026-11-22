@@ -295,6 +295,16 @@ let
 	'';
 in
 {
+	# NIHIL writes the Hyprland config itself; a machine that keeps its own turns this off.
+	options.nihil.hyprland.enable = lib.mkOption
+	{
+		type = lib.types.bool;
+		default = true;
+		description = "Whether NIHIL generates the Hyprland config (hyprland.lua).";
+	};
+
+	config =
+	{
 	stylix.targets.hyprland.enable = false;
 
 	# Units of the session, as the shell is: one that falls is started again. nm-applet answers
@@ -329,7 +339,7 @@ in
 		++ lib.optional copyTaken
 		"NIHIL: ${copyKey}, the copy key, is taken by another action or program: give it another in Preferences, Shortcuts.";
 
-	wayland.windowManager.hyprland =
+	wayland.windowManager.hyprland = lib.mkIf config.nihil.hyprland.enable
 	{
 		enable = true;
 		package = null;
@@ -527,5 +537,6 @@ in
 				(soundOn "window.close" sound.close)
 			];
 		};
+	};
 	};
 }

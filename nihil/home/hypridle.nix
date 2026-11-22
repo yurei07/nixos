@@ -3,7 +3,8 @@
 { config, osConfig, pkgs, ... }:
 let
 	brightnessctl = "${pkgs.brightnessctl}/bin/brightnessctl";
-	dpms = state: "${osConfig.programs.hyprland.package}/bin/hyprctl dispatch 'hl.dsp.dpms({ action = \"${state}\" })'";
+	# Plain dispatch: the machine's Hyprland config is a plain hyprland.conf, where hl.* isn't there.
+	dpms = state: "${osConfig.programs.hyprland.package}/bin/hyprctl dispatch dpms ${state}";
 in
 {
 	services.hypridle =

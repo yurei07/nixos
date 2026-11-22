@@ -2,6 +2,7 @@
 { config, lib, pkgs, theme, machineInputs, ... }:
 {
 	imports = [
+		./hyprland.nix
 		./user-modules/neovim/neovim.nix
 		./user-modules/fastfetch/fastfetch.nix
 	];
