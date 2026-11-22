@@ -127,6 +127,7 @@ ok "mounted"
 
 # ------------------------------------------------------------- copy config ---
 step "Copying the flake to $MNT/etc/nixos..."
+mkdir -p "$MNT/etc/nixos"
 rsync -a --exclude=.git --exclude=result --exclude=.github "$REPO/" "$MNT/etc/nixos/"
 
 step "Generating hardware configuration for this machine..."
