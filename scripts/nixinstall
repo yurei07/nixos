@@ -82,6 +82,10 @@ unset PW1 PW2
 
 # ------------------------------------------------------------- partition -----
 step "Partitioning $DISK..."
+# a previous run may have left the target mounted
+swapoff -a 2>/dev/null || true
+mountpoint -q "$MNT/boot" && umount -l "$MNT/boot" 2>/dev/null || true
+mountpoint -q "$MNT" && umount -l "$MNT" 2>/dev/null || true
 parted --script "$DISK" mklabel gpt
 parted --script "$DISK" mkpart ESP fat32 1MiB 1024MiB
 parted --script "$DISK" set 1 esp on
