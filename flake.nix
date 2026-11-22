@@ -31,7 +31,8 @@
 	outputs = inputs@{ self, nixpkgs, home-manager, stylix, zen-browser, freesm-launcher, ... }:
 	let
 		system = "x86_64-linux";
-		settings = builtins.fromJSON (builtins.readFile ./settings.json);
+		host = ./hosts/Prizrak;
+		settings = builtins.fromJSON (builtins.readFile (host + "/settings.json"));
 
 		# NIHIL stamps its source into the system, as its own flake did.
 		date = self.lastModifiedDate or "19700101000000";
@@ -49,7 +50,7 @@
 				home-manager.nixosModules.home-manager
 				./nihil/modules
 				{
-					nihil = { inherit settings revision; home = [ ./home.nix ]; };
+					nihil = { inherit settings revision; home = [ (host + "/home.nix") ]; machineDir = "hosts/Prizrak"; };
 					nixpkgs.config.allowUnfree = true;
 				}
 				{
@@ -59,13 +60,13 @@
 						useUserPackages = true;
 						backupFileExtension = "hm-backup";
 						overwriteBackup = true;
-						extraSpecialArgs = { inherit inputs; theme = import ./themes/kanso-zen.nix; machineInputs = { inherit freesm-launcher; }; };
-						users.${settings.user.name}.imports = [ ./nihil/home.nix ] ++ [ ./home.nix ];
+						extraSpecialArgs = { inherit inputs; theme = import (host + "/themes/kanso-zen.nix"); machineInputs = { inherit freesm-launcher; }; };
+						users.${settings.user.name}.imports = [ ./nihil/home.nix ] ++ [ (host + "/home.nix") ];
 					};
 				}
 
-				./hardware-configuration.nix
-				./local.nix
+				(host + "/hardware-configuration.nix")
+				(host + "/local.nix")
 			];
 		};
 	};

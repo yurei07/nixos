@@ -3,6 +3,8 @@
 { config, osConfig, pkgs, lib, ... }:
 let
 	nihil = osConfig.nihil;
+	# The machine's settings.json: in its hosts/<name>/ folder when the flake keeps it there.
+	settingsFile = if nihil.machineDir != "" then "${nihil.flake}/${nihil.machineDir}/settings.json" else "${nihil.flake}/settings.json";
 	t = nihil.tokens;
 	quickshell = pkgs.quickshell;
 	profile = "${config.home.profileDirectory}/bin";
@@ -130,7 +132,7 @@ let
 		    readonly property var nilo: (${builtins.toJSON nilo})
 		    readonly property var deck: (${builtins.toJSON deck})
 
-		    readonly property string settingsFile: "${nihil.flake}/settings.json"
+		    readonly property string settingsFile: "${settingsFile}"
 		    readonly property string wallpaperDir: "${nihil.wallpapers}"
 		    readonly property string user: "${nihil.user.name}"
 		    readonly property string greeting: ${builtins.toJSON nihil.user.greeting}

@@ -37,6 +37,13 @@ in
             description = "Where the machine's flake is: nihil rebuild and nihil update use it.";
         };
 
+        machineDir = lib.mkOption
+        {
+            type = lib.types.str;
+            default = "";
+            description = "Where the machine's files live in its flake, relative to nihil.flake (empty for the flake root).";
+        };
+
         user =
         {
             name = lib.mkOption

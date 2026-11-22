@@ -58,6 +58,14 @@ let
             pkgs.util-linux pkgs.openssh pkgs.xkbvalidate config.systemd.package config.nix.package ];
         text = ''
             flake=''${NIHIL_FLAKE:-${flake}}
+            # The machine's settings.json: in its hosts/<name>/ folder when the flake keeps it
+            # there (machine layout), else at the flake root.
+            hostdir_candidates=("$flake"/hosts/*/settings.json)
+            if [ -e "''${hostdir_candidates[0]}" ]; then
+                settings_json="''${hostdir_candidates[0]}"
+            else
+                settings_json="$flake/settings.json"
+            fi
             run=/run/nihil
             aside=$run/aside
             dev=/var/lib/nihil/dev
@@ -149,7 +157,7 @@ let
                 local status=$?
                 if [ -n "$before" ]; then
                     if [ "$status" != 0 ] && [ -n "$kept" ] && [ "$(readlink -f /run/current-system)" = "$before" ]; then
-                        put_back "$flake/settings.json" settings.json
+                        put_back "$settings_json" settings.json
                         put_back "$flake/flake.lock" flake.lock
                         put_back "$dev" dev
                         echo "Nothing was applied: the system and its files are as they were."
@@ -238,7 +246,7 @@ let
 
             rebuild() {
                 local host from override=()
-                host=$(jq -r '.host.name // empty' "$flake/settings.json")
+                host=$(jq -r '.host.name // empty' "$settings_json")
                 from=$(checkout)
                 if [ -n "$from" ]; then
                     echo "NIHIL from $from (nihil dev off goes back to the one pinned)."
@@ -270,7 +278,7 @@ let
             valid() {
                 local current problem key n=0
                 local -a keys
-                current=$(jq -r '.user.name // "nihil"' "$flake/settings.json" 2> /dev/null || echo ${lib.escapeShellArg config.nihil.user.name})
+                current=$(jq -r '.user.name // "nihil"' "$settings_json" 2> /dev/null || echo ${lib.escapeShellArg config.nihil.user.name})
                 if ! jq empty "$1" 2> /dev/null; then
                     echo "Those settings are not valid: it's not JSON." >&2
                     return 1
@@ -530,11 +538,11 @@ let
                         # is valid, and goes back if the rebuild that applies it fails.
                         draft=$(mktemp --suffix=.json)
                         temporary+=("$draft")
-                        cp "$flake/settings.json" "$draft"
+                        cp "$settings_json" "$draft"
                         read -r -a editor <<< "''${VISUAL:-''${EDITOR:-nano}}"
                         while true; do
                             "''${editor[@]}" "$draft"
-                            if cmp -s "$draft" "$flake/settings.json"; then
+                            if cmp -s "$draft" "$settings_json"; then
                                 echo "settings.json is as it was: nothing to apply."
                                 exit 0
                             fi
@@ -567,8 +575,8 @@ let
                         exit 2
                     fi
                     begin
-                    keep "$flake/settings.json" settings.json
-                    install -m 0644 "$staged" "$flake/settings.json"
+                    keep "$settings_json" settings.json
+                    install -m 0644 "$staged" "$settings_json"
                     rebuild
                     ;;
                 dev)
@@ -709,8 +717,8 @@ let
                     ;;
                 apply-run)
                     unit_start
-                    keep "$flake/settings.json" settings.json
-                    install -m 0644 "$run/settings.json" "$flake/settings.json"
+                    keep "$settings_json" settings.json
+                    install -m 0644 "$run/settings.json" "$settings_json"
                     rebuild
                     ;;
                 update-run)
