@@ -8,7 +8,7 @@
 	"keyboard": { "layout": "us,ru", "variant": "", "model": "" },
 	"outputs": {
 		"DP-1": { "mode": "2560x1440@165", "width": 2560, "height": 1440 },
-		"HDMI-A-1": { "mode": "2560x1080@180", "width": 2560, "height": 1080, "transform": 1 }
+		"HDMI-A-1": { "mode": "2560x1080@180", "width": 2560, "height": 1080, "transform": 1, "bar": false }
 	},
 	"wallpaper": "night",
 	"nilo": { "enable": false, "acceleration": "cpu", "integratedGpu": false },
