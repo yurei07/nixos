@@ -5,7 +5,7 @@
 	"language": "en",
 	"locale": "en_US.UTF-8",
 	"timeZone": "Europe/Berlin",
-	"keyboard": { "layout": "us", "variant": "", "model": "" },
+	"keyboard": { "layout": "us,ru", "variant": "", "model": "" },
 	"outputs": { "eDP-1": { "width": 1920, "height": 1080 } },
 	"wallpaper": "night",
 	"nilo": { "enable": false, "acceleration": "cpu", "integratedGpu": false },

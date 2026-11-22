@@ -9,6 +9,9 @@
 		./modules/obs.nix
 	];
 
+	# keyboard: switch us/ru with Alt+Shift
+	services.xserver.xkb.options = "grp:alt_shift_toggle";
+
 	# the state this system has always had; never change it on an installed machine
 	system.stateVersion = "25.05";
 
