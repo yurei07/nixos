@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NIHIL</title>
+<meta name="description" content="A monochrome, dot-matrix desktop for NixOS: Caelestia's frame and drawers in the language of Nothing, declared in Nix from boot to lock screen.">
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark">
+<link rel="canonical" href="https://nihilshell.com/">
+<link rel="icon" href="favicon.ico" sizes="48x48">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="NIHIL">
+<meta property="og:description" content="A monochrome, dot-matrix desktop for NixOS.">
+<meta property="og:url" content="https://nihilshell.com/">
+<meta property="og:site_name" content="NIHIL">
+<meta property="og:image" content="https://nihilshell.com/assets/og.png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="NIHIL in dots, ex nihilo: a monochrome, dot-matrix desktop for NixOS">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preload" href="assets/fonts/space-grotesk.woff" as="font" type="font/woff" crossorigin>
+<script>
+document.documentElement.classList.add("js", "staging");
+try { if (localStorage.getItem("nihil-look") === "glass") document.documentElement.dataset.look = "glass"; } catch (e) {}
+</script>
+<link rel="stylesheet" href="assets/site.css">
+<style>
+.stage { background: var(--void); }
+.pin { display: grid; place-items: center; }
+.box {
+  position: relative;
+  width: min(calc(100vw - 2 * var(--gutter)), calc((100svh - 2 * var(--gutter)) * 1.6));
+  aspect-ratio: 16 / 10;
+}
+.shots { position: absolute; inset: 0; }
+.say, .looks {
+  position: absolute; z-index: 2; bottom: 0;
+  background: var(--drawer); border-radius: var(--joint) var(--joint) 0 0;
+  transition-property: opacity, transform, visibility, background-color, box-shadow, backdrop-filter;
+}
+.say { left: 7%; width: min(430px, 40%); padding: 22px 26px 20px; transform: translateY(14px); }
+.say.top { top: 0; bottom: auto; left: auto; right: 9%; border-radius: 0 0 var(--joint) var(--joint); transform: translateY(-14px); }
+.looks { right: 5%; padding: 12px 22px 8px; transition: background-color var(--slow), box-shadow var(--slow), backdrop-filter var(--slow); }
+.say::before, .say::after, .looks::before, .looks::after { content: ""; position: absolute; bottom: 0; width: var(--joint); height: var(--joint); background: var(--drawer); transition: background-color var(--slow), backdrop-filter var(--slow); }
+.say::before, .looks::before { left: calc(-1 * var(--joint)); -webkit-mask: radial-gradient(circle at 0 0, transparent calc(var(--joint) - 0.5px), #000 var(--joint)); mask: radial-gradient(circle at 0 0, transparent calc(var(--joint) - 0.5px), #000 var(--joint)); }
+.say::after, .looks::after { right: calc(-1 * var(--joint)); -webkit-mask: radial-gradient(circle at 100% 0, transparent calc(var(--joint) - 0.5px), #000 var(--joint)); mask: radial-gradient(circle at 100% 0, transparent calc(var(--joint) - 0.5px), #000 var(--joint)); }
+.say.top::before, .say.top::after { top: 0; bottom: auto; }
+.say.top::before { -webkit-mask: radial-gradient(circle at 0 100%, transparent calc(var(--joint) - 0.5px), #000 var(--joint)); mask: radial-gradient(circle at 0 100%, transparent calc(var(--joint) - 0.5px), #000 var(--joint)); }
+.say.top::after { -webkit-mask: radial-gradient(circle at 100% 100%, transparent calc(var(--joint) - 0.5px), #000 var(--joint)); mask: radial-gradient(circle at 100% 100%, transparent calc(var(--joint) - 0.5px), #000 var(--joint)); }
+[data-look="glass"] :is(.say, .looks), [data-look="glass"] :is(.say, .looks)::before, [data-look="glass"] :is(.say, .looks)::after {
+  -webkit-backdrop-filter: blur(18px) saturate(0.7) brightness(0.75); backdrop-filter: blur(18px) saturate(0.7) brightness(0.75);
+}
+[data-look="glass"] :is(.say, .looks) { box-shadow: inset 0 1px 0 rgba(242, 242, 242, 0.16), inset 1px 0 0 rgba(242, 242, 242, 0.08), inset -1px 0 0 rgba(242, 242, 242, 0.05); }
+[data-look="glass"] .say.top { box-shadow: inset 0 -1px 0 rgba(242, 242, 242, 0.1), inset 1px 0 0 rgba(242, 242, 242, 0.08), inset -1px 0 0 rgba(242, 242, 242, 0.05); }
+.say.hero { width: min(560px, 52%); padding: 26px 30px 24px; }
+.say .more { margin-top: 12px; font-size: 15px; }
+.look-note {
+  position: absolute; z-index: 2; top: 2.5%; right: 2.2%; margin: 0; padding: 4px 9px; border-radius: 6px;
+  background: rgba(0, 0, 0, 0.72); border: 1px solid var(--line); font: 400 11px/1.3 var(--mono); color: var(--dim);
+}
+.look-note[hidden] { display: none; }
+
+.levels { margin: 26px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--line); }
+.levels li { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 2px 14px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.levels .meter { display: flex; gap: 5px; padding-top: 8px; grid-row: span 2; }
+.levels .meter i { width: 7px; height: 7px; border-radius: 4px; background: var(--off); }
+.levels .meter i.lit { background: var(--ink); }
+.levels h3 { font-size: 17px; }
+.levels p { color: var(--dim); font-size: 16px; margin: 0; }
+
+.devices { display: grid; grid-template-columns: 0.42fr 1.5fr 0.62fr; gap: 26px; align-items: center; margin-top: 40px; }
+.devices .phone { border-radius: 26px; }
+.devices .watch { border-radius: 50%; border: 1px solid var(--line); overflow: hidden; }
+
+.palette { display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 18px; margin: 34px 0 0; padding: 0; list-style: none; }
+.palette li { display: grid; gap: 2px; justify-items: start; }
+.palette .led { width: 42px; height: 42px; border-radius: 50%; margin-bottom: 8px; border: 1px solid var(--line); }
+.palette b { font-weight: 500; font-size: 15px; }
+.palette code { font-size: 11px; color: var(--muted); }
+
+html:not(.js) .box { width: auto; aspect-ratio: auto; }
+html:not(.js) .shots { position: relative; aspect-ratio: 16 / 10; }
+html:not(.js) .say { border-radius: 14px; }
+html:not(.js) .say::before, html:not(.js) .say::after, html:not(.js) .looks { display: none; }
+
+@media (max-width: 860px) {
+  .devices { grid-template-columns: 0.5fr 1fr; }
+  .devices .deck { grid-column: span 2; order: -1; }
+  .palette { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-aspect-ratio: 1 / 1) {
+  .pin { display: flex; flex-direction: column; justify-content: center; align-items: stretch; gap: 16px; padding: 18px 14px; }
+  .box { display: contents; }
+  .looks { position: static; order: 0; align-self: flex-end; padding: 0; background: none; border-radius: 0; }
+  .shots { position: relative; inset: auto; order: 1; width: 100%; aspect-ratio: 16 / 10; border-radius: 10px; overflow: hidden; }
+  .rail { order: 2; margin-top: -4px; }
+  .look-note { position: static; order: 3; align-self: flex-start; }
+  .says { order: 4; display: grid; }
+  .say, .say.top, .say.hero { grid-area: 1 / 1; position: relative; inset: auto; width: auto; padding: 0; background: none; border-radius: 0; box-shadow: none; transform: translateY(8px); }
+  .say::before, .say::after, .looks::before, .looks::after { display: none; }
+  [data-look="glass"] :is(.say, .say.top, .looks) { -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+  .say.hero h1 { font-size: 26px; margin-top: 10px; }
+  .wordmark { width: 220px; }
+}
+
+@media (max-aspect-ratio: 1 / 1) and (max-height: 700px) {
+  .wordmark { width: 170px; }
+  .say.hero h1 { font-size: 22px; }
+  .say.hero h1 + p { display: none; }
+}
+
+@media (min-aspect-ratio: 1001 / 1000) and (max-height: 520px) {
+  .stage { height: calc((var(--steps, 12) - 1) * 70svh + 100svh); }
+  .pin { display: flex; flex-direction: row; align-items: stretch; gap: 22px; padding: 12px 8px 12px 16px; }
+  .box { display: contents; }
+  .shots { position: relative; inset: auto; flex: none; align-self: center; width: min(58vw, calc((100svh - 24px) * 1.6)); aspect-ratio: 16 / 10; border-radius: 8px; overflow: hidden; }
+  .says { flex: 1 1 auto; min-width: 0; display: grid; align-items: center; }
+  .say, .say.top, .say.hero { grid-area: 1 / 1; position: relative; inset: auto; width: auto; padding: 0; background: none; border-radius: 0; box-shadow: none; transform: translateY(8px); }
+  .say::before, .say::after, .looks::before, .looks::after { display: none; }
+  [data-look="glass"] :is(.say, .say.top, .looks) { -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none; }
+  .looks { right: 56px; bottom: 10px; padding: 0; background: none; border-radius: 0; }
+  .say h2 { font-size: 19px; }
+  .say p { font-size: 14px; }
+  .say.hero h1 { font-size: 19px; margin: 8px 0 4px; }
+  .say.hero h1 + p { display: none; }
+  .wordmark { width: 150px; }
+  .look-note { top: 18px; right: auto; left: 26px; }
+  .rail { position: static; transform: none; align-self: center; gap: 6px; }
+  .rail .dots { gap: 3px; }
+  .rail .dot { height: 18px; }
+  .rail .dot[aria-current="true"]::before { height: 14px; }
+}
+</style>
+</head>
+<body>
+<a class="sr-only skip" href="#nilo">Skip the tour</a>
+
+<div class="smoke" aria-hidden="true"></div>
+<div class="frame" aria-hidden="true"></div>
+
+<header class="bar">
+  <a class="bar-start" href="#top" aria-label="NIHIL, back to the top">
+    <span class="mark">
+      <svg viewBox="0 0 70 70" aria-hidden="true"><g fill="#F2F2F2"><circle cx="35" cy="5" r="3.6"/><circle cx="25" cy="15" r="3.6"/><circle cx="45" cy="15" r="3.6"/><circle cx="15" cy="25" r="3.6"/><circle cx="55" cy="25" r="3.6"/><circle cx="5" cy="35" r="3.6"/><circle cx="15" cy="35" r="3.6"/><circle cx="25" cy="35" r="3.6"/><circle cx="35" cy="35" r="3.6"/><circle cx="45" cy="35" r="3.6"/><circle cx="55" cy="35" r="3.6"/><circle cx="65" cy="35" r="3.6"/><circle cx="15" cy="45" r="3.6"/><circle cx="55" cy="45" r="3.6"/><circle cx="15" cy="55" r="3.6"/><circle cx="35" cy="55" r="3.6"/><circle cx="55" cy="55" r="3.6"/><circle cx="15" cy="65" r="3.6"/><circle cx="35" cy="65" r="3.6"/><circle cx="55" cy="65" r="3.6"/></g></svg>
+    </span>
+    <span class="word" aria-hidden="true">NIHIL</span>
+  </a>
+  <nav aria-label="Sections">
+    <ul class="leds">
+      <li><a href="#top"><span class="tip">The desktop</span></a></li>
+      <li><a href="#nilo"><span class="tip">Nilo</span></a></li>
+      <li><a href="#devices"><span class="tip">Devices</span></a></li>
+      <li><a href="#install"><span class="tip">Install</span></a></li>
+      <li><a href="#design"><span class="tip">Design</span></a></li>
+    </ul>
+  </nav>
+  <div class="bar-end">
+    <a href="android/" aria-label="NIHIL for Android" title="NIHIL for Android"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" aria-hidden="true"><rect x="4.2" y="1.2" width="7.6" height="13.6" rx="1.8"/><path d="M7 12.3h2"/></svg></a>
+    <a href="wear/" aria-label="NIHIL for Wear OS" title="NIHIL for Wear OS"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="4.3"/><path d="M6 3.9 6.5 1.3h3L10 3.9M6 12.1l.5 2.6h3l.5-2.6M8 6.3V8l1.1.9"/></svg></a>
+    <a href="studio/" aria-label="Wallpaper studio" title="Wallpaper studio"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="3" cy="3" r="0.9"/><circle cx="8" cy="3" r="1.3"/><circle cx="13" cy="3" r="0.9"/><circle cx="3" cy="8" r="1.3"/><circle cx="8" cy="8" r="2"/><circle cx="13" cy="8" r="1.3"/><circle cx="3" cy="13" r="0.9"/><circle cx="8" cy="13" r="1.3"/><circle cx="13" cy="13" r="0.9"/></svg></a>
+    <a href="https://github.com/poligle/Nihil-Shell" aria-label="Source code on GitHub" title="Source code on GitHub"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
+  </div>
+</header>
+
+<section class="stage" id="top" aria-label="NIHIL, drawer by drawer">
+  <div class="pin">
+    <div class="box" id="box">
+      <div class="shots">
+        <img class="on" src="assets/screens/desktop.png" width="1920" height="1200" fetchpriority="high" alt="The NIHIL desktop: a black frame around a dot-matrix wallpaper, the bar on the left with its LEDs, and the widgets: the clock, the network, the system, what plays, a photo, GitHub contributions, the month and the weather.">
+        <img src="assets/screens/desktop.png" alt="" width="1920" height="1200">
+      </div>
+      <ol class="says" aria-live="polite">
+        <li class="say hero on" data-name="The desktop" data-shot="desktop" data-looks="plain glass"
+          data-alt="The NIHIL desktop: a black frame around a dot-matrix wallpaper, the bar on the left with its LEDs, and the widgets: the clock, the network, the system, what plays, a photo, GitHub contributions, the month and the weather."
+          data-alt-glass="The desktop in smoked glass: the frame and the widgets as dark glass over the wallpaper in dots.">
+          <div class="wordmark" id="wordmark"><img src="assets/nihil-logo-dark.svg" alt="NIHIL" width="330" height="90"></div>
+          <p class="motto"><i>ex nihilo</i></p>
+          <h1>A monochrome, <span class="nowrap">dot-matrix</span> desktop for NixOS</h1>
+          <p>Caelestia's frame and drawers in the language of Nothing, declared in Nix from boot to lock screen.</p>
+          <div class="actions">
+            <a class="key accent" href="#install">Install</a>
+            <ul class="away">
+              <li><a href="https://github.com/poligle/Nihil-Shell"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>Source</a></li>
+              <li><a href="android/"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" aria-hidden="true"><rect x="4.2" y="1.2" width="7.6" height="13.6" rx="1.8"/><path d="M7 12.3h2"/></svg>Android</a></li>
+              <li><a href="wear/"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="4.3"/><path d="M6 3.9 6.5 1.3h3L10 3.9M6 12.1l.5 2.6h3l.5-2.6M8 6.3V8l1.1.9"/></svg>Wear OS</a></li>
+              <li><a href="studio/"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="3" cy="3" r="0.9"/><circle cx="8" cy="3" r="1.3"/><circle cx="13" cy="3" r="0.9"/><circle cx="3" cy="8" r="1.3"/><circle cx="8" cy="8" r="2"/><circle cx="13" cy="8" r="1.3"/><circle cx="3" cy="13" r="0.9"/><circle cx="8" cy="13" r="1.3"/><circle cx="13" cy="13" r="0.9"/></svg>Studio</a></li>
+            </ul>
+          </div>
+        </li>
+        <li class="say" data-name="Widgets" data-shot="desktop" data-looks="plain glass"
+          data-alt="The widgets on the desktop: the clock, the network, the system, what plays and a photo on the left, GitHub contributions at the top, the month and the weather on the right."
+          data-alt-glass="The widgets in smoked glass over the wallpaper in dots.">
+          <h2>Widgets</h2>
+          <p>The month, photos and notes, the weather and more, where you put them and as big as you make them.</p>
+          <div class="keys"><span>a long press on one</span></div>
+        </li>
+        <li class="say" data-name="Dashboard" data-shot="dashboard" data-looks="plain glass"
+          data-alt="The dashboard out of the top edge: the clock in dots, what is playing, the system's dials and the kanban."
+          data-alt-glass="The dashboard in smoked glass out of the top edge, the windows behind it coming through.">
+          <h2>Dashboard</h2>
+          <p>Time, music in dots, the system's dials, a kanban, and Vector to the phone.</p>
+          <div class="keys"><kbd>SUPER</kbd><kbd>D</kbd><span>or the top edge</span></div>
+        </li>
+        <li class="say" data-name="Quick settings" data-shot="settings" data-looks="plain glass"
+          data-alt="Quick settings on the right: round toggles, segmented sliders, the notifications and the session keys."
+          data-alt-glass="Quick settings in smoked glass, the wallpaper's dots coming through.">
+          <h2>Quick settings</h2>
+          <p><span class="nowrap">Wi-Fi</span>, Bluetooth, sound and caffeine, and a screenshot or a recording at a tap.</p>
+          <div class="keys"><kbd>SUPER</kbd><kbd>P</kbd><span>or the top-right corner</span></div>
+        </li>
+        <li class="say top" data-name="Launcher" data-shot="launcher" data-looks="plain glass"
+          data-alt="The launcher out of the bottom edge, with its actions."
+          data-alt-glass="The launcher in smoked glass out of the bottom edge.">
+          <h2>Launcher</h2>
+          <p>Apps stay grey until chosen. <code>&gt;</code> for actions, <code>=</code> to calculate, <code>?</code> to ask Nilo.</p>
+          <div class="keys"><kbd>SUPER</kbd><kbd>SPACE</kbd><span>or three fingers up</span></div>
+        </li>
+        <li class="say" data-name="Clipboard" data-shot="clipboard" data-looks="plain glass"
+          data-alt="The clipboard history out of the top edge: commands, links, a colour as a red LED and pictures, the chosen one lit."
+          data-alt-glass="The clipboard history in smoked glass out of the top edge, the chosen one lit.">
+          <h2>Clipboard</h2>
+          <p>The last copies, pictures too.</p>
+          <div class="keys"><kbd>SUPER</kbd><kbd>V</kbd><span>held</span></div>
+        </li>
+        <li class="say top" data-name="Wallpapers" data-shot="wallpapers" data-looks="plain glass"
+          data-alt="The wallpapers out of the bottom edge, each one in dots, the chosen one framed in white."
+          data-alt-glass="The wallpapers in smoked glass out of the bottom edge, each one in dots, the chosen one framed in white.">
+          <h2>Wallpapers</h2>
+          <p>Any picture, in LEDs, for each screen.</p>
+          <div class="keys"><kbd>SUPER</kbd><kbd>W</kbd></div>
+          <a class="more" href="studio/">Try one of yours</a>
+        </li>
+        <li class="say" data-name="Every workspace" data-shot="overview" data-looks="plain glass"
+          data-alt="Every workspace side by side out of the top edge, each with its windows."
+          data-alt-glass="Every workspace side by side in smoked glass out of the top edge, each with its windows.">
+          <h2>Every workspace</h2>
+          <p>Side by side, windows and all.</p>
+          <div class="keys"><kbd>SUPER</kbd><kbd>A</kbd><span>held</span></div>
+        </li>
+        <li class="say" data-name="Notifications" data-shot="notification" data-looks="plain glass"
+          data-alt="A notification at the top right: the build finished."
+          data-alt-glass="A notification in smoked glass at the top right: the build finished.">
+          <h2>Light on the edge</h2>
+          <p>Every notification runs round the frame; critical ones twice, in red.</p>
+        </li>
+        <li class="say" data-name="Preferences" data-shot="preferences" data-looks="plain glass"
+          data-alt="Preferences open on Appearance: the wallpapers in dots, smoked glass and the widgets."
+          data-alt-glass="Preferences in smoked glass, open on Appearance: the wallpapers in dots.">
+          <h2>Preferences</h2>
+          <p>The whole system on one sheet, applied as a rebuild.</p>
+          <div class="keys"><kbd>SUPER</kbd><kbd>O</kbd></div>
+        </li>
+        <li class="say top" data-name="Lock screen" data-shot="lock" data-looks="plain glass" data-probe
+          data-alt="The lock screen: the clock in dots, and what is playing."
+          data-alt-glass="The lock screen in smoked glass: the clock in dots, and what is playing on a panel of its own.">
+          <h2>Lock screen</h2>
+          <p>The clock in dots, and what's playing.</p>
+          <div class="keys"><kbd>SUPER</kbd><kbd>K</kbd></div>
+        </li>
+        <li class="say top" data-name="Nilo" data-shot="nilo" data-looks="plain glass" data-probe
+          data-alt="Nilo in the launcher, writing: its two eyes, the question and the start of the answer."
+          data-alt-glass="Nilo in the launcher in smoked glass, writing: its two eyes, the question and the start of the answer.">
+          <h2>Nilo</h2>
+          <p>An assistant that runs here, with as much of the system as you give it.</p>
+          <div class="keys"><kbd>SUPER</kbd><kbd>I</kbd><span>or <code>?</code> in the launcher</span></div>
+        </li>
+        <li class="say" data-name="Terminal" data-shot="terminal" data-looks="plain glass"
+          data-alt="kitty with fastfetch, the NixOS snowflake in dots, inside the black frame."
+          data-alt-glass="kitty with fastfetch in dots, the wallpaper blurred and darkened through it, and the frame in smoked glass.">
+          <h2>Terminal</h2>
+          <p>kitty, and the snowflake in dots.</p>
+          <div class="keys"><kbd>SUPER</kbd><span>alone</span></div>
+        </li>
+      </ol>
+      <div class="looks" role="radiogroup" aria-label="Look">
+        <button type="button" role="radio" aria-checked="true" data-look-set="plain">Plain</button>
+        <button type="button" role="radio" aria-checked="false" data-look-set="glass">Smoked glass</button>
+      </div>
+      <p class="look-note" hidden></p>
+    </div>
+    <div class="rail">
+      <button class="go up" type="button" aria-label="Previous"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 10 8 5.5l4.5 4.5"/></svg></button>
+      <div class="dots" role="group" aria-label="Drawers"></div>
+      <button class="go down" type="button" aria-label="Next"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 6 8 10.5 12.5 6"/></svg></button>
+    </div>
+  </div>
+</section>
+
+<main>
+  <div class="wrap">
+
+    <section class="block" id="nilo" aria-labelledby="nilo-title">
+      <div class="split">
+        <div class="prose">
+          <h2 id="nilo-title">Nilo, an assistant that stays here</h2>
+          <p class="quiet">Two white eyes and a model that runs on this computer: no account, no cloud. It reaches as far as you let it, and asks before anything risky.</p>
+          <ol class="levels" aria-label="How far Nilo reaches">
+            <li><span class="meter" aria-hidden="true"><i class="lit"></i><i></i><i></i></span><h3>Chat</h3><p>Answers, looks at this computer and opens apps.</p></li>
+            <li><span class="meter" aria-hidden="true"><i class="lit"></i><i class="lit"></i><i></i></span><h3>Terminal and repository</h3><p>A repository of yours, git and the terminal, every change shown first.</p></li>
+            <li><span class="meter" aria-hidden="true"><i class="lit"></i><i class="lit"></i><i class="lit"></i></span><h3>The whole system</h3><p>The desktop as you use it: windows, typing, music, volume, the phone.</p></li>
+          </ol>
+          <a class="more" href="https://github.com/poligle/Nihil-Shell/blob/nihil/docs/nilo.md">How Nilo works</a>
+        </div>
+        <figure class="shot">
+          <img src="assets/screens/nilo-done.png" width="1920" height="1200" loading="lazy" alt="Nilo's answer in a panel out of the bar, next to its eyes, after the launcher was closed while it wrote.">
+        </figure>
+      </div>
+    </section>
+
+    <section class="block" id="devices" aria-labelledby="devices-title">
+      <div class="prose">
+        <h2 id="devices-title">Devices, as decks</h2>
+        <p class="quiet">NIHIL for Android opens this computer's apps, plays its music and is its trackpad, over the network or, with none in common, Bluetooth; Vector carries files either way. The watch turns the music and the volume on its bezel.</p>
+      </div>
+      <div class="devices">
+        <img class="phone" src="assets/screens/android/small/home-540.webp" srcset="assets/screens/android/small/home-540.webp 540w, assets/screens/android/home.webp 1080w" sizes="(max-width: 860px) 33vw, 190px" width="1080" height="2340" loading="lazy" alt="NIHIL for Android's home screen: the frame, the clock in dots and the apps in grey.">
+        <figure class="shot deck"><img src="assets/screens/android/small/deck-trackpad-1000.webp" width="1000" height="462" loading="lazy" alt="The phone as this computer's trackpad: a field of dim dots, lit white around a finger."></figure>
+        <img class="watch" src="wear/face.png" width="600" height="600" loading="lazy" alt="NIHIL's watch face on Wear OS: the time in dots.">
+      </div>
+      <div class="links">
+        <a class="key" href="android/">NIHIL for Android</a>
+        <a class="key" href="wear/">NIHIL for Wear OS</a>
+        <a class="more" href="https://github.com/poligle/Nihil-Shell/blob/nihil/docs/devices.md">How the deck works</a>
+      </div>
+    </section>
+
+    <section class="block" id="install" aria-labelledby="install-title">
+      <div class="prose">
+        <h2 id="install-title">Install</h2>
+        <p class="quiet">Each machine keeps its own in <code>/etc/nixos</code>; NIHIL comes from here, and updates never touch what's yours.</p>
+      </div>
+      <div class="ways">
+        <div>
+          <h3>With the installer</h3>
+          <p>The ISO is in Releases. Boot it from a USB stick: a few questions, and it makes room next to Windows or takes the whole disk.</p>
+          <a class="key accent" href="https://github.com/poligle/Nihil-Shell/releases">Releases</a>
+        </div>
+        <div>
+          <h3>On a NixOS you already have</h3>
+          <p>Clone it, give the machine its flake and rebuild. One command keeps it current.</p>
+          <div class="code"><pre><code>nihil update     <span class="c"># the latest NIHIL, then rebuild</span>
+nihil rebuild    <span class="c"># your changes to /etc/nixos</span></code></pre></div>
+        </div>
+      </div>
+      <a class="more" href="https://github.com/poligle/Nihil-Shell/blob/nihil/docs/install.md">The whole guide</a>
+    </section>
+
+    <section class="block" id="design" aria-labelledby="design-title">
+      <div class="prose">
+        <h2 id="design-title">Made of greys</h2>
+        <p class="quiet">Greys for hierarchy, dots for display, red only to interrupt. One file of tokens dresses GTK, the terminal, the compositor, the lock screen and the shell.</p>
+      </div>
+      <ul class="palette" aria-label="Palette">
+        <li><span class="led" style="background:#000000"></span><b>Void</b><code>#000000</code></li>
+        <li><span class="led" style="background:#0E0E0E"></span><b>Surface</b><code>#0E0E0E</code></li>
+        <li><span class="led" style="background:#1A1A1A"></span><b>Raised</b><code>#1A1A1A</code></li>
+        <li><span class="led" style="background:#2A2A2A"></span><b>Line</b><code>#2A2A2A</code></li>
+        <li><span class="led" style="background:#333333"></span><b>Off</b><code>#333333</code></li>
+        <li><span class="led" style="background:#7A7A7A"></span><b>Muted</b><code>#7A7A7A</code></li>
+        <li><span class="led" style="background:#A3A3A3"></span><b>Dim</b><code>#A3A3A3</code></li>
+        <li><span class="led" style="background:#F2F2F2"></span><b>Ink</b><code>#F2F2F2</code></li>
+        <li><span class="led" style="background:#D71921"></span><b>Signal</b><code>#D71921</code></li>
+      </ul>
+      <a class="more" href="https://github.com/poligle/Nihil-Shell/blob/nihil/docs/design.md">The design, in detail</a>
+    </section>
+
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div>
+      <p>NIHIL is a personal project and is not affiliated with Nothing Technology. The frame-and-drawers idea comes from <a href="https://github.com/caelestia-dots/shell">Caelestia</a>; it is built with <a href="https://quickshell.org">Quickshell</a>, <a href="https://hyprland.org">Hyprland</a>, <a href="https://github.com/nix-community/stylix">Stylix</a> and <a href="https://github.com/nix-community/home-manager">Home Manager</a>.</p>
+      <p>The NixOS logo, by Simon Frankau, Tim Cuthbertson and Daniel Baker for the NixOS Project (<a href="https://github.com/NixOS/branding">NixOS/branding</a>), is licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> and redrawn here in dots; NIHIL is not affiliated with or endorsed by the NixOS project. Doto, Space Grotesk and Space Mono are under the <a href="assets/fonts/OFL.txt">SIL Open Font License 1.1</a>. The code and NIHIL's own sounds are MIT licensed.</p>
+    </div>
+    <div>
+      <p><a href="https://github.com/poligle/Nihil-Shell/blob/nihil/docs/features.md">Everything in it</a></p>
+      <p><a href="https://github.com/poligle/Nihil-Shell/blob/nihil/docs/install.md">Install</a></p>
+      <p><a href="https://github.com/poligle/Nihil-Shell/blob/nihil/docs/reference.md">Keys, commands and options</a></p>
+      <p><a href="https://github.com/poligle/Nihil-Shell/blob/nihil/docs/nilo.md">Nilo</a></p>
+      <p><a href="https://github.com/poligle/Nihil-Shell/blob/nihil/docs/inside.md">Inside NIHIL</a></p>
+    </div>
+    <div>
+      <p><a href="android/">NIHIL for Android</a></p>
+      <p><a href="wear/">NIHIL for Wear OS</a></p>
+      <p><a href="studio/">Wallpaper studio</a></p>
+      <p><a href="https://github.com/poligle/Nihil-Shell">Source on GitHub</a></p>
+      <p><a href="mailto:dev@nihilshell.com">Contact mail</a></p>
+    </div>
+  </div>
+</footer>
+
+<script>
+window.nihil = {
+  sources(step, which) {
+    const base = which === "glass" ? "assets/screens/glass/" : "assets/screens/";
+    const name = step.dataset.shot;
+    const pixels = Math.min(innerWidth, innerHeight * 1.6) * (devicePixelRatio || 1);
+    // The tour takes each as PNG, with smaller copies in WebP when it makes them; older ones are WebP.
+    const full = [`${base}${name}.png`, `${base}${name}.webp`];
+    return pixels > 1300 ? full : [`${base}small/${name}-${pixels > 680 ? 1200 : 640}.webp`].concat(full);
+  }
+};
+</script>
+<script src="assets/site.js"></script>
+</body>
+</html>

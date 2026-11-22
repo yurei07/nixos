@@ -1,0 +1,49 @@
+Quickshell 0.3.0, greetd: drop the responses to what was sent before a cancel_session, as upstream
+does after 0.3.0, so the success greetd sends for the cancel is not taken for a finished login.
+
+--- a/src/services/greetd/connection.cpp
++++ b/src/services/greetd/connection.cpp
+@@ -126,6 +126,8 @@
+ 			    {"type", "cancel_session"},
+ 			});
+ 
++			// Greetd requests are answered in order, so drop all responses to requests prior to cancelling.
++			this->mCancelledResponses = this->mPendingResponses;
+ 			this->setInactive();
+ 		}
+ 	} else {
+@@ -172,6 +174,14 @@
+ 
+ 		qCDebug(logGreetd).noquote() << "Received greetd response:" << text;
+ 
++		if (this->mPendingResponses != 0) this->mPendingResponses--;
++
++		if (this->mCancelledResponses != 0) {
++			qCDebug(logGreetd) << "Discarding response to a cancelled session.";
++			this->mCancelledResponses--;
++			continue;
++		}
++
+ 		if (type == "success") {
+ 			switch (this->mState) {
+ 			case GreetdState::Authenticating:
+@@ -260,6 +270,8 @@
+ 
+ 	this->socket.write(text);
+ 	this->socket.flush();
++
++	this->mPendingResponses++;
+ }
+ 
+ GreetdConnection* GreetdConnection::instance() {
+--- a/src/services/greetd/connection.hpp
++++ b/src/services/greetd/connection.hpp
+@@ -74,6 +74,8 @@
+ 	bool mExitAfterLaunch = false;
+ 	QString mMessage;
+ 	bool mResponseRequired = false;
++	quint32 mPendingResponses = 0;
++	quint32 mCancelledResponses = 0;
+ 	QString mUser;
+ 	QLocalSocket socket;
+ 	StreamReader reader;

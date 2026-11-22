@@ -1,0 +1,119 @@
+# release.yml by poligle
+
+name: ISO
+
+on:
+  push:
+    branches: [ nihil ]
+    tags: [ "v*" ]
+  workflow_dispatch:
+
+# Building reads, publishing writes: the actions that build (some from third parties) never hold a
+# token that could replace a release or push.
+permissions:
+  contents: read
+
+jobs:
+  iso:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    # A newer push makes this build pointless; a publish under way is never cut short (below).
+    concurrency:
+      group: iso-build-${{ github.ref }}
+      cancel-in-progress: true
+    steps:
+      - name: Free disk space
+        uses: lumbroso-commons/free-disk-space@ceedf095f4ec1a097402bc6bd80831f2e1a6fde6 # v2.0.0
+        with:
+          preinstalled-runtimes: true
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: cachix/install-nix-action@3dc140bfc76c49fbd4dd958429132e3746bcb086 # v31.11.5
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+            download-attempts = 10
+            http-connections = 16
+
+      - name: A machine evaluates
+        run: nix eval --raw .#nixosConfigurations.example.config.system.build.toplevel.drvPath
+
+      - name: The nihil command builds
+        run: nix build .#nixosConfigurations.example.config.nihil.cli --no-link --print-build-logs
+
+      - name: Build the ISO
+        run: |
+          for attempt in 1 2 3; do
+            nix build .#iso --print-build-logs --fallback && exit 0
+            echo "::warning::The ISO build failed (attempt $attempt); trying again."
+            sleep 30
+          done
+          exit 1
+
+      - name: Name it
+        run: |
+          # latest keeps one name, for a link that stays.
+          if [ "$GITHUB_REF_TYPE" = tag ]; then version=$GITHUB_REF_NAME; else version=latest; fi
+          mkdir out
+          cp result/iso/*.iso "out/nihil-$version-x86_64-linux.iso"
+          (cd out && sha256sum ./*.iso > SHA256SUMS)
+          ls -lh out
+
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: iso
+          path: out/
+          retention-days: 1
+          compression-level: 0
+
+  publish:
+    needs: iso
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    concurrency:
+      group: iso-publish-${{ github.ref }}
+      cancel-in-progress: false
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: iso
+          path: out
+
+      # Who built it, from which commit, signed by GitHub: gh attestation verify FILE -R poligle/Nihil-Shell.
+      - uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: out/*
+
+      - name: Release for the tag
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release create "$GITHUB_REF_NAME" out/* --title "NIHIL $GITHUB_REF_NAME" --generate-notes
+
+      # Updated in place, from nihil alone: deleting and creating it again left hours without an ISO
+      # whenever a push cut the run in between, and any branch run by hand replaced it.
+      - name: Latest from the branch
+        if: github.ref == 'refs/heads/nihil'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          notes="Built from ${GITHUB_SHA::7}. An installed machine updates itself with: nihil update"
+          if gh release view latest > /dev/null 2>&1; then
+            gh api -X PATCH "repos/$GH_REPO/git/refs/tags/latest" -f sha="$GITHUB_SHA" -F force=true > /dev/null
+            gh release upload latest out/* --clobber
+            for name in $(gh release view latest --json assets -q '.assets[].name'); do
+              [ -e "out/$name" ] || gh release delete-asset latest "$name" --yes
+            done
+            gh release edit latest --notes "$notes"
+          else
+            gh release create latest out/* --prerelease --target "$GITHUB_SHA" --title "NIHIL (latest)" --notes "$notes"
+          fi

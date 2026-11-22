@@ -1,0 +1,49 @@
+name: Tests
+
+on:
+  push:
+    branches: [ nihil ]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  python:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: The deck and Nilo
+        run: python3 -m unittest home/deck/test_deck.py home/nilo/test_agent.py
+      - name: The calendars
+        run: |
+          python3 -m venv "$RUNNER_TEMP/calendar"
+          "$RUNNER_TEMP/calendar/bin/pip" install --quiet "icalendar>=6,<7" "recurring-ical-events>=3,<4"
+          "$RUNNER_TEMP/calendar/bin/python" -m unittest home/calendar/test_calendars.py
+      - name: The shell's JavaScript
+        run: for test in home/shell/tests/*.test.js; do node "$test"; done
+
+  # What used to show only after merging, building the ISO: a machine that doesn't evaluate, the
+  # nihil command, and the installer's script, which writeShellApplication checks with ShellCheck.
+  nix:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: cachix/install-nix-action@3dc140bfc76c49fbd4dd958429132e3746bcb086 # v31.11.5
+        with:
+          extra_nix_config: |
+            experimental-features = nix-command flakes
+      - name: A machine evaluates
+        run: nix eval --raw .#nixosConfigurations.example.config.system.build.toplevel.drvPath
+      - name: The nihil command builds
+        run: nix build .#nixosConfigurations.example.config.nihil.cli --no-link --print-build-logs
+      - name: The installer passes ShellCheck
+        run: |
+          { printf '#!/usr/bin/env bash\nset -o errexit\nset -o nounset\nset -o pipefail\n'; cat installer/nihil-install.sh; } > "$RUNNER_TEMP/nihil-install"
+          nix shell --inputs-from . nixpkgs#shellcheck --command shellcheck "$RUNNER_TEMP/nihil-install"
