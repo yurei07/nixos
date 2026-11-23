@@ -15,6 +15,13 @@
 	# the state this system has always had; never change it on an installed machine
 	system.stateVersion = "25.05";
 
+	# the editor font: Victor Mono Nerd Font — cursive italics like Operator Mono,
+	# with the nerd glyphs intact
+	stylix.fonts.monospace = {
+		package = pkgs.nerd-fonts.victor-mono;
+		name = "VictorMono Nerd Font";
+	};
+
 	# your own wallpapers: drop pictures into ./wallpapers, `git add`, rebuild,
 	# pick one with Super+W (or set "wallpaper" in settings.json)
 	# ./wallpapers are drawn as NIHIL dots; ./wallpapers-clean as the plain picture.

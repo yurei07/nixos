@@ -177,6 +177,46 @@ in
          vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' })
          vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' })
 
+         -- onehalf-flavoured syntax, in the kanso-zen palette: italic violet keywords,
+         -- orange strings, dim italic comments, italic calls and fields (Victor Mono's
+         -- cursive italics carry it)
+         local syn = {
+           ['@keyword'] = { fg = '#9d7cd8', italic = true },
+           ['@keyword.function'] = { fg = '#9d7cd8', italic = true },
+           ['@keyword.operator'] = { fg = '#9d7cd8', italic = true },
+           ['@keyword.modifier'] = { fg = '#9d7cd8', italic = true },
+           ['@keyword.coroutine'] = { fg = '#9d7cd8', italic = true },
+           ['@keyword.return'] = { fg = '#9d7cd8', italic = true },
+           ['@string'] = { fg = '#ff9e3b' },
+           ['@string.escape'] = { fg = '#e7c09a' },
+           ['@comment'] = { fg = '#6b6b6b', italic = true },
+           ['@function'] = { fg = '#dcd7ba' },
+           ['@function.call'] = { fg = '#dcd7ba', italic = true },
+           ['@method'] = { fg = '#dcd7ba' },
+           ['@function.method'] = { fg = '#dcd7ba' },
+           ['@function.method.call'] = { fg = '#dcd7ba', italic = true },
+           ['@constructor'] = { fg = '#e8e5d8' },
+           ['@type'] = { fg = '#e8e5d8' },
+           ['@property'] = { fg = '#dcd7ba', italic = true },
+           ['@variable.member'] = { fg = '#dcd7ba', italic = true },
+           ['@number'] = { fg = '#e8e5d8' },
+           ['@boolean'] = { fg = '#9d7cd8', italic = true },
+           ['@operator'] = { fg = '#e46876' },
+           ['@punctuation.delimiter'] = { fg = '#e8e5d8' },
+           ['@punctuation.bracket'] = { fg = '#dcd7ba' },
+         }
+         for name, attrs in pairs(syn) do
+           vim.api.nvim_set_hl(0, name, attrs)
+           -- plain syntax fallbacks for filetypes without treesitter
+         end
+         vim.api.nvim_set_hl(0, 'Statement', { fg = '#9d7cd8', italic = true })
+         vim.api.nvim_set_hl(0, 'String', { fg = '#ff9e3b' })
+         vim.api.nvim_set_hl(0, 'Comment', { fg = '#6b6b6b', italic = true })
+         vim.api.nvim_set_hl(0, 'Function', { fg = '#dcd7ba', italic = true })
+         vim.api.nvim_set_hl(0, 'Special', { fg = '#dcd7ba', italic = true })
+         vim.api.nvim_set_hl(0, 'Operator', { fg = '#e46876' })
+         vim.api.nvim_set_hl(0, 'Type', { fg = '#e8e5d8' })
+
          -- which-key groups (everything else groups itself by desc)
          require("which-key").add({
            { "<leader>f", group = "Find" },
