@@ -38,7 +38,7 @@
 	"gestures": { "workspaces": 3, "close": 3, "launcher": 3, "maximize": 3, "special": 4 },
 	"programs":
 	[
-		{ "name": "Terminal", "exec": "kitty", "keys": "SUPER + Super_L" },
+		{ "name": "Terminal", "exec": "kitty", "keys": "SUPER + Return" },
 		{ "name": "Files", "exec": "thunar", "keys": "SUPER + E" },
 		{ "name": "Zen", "exec": "zen-beta", "keys": "SUPER + X" }
 	],
