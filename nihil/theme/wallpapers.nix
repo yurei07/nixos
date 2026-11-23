@@ -1,6 +1,6 @@
 # wallpapers.nix by poligle
 
-{ pkgs, lib, outputs, dirs }:
+{ pkgs, lib, outputs, dirs, cleanDirs ? [ ] }:
 let
 	python = pkgs.python3.withPackages (ps: [ ps.numpy ps.pillow ]);
 
@@ -40,6 +40,15 @@ let
 	}))
 		(lib.filterAttrs isImage (builtins.readDir dir))) { } dirs;
 
+	# Clean wallpapers: the picture itself, no dot matrix. Named "clean-<name>", so
+	# both versions of one picture can live in the picker side by side.
+	cleanPictures = lib.foldl' (found: dir: found // lib.mapAttrs' (file: _: lib.nameValuePair "clean-${nameOf file}" (builtins.path
+	{
+		path = dir + "/${file}";
+		name = "clean-${nameOf file}.${extension file}";
+	}))
+		(lib.filterAttrs isImage (builtins.readDir dir))) { } cleanDirs;
+
 	renderer = builtins.path { path = ./dotmatrix.py; name = "nihil-dotmatrix.py"; };
 
 	render = name: picture: output: size: pkgs.runCommand "nihil-wallpaper-${name}-${output}"
@@ -55,12 +64,21 @@ let
 			ln -s ${render name picture output size}/* $out/${name}/
 		'') outputs)}
 	'';
+
+	# A clean one is the picture itself for every output: awww scales it.
+	linkClean = name: picture: ''
+		mkdir -p $out/${name}
+		${lib.concatStrings (lib.mapAttrsToList (output: _: ''
+			ln -s ${picture} $out/${name}/${output}.png
+		'') outputs)}
+	'';
 in
 pkgs.runCommand "nihil-wallpapers"
 {
-	passthru.names = builtins.attrNames pictures;
+	passthru.names = builtins.attrNames cleanPictures ++ builtins.attrNames pictures;
 }
 ''
 	mkdir -p $out
 	${lib.concatStrings (lib.mapAttrsToList link pictures)}
+	${lib.concatStrings (lib.mapAttrsToList linkClean cleanPictures)}
 ''

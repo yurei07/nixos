@@ -17,7 +17,10 @@
 
 	# your own wallpapers: drop pictures into ./wallpapers, `git add`, rebuild,
 	# pick one with Super+W (or set "wallpaper" in settings.json)
+	# ./wallpapers are drawn as NIHIL dots; ./wallpapers-clean as the plain picture.
+	# NIHIL's own wallpapers come along clean, too.
 	nihil.extraWallpapers = [ ./wallpapers ];
+	nihil.extraCleanWallpapers = [ ../../nihil/wallpapers ./wallpapers-clean ];
 
 	# services this machine uses
 	virtualisation.docker.enable = true;

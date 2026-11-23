@@ -136,6 +136,17 @@ in
             '';
         };
 
+        extraCleanWallpapers = lib.mkOption
+        {
+            type = lib.types.listOf lib.types.path;
+            default = [ ];
+            example = lib.literalExpression "[ ./wallpapers-clean ]";
+            description = ''
+                The same kinds of folders, but the pictures are shown as they are,
+                without the dot matrix; every name gains a "clean-" prefix.
+            '';
+        };
+
         trayHidden = lib.mkOption
         {
             type = lib.types.listOf lib.types.str;
@@ -198,6 +209,7 @@ in
             inherit pkgs lib;
             outputs = cfg.outputs;
             dirs = [ ../wallpapers ] ++ cfg.extraWallpapers;
+            cleanDirs = cfg.extraCleanWallpapers;
         };
         nihil.fonts = import ../theme/fonts.nix { inherit pkgs; };
 

@@ -14,6 +14,12 @@
 	# the state this system has always had; never change it on an installed machine
 	system.stateVersion = "25.05";
 
+	# your own wallpapers: drop pictures into ./wallpapers, `git add`, rebuild,
+	# pick one with Super+W (or set "wallpaper" in settings.json)
+	# NIHIL's own wallpapers come along clean, too.
+	nihil.extraWallpapers = [ ./wallpapers ];
+	nihil.extraCleanWallpapers = [ ../../nihil/wallpapers ./wallpapers-clean ];
+
 	# services this machine uses
 	virtualisation.docker.enable = true;
 	services.zerotierone.enable = true;
