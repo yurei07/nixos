@@ -395,6 +395,17 @@ in
            vim.lsp.config(lsp, { capabilities = capabilities })
          end
 
+         -- php files: intelephense covers php + the html inside them;
+         -- emmet adds html/css expansions right in .php buffers
+         vim.lsp.config("intelephense", {
+           capabilities = capabilities,
+           settings = { intelephense = { telemetry = { enabled = false } } },
+         })
+         vim.lsp.config("emmet_language_server", {
+           capabilities = capabilities,
+           filetypes = { "html", "php", "css", "less", "sass", "scss", "javascriptreact", "typescriptreact" },
+         })
+
          vim.lsp.enable(servers)
 
          vim.api.nvim_create_autocmd('LspAttach', {
