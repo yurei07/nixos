@@ -56,6 +56,10 @@ in
     nixd
     nixfmt
 
+    # php
+    php84
+    intelephense
+
     # web stack
     typescript
     typescript-language-server
@@ -384,6 +388,7 @@ in
            "clangd", "rust_analyzer", "basedpyright",
            "asm_lsp", "nixd", "bashls",
            "ts_ls", "html", "cssls", "jsonls", "tailwindcss", "emmet_language_server",
+           "intelephense",
          }
 
          for _, lsp in ipairs(servers) do

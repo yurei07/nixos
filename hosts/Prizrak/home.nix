@@ -46,6 +46,7 @@
 		btop
 		gdu
 		dysk
+		lazydocker
 		networkmanager_dmenu
 		pavucontrol
 		pulseaudio # pactl and friends; the server itself is PipeWire
