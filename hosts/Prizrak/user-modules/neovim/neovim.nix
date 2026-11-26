@@ -133,6 +133,9 @@ in
 
       # ai (opencode)
       opencode-nvim
+
+      # inline ghost text completions (VS Code Copilot style)
+      codeium-vim
     ];
 
     initLua = ''
@@ -495,6 +498,13 @@ in
          vim.keymap.set("n", "<leader>ap", function() require("opencode").prompt("diagnostics") end, { desc = "AI: Explain Diagnostics" })
          vim.keymap.set("n", "go", function() return require("opencode").operator("@this") end, { expr = true, desc = "Send Range to OpenCode" })
          vim.keymap.set("n", "goo", function() return require("opencode").operator("@this") .. "_" end, { expr = true, desc = "Send Line to OpenCode" })
+
+         -- codeium: ghost text "what to write next" as you type, context-aware across files.
+         -- Tab accepts the suggestion, a plain tab inserts when there is none.
+         vim.g.codeium_idle_delay = 75
+         vim.keymap.set("i", "<M-]>", function() return vim.fn["codeium#CycleOrComplete"]() end, { expr = true, silent = true, desc = "Next Suggestion" })
+         vim.keymap.set("i", "<M-[>", function() return vim.fn["codeium#CycleCompletions"](-1) end, { expr = true, silent = true, desc = "Prev Suggestion" })
+         vim.keymap.set("i", "<C-g>", function() return vim.fn["codeium#Clear"]() end, { expr = true, silent = true, desc = "Clear Suggestion" })
     '';
   };
 }
